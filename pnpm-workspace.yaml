@@ -36,9 +36,13 @@ overrides:
   # to 14.x unverified. Only consumer is sockjs, nested under
   # webpack-dev-server (docs dev server, not the production build).
   uuid: '>=11.1.1 <12'
-  # 2026-07-23 audit batch - all patch/minor bumps within the tree's existing
-  # major, bounded per the same open-floor lesson as above.
-  brace-expansion: '>=1.1.16 <2'
+  # 2026-07-25: GHSA-mh99-v99m-4gvg (unbounded expansion length -> OOM) covers
+  # the entire 1.x-4.x line, fixed only at 5.0.8 - the 2026-07-23 '<2' bound
+  # above targeted an earlier, narrower advisory and is now stale. This is a
+  # 4-major jump for minimatch@3.1.5's dependency, same "verify the jump"
+  # situation as uuid above - confirmed brace-expansion's expand(str) API is
+  # unchanged across majors and `pnpm turbo run build test` stays green.
+  brace-expansion: '>=5.0.8'
   svgo: '>=3.3.4 <4'
   fast-uri: '>=3.1.4 <4'
   sharp: '>=0.35.0 <1'
