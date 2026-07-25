@@ -109,14 +109,14 @@ for (const p of available) {
 mkdirSync(DB_BASE, { recursive: true });
 const db = new SQLiteAdapter(DB_PATH, DB_BASE);
 
-db.createTable("products", { name: "string", price: "number", inStock: "boolean" });
-db.truncateTable("products");
-db.insertMany("products", products.map((p) => ({ ...p, inStock: p.inStock ? 1 : 0 })));
+await db.createTable("products", { name: "string", price: "number", inStock: "boolean" });
+await db.truncateTable("products");
+await db.insertMany("products", products.map((p) => ({ ...p, inStock: p.inStock ? 1 : 0 })));
 
-const stored = db.getAll("products");
+const stored = await db.getAll("products");
 console.log(\`\\nStored \${stored.length} products to SQLite\`);
 
-db.close();
+await db.close();
 console.log("\\n✓ ${name} ready\\n");
 `;
 }

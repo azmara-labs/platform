@@ -54,15 +54,15 @@ mkdirSync(DB_BASE, { recursive: true });
 
 const db = new SQLiteAdapter(DB_PATH, DB_BASE);
 
-db.createTable("products", { name: "string", price: "number", inStock: "boolean" });
-db.truncateTable("products");
-db.insertMany("products", [
+await db.createTable("products", { name: "string", price: "number", inStock: "boolean" });
+await db.truncateTable("products");
+await db.insertMany("products", [
   { name: "Widget A", price: 29.99, inStock: 1 },
   { name: "Widget B", price: 49.99, inStock: 0 },
   { name: "Widget C", price: 9.99, inStock: 1 },
 ]);
 
-const products = db.getAll<{ name: string; price: number; inStock: number }>("products");
+const products = await db.getAll<{ name: string; price: number; inStock: number }>("products");
 const available = query(products)
   .where((p) => p.inStock === 1)
   .orderBy((a, b) => a.price - b.price)
@@ -73,5 +73,5 @@ for (const p of available) {
   console.log(`    ${p.name}: $${p.price}`);
 }
 
-db.close();
+await db.close();
 console.log("\n✓ Playground complete\n");
