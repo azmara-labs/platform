@@ -1,5 +1,9 @@
 # Azmara Platform
 
+[![CI](https://github.com/azmara-labs/platform/actions/workflows/ci.yml/badge.svg)](https://github.com/azmara-labs/platform/actions/workflows/ci.yml)
+[![npm downloads](https://img.shields.io/npm/dm/@azmr/core?label=downloads%20%28%40azmr%2Fcore%29)](https://www.npmjs.com/package/@azmr/core)
+[![License: MIT](https://img.shields.io/npm/l/@azmr/core)](LICENSE)
+
 > A data-native application runtime — build reactive, local-first apps with zero boilerplate.
 
 The Azmara Platform is a TypeScript monorepo that brings back the simplicity of data-first development. Define your data once, and everything else — UI, logic, queries, persistence — derives from it reactively.
@@ -31,15 +35,17 @@ db.insertMany("products", available.map(p => ({ ...p, inStock: 1 })));
 
 ## Packages
 
-| Package | Description | Version |
-|---|---|---|
-| [`@azmr/core`](packages/core) | Reactive signals, effects, and computed values | [![npm](https://img.shields.io/npm/v/@azmr/core)](https://www.npmjs.com/package/@azmr/core) |
-| [`@azmr/query`](packages/query) | Chainable, type-safe query builder | [![npm](https://img.shields.io/npm/v/@azmr/query)](https://www.npmjs.com/package/@azmr/query) |
-| [`@azmr/security`](packages/security) | Validation, audit logging, env guards | [![npm](https://img.shields.io/npm/v/@azmr/security)](https://www.npmjs.com/package/@azmr/security) |
-| [`@azmr/db`](packages/db) | Secure SQLite persistence adapter | [![npm](https://img.shields.io/npm/v/@azmr/db)](https://www.npmjs.com/package/@azmr/db) |
-| [`@azmr/ui`](packages/ui) | React components wired to Signals | [![npm](https://img.shields.io/npm/v/@azmr/ui)](https://www.npmjs.com/package/@azmr/ui) |
-| [`@azmr/ai`](packages/ai) | AI auto-fix system — sandboxed code analysis and fixes | [![npm](https://img.shields.io/npm/v/@azmr/ai)](https://www.npmjs.com/package/@azmr/ai) |
-| [`@azmr/cli`](packages/cli) | CLI — scaffold apps, query databases | [![npm](https://img.shields.io/npm/v/@azmr/cli)](https://www.npmjs.com/package/@azmr/cli) |
+| Package | Description | Version | Downloads |
+|---|---|---|---|
+| [`@azmr/core`](packages/core) | Reactive signals, effects, and computed values | [![npm](https://img.shields.io/npm/v/@azmr/core)](https://www.npmjs.com/package/@azmr/core) | [![downloads](https://img.shields.io/npm/dm/@azmr/core)](https://www.npmjs.com/package/@azmr/core) |
+| [`@azmr/query`](packages/query) | Chainable, type-safe query builder | [![npm](https://img.shields.io/npm/v/@azmr/query)](https://www.npmjs.com/package/@azmr/query) | [![downloads](https://img.shields.io/npm/dm/@azmr/query)](https://www.npmjs.com/package/@azmr/query) |
+| [`@azmr/security`](packages/security) | Validation, audit logging, env guards | [![npm](https://img.shields.io/npm/v/@azmr/security)](https://www.npmjs.com/package/@azmr/security) | [![downloads](https://img.shields.io/npm/dm/@azmr/security)](https://www.npmjs.com/package/@azmr/security) |
+| [`@azmr/db`](packages/db) | Secure SQLite persistence adapter | [![npm](https://img.shields.io/npm/v/@azmr/db)](https://www.npmjs.com/package/@azmr/db) | [![downloads](https://img.shields.io/npm/dm/@azmr/db)](https://www.npmjs.com/package/@azmr/db) |
+| [`@azmr/db-supabase`](packages/db-supabase) | Supabase/PostgREST adapter — same interface as `@azmr/db` | [![npm](https://img.shields.io/npm/v/@azmr/db-supabase)](https://www.npmjs.com/package/@azmr/db-supabase) | [![downloads](https://img.shields.io/npm/dm/@azmr/db-supabase)](https://www.npmjs.com/package/@azmr/db-supabase) |
+| [`@azmr/ui`](packages/ui) | React components wired to Signals | [![npm](https://img.shields.io/npm/v/@azmr/ui)](https://www.npmjs.com/package/@azmr/ui) | [![downloads](https://img.shields.io/npm/dm/@azmr/ui)](https://www.npmjs.com/package/@azmr/ui) |
+| [`@azmr/ai`](packages/ai) | AI auto-fix system — capability-scoped sandboxed code analysis and fixes | [![npm](https://img.shields.io/npm/v/@azmr/ai)](https://www.npmjs.com/package/@azmr/ai) | [![downloads](https://img.shields.io/npm/dm/@azmr/ai)](https://www.npmjs.com/package/@azmr/ai) |
+| [`@azmr/policycore`](packages/policycore) | Security policy engine — rate limits, auth, CORS, request signing, secrets, API keys, OWASP reporting | [![npm](https://img.shields.io/npm/v/@azmr/policycore)](https://www.npmjs.com/package/@azmr/policycore) | [![downloads](https://img.shields.io/npm/dm/@azmr/policycore)](https://www.npmjs.com/package/@azmr/policycore) |
+| [`@azmr/cli`](packages/cli) | CLI — scaffold apps, query databases, security scans | [![npm](https://img.shields.io/npm/v/@azmr/cli)](https://www.npmjs.com/package/@azmr/cli) | [![downloads](https://img.shields.io/npm/dm/@azmr/cli)](https://www.npmjs.com/package/@azmr/cli) |
 
 ---
 
@@ -72,9 +78,12 @@ pnpm add -g @azmr/cli      # CLI tool
     ↑
 @azmr/core              ← Signal reactive engine
 @azmr/db                ← SQLite adapter (depends: security)
+@azmr/db-supabase       ← Supabase/PostgREST adapter, same interface as db (depends: db, security)
 @azmr/query             ← query builder (depends: core)
 @azmr/ui                ← React components (depends: core)
-@azmr/cli               ← CLI (depends: core, db, security)
+@azmr/policycore        ← policy engine, secrets, API keys, OWASP reporting (depends: security)
+@azmr/ai                ← AI auto-fix + capability-scoped sandbox (depends: security)
+@azmr/cli               ← CLI (depends: core, db, security, ai, policycore)
 ```
 
 ---

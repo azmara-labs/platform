@@ -1,6 +1,6 @@
 {
   "name": "@azmr/cli",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Azmara CLI — scaffold apps, query local SQLite databases, manage your platform",
   "type": "module",
   "license": "MIT",
@@ -43,8 +43,10 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@azmr/ai": "workspace:*",
     "@azmr/core": "workspace:*",
     "@azmr/db": "workspace:*",
+    "@azmr/policycore": "workspace:*",
     "@azmr/security": "workspace:*"
   },
   "devDependencies": {

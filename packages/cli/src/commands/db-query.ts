@@ -14,7 +14,7 @@ import { renderTable } from "../utils/table.js";
  *   azmara db:query .azmara/app.db "SELECT * FROM customers"
  *   azmara db:query .azmara/app.db "SELECT name, balance FROM customers WHERE balance > 0"
  */
-export function dbQuery(args: string[]): void {
+export async function dbQuery(args: string[]): Promise<void> {
   const [dbPathArg, sql] = args;
 
   if (!dbPathArg || !sql) {
@@ -36,7 +36,7 @@ export function dbQuery(args: string[]): void {
   let db: SQLiteAdapter | null = null;
   try {
     db = new SQLiteAdapter(dbPath, dbBase);
-    const rows = db.rawSelect(sql) as Record<string, unknown>[];
+    const rows = (await db.rawSelect(sql)) as Record<string, unknown>[];
 
     console.log(`\n  ${rows.length} row${rows.length === 1 ? "" : "s"}\n`);
     console.log(renderTable(rows));
@@ -46,6 +46,6 @@ export function dbQuery(args: string[]): void {
     console.error(`\n  Error: ${msg}\n`);
     process.exit(1);
   } finally {
-    db?.close();
+    await db?.close();
   }
 }

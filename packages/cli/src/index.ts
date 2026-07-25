@@ -3,6 +3,7 @@ import { sanitiseForLog } from "@azmr/security";
 import { auditVerify } from "./commands/audit-verify.js";
 import { dbQuery } from "./commands/db-query.js";
 import { init } from "./commands/init.js";
+import { policycoreScan } from "./commands/policycore-scan.js";
 
 const [, , command, ...args] = process.argv;
 
@@ -21,6 +22,7 @@ const COMMANDS: Record<string, (args: string[]) => void | Promise<void>> = {
   Commands:
     init <name>              Scaffold a new Azmara app
     db:query <db> "<sql>"    Run a SELECT query against a local SQLite database
+    policycore:scan [path]   Scan a project for security-policy issues
     version                  Print CLI version
     help                     Show this help message
 
@@ -32,12 +34,16 @@ const COMMANDS: Record<string, (args: string[]) => void | Promise<void>> = {
     azmara db:query .azmara/app.db "SELECT * FROM customers"
     azmara audit:verify
     azmara audit:verify path/to/audit.log
+    azmara policycore:scan
+    azmara policycore:scan ./apps/api --format=json
+    azmara policycore:scan --format=owasp-md
 `);
   },
 
   init,
   "db:query": dbQuery,
   "audit:verify": auditVerify,
+  "policycore:scan": policycoreScan,
 };
 
 async function main() {

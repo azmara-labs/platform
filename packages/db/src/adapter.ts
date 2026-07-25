@@ -1,15 +1,74 @@
 import path from "node:path";
 import { assertSafeIdentifier, assertSafePath, createAuditLogger } from "@azmr/security";
 import Database from "better-sqlite3";
-
-export type ColumnType = "string" | "number" | "boolean";
-export type ColumnSchema = Record<string, ColumnType>;
+import type { ColumnSchema, ColumnType, DbAdapter, Filter } from "./adapter-interface.js";
 
 const TYPE_MAP: Record<ColumnType, string> = {
   string: "TEXT",
   number: "REAL",
   boolean: "INTEGER",
 };
+
+const OPERATOR_MAP: Record<string, string> = {
+  eq: "=",
+  neq: "!=",
+  gt: ">",
+  gte: ">=",
+  lt: "<",
+  lte: "<=",
+  like: "LIKE",
+};
+
+function compileFilterToSql(filter: Filter): { clause: string; params: unknown[] } {
+  if (filter.length === 0) return { clause: "", params: [] };
+
+  const parts: string[] = [];
+  const params: unknown[] = [];
+
+  for (const { column, operator, value } of filter) {
+    assertSafeIdentifier(column, "column name");
+
+    switch (operator) {
+      case "eq":
+      case "neq":
+      case "gt":
+      case "gte":
+      case "lt":
+      case "lte":
+      case "like":
+        parts.push(`"${column}" ${OPERATOR_MAP[operator]} ?`);
+        params.push(value);
+        break;
+      case "ilike":
+        // SQLite has no native ILIKE - LIKE + NOCASE collation is the equivalent.
+        parts.push(`"${column}" LIKE ? COLLATE NOCASE`);
+        params.push(value);
+        break;
+      case "is":
+        if (value === null) {
+          parts.push(`"${column}" IS NULL`);
+        } else {
+          // SQLite booleans are stored as INTEGER per TYPE_MAP.
+          parts.push(`"${column}" IS ?`);
+          params.push(value ? 1 : 0);
+        }
+        break;
+      case "in": {
+        const values = value as unknown[];
+        if (values.length === 0) {
+          // Mirrors PostgREST's `.in(col, [])` semantics: zero rows, no params.
+          parts.push("0 = 1");
+        } else {
+          parts.push(`"${column}" IN (${values.map(() => "?").join(", ")})`);
+          params.push(...values);
+        }
+        break;
+      }
+    }
+  }
+
+  return { clause: parts.join(" AND "), params };
+}
 
 /**
  * Secure SQLite adapter.
@@ -22,7 +81,7 @@ const TYPE_MAP: Record<ColumnType, string> = {
  * - DB path validated to stay within allowed base directory
  * - All mutations written to tamper-evident audit log
  */
-export class SQLiteAdapter {
+export class SQLiteAdapter implements DbAdapter {
   private readonly db: Database.Database;
   private readonly audit = createAuditLogger("db");
   private readonly dbPath: string;
@@ -44,7 +103,7 @@ export class SQLiteAdapter {
     this.db.pragma("trusted_schema = OFF");
   }
 
-  createTable(name: string, schema: ColumnSchema): void {
+  async createTable(name: string, schema: ColumnSchema): Promise<void> {
     assertSafeIdentifier(name, "table name");
     const columns = Object.entries(schema)
       .map(([col, type]) => {
@@ -57,7 +116,7 @@ export class SQLiteAdapter {
     this.audit.log("createTable", { table: name });
   }
 
-  insert<T extends Record<string, unknown>>(name: string, row: T): void {
+  async insert<T extends Record<string, unknown>>(name: string, row: T): Promise<void> {
     assertSafeIdentifier(name, "table name");
 
     const keys = Object.keys(row);
@@ -71,7 +130,7 @@ export class SQLiteAdapter {
     this.audit.log("insert", { table: name, rowCount: 1 });
   }
 
-  insertMany<T extends Record<string, unknown>>(name: string, rows: T[]): void {
+  async insertMany<T extends Record<string, unknown>>(name: string, rows: T[]): Promise<void> {
     assertSafeIdentifier(name, "table name");
     if (rows.length === 0) return;
 
@@ -91,9 +150,16 @@ export class SQLiteAdapter {
     this.audit.log("insertMany", { table: name, rowCount: rows.length });
   }
 
-  getAll<T = unknown>(name: string): T[] {
+  async getAll<T = unknown>(name: string): Promise<T[]> {
     assertSafeIdentifier(name, "table name");
     return this.db.prepare(`SELECT * FROM "${name}"`).all() as T[];
+  }
+
+  async findWhere<T = unknown>(name: string, filter: Filter): Promise<T[]> {
+    assertSafeIdentifier(name, "table name");
+    const { clause, params } = compileFilterToSql(filter);
+    const sql = `SELECT * FROM "${name}"${clause ? ` WHERE ${clause}` : ""}`;
+    return this.db.prepare(sql).all(params) as T[];
   }
 
   /**
@@ -102,32 +168,35 @@ export class SQLiteAdapter {
    * better-sqlite3's parameterised binding so values are never concatenated.
    *
    * Note: `sql` must be developer-authored (e.g. CLI input), not end-user input.
+   * SQLite-only escape hatch — not part of the DbAdapter interface.
    */
-  rawSelect<T = unknown>(sql: string, params: unknown[] = []): T[] {
+  async rawSelect<T = unknown>(sql: string, params: unknown[] = []): Promise<T[]> {
     if (!/^\s*SELECT\b/i.test(sql)) {
       throw new Error("[azmara/db] rawSelect only accepts SELECT statements");
     }
     return this.db.prepare(sql).all(params) as T[];
   }
 
-  truncateTable(name: string): void {
+  async truncateTable(name: string): Promise<void> {
     assertSafeIdentifier(name, "table name");
     this.db.prepare(`DELETE FROM "${name}"`).run();
     this.audit.log("truncateTable", { table: name });
   }
 
-  deleteWhere(name: string, condition: string, params: unknown[]): number {
-    // condition must be a trusted, developer-authored string — never user input
+  async deleteWhere(name: string, filter: Filter): Promise<number> {
     assertSafeIdentifier(name, "table name");
-    const result = this.db.prepare(`DELETE FROM "${name}" WHERE ${condition}`).run(params);
+    const { clause, params } = compileFilterToSql(filter);
+    const sql = `DELETE FROM "${name}"${clause ? ` WHERE ${clause}` : ""}`;
+    const result = this.db.prepare(sql).run(params);
     this.audit.log("deleteWhere", { table: name, changes: result.changes });
     return result.changes;
   }
 
-  close(): void {
+  async close(): Promise<void> {
     this.db.close();
   }
 
+  /** SQLite-only escape hatch — not part of the DbAdapter interface. */
   get path(): string {
     return this.dbPath;
   }
