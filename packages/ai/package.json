@@ -1,7 +1,7 @@
 {
   "name": "@azmr/ai",
-  "version": "0.1.0",
-  "description": "AI auto-fix system with isolated-vm sandboxing — safe code execution and analysis",
+  "version": "0.2.0",
+  "description": "AI auto-fix system with capability-scoped isolated-vm sandboxing — safe code execution and analysis",
   "type": "module",
   "license": "MIT",
   "author": "Alshafaraz Gazi <alshafaraz.gazi@gmail.com>",
@@ -44,7 +44,7 @@
     "@azmr/security": "workspace:*"
   },
   "optionalDependencies": {
-    "isolated-vm": "^7.0.0"
+    "isolated-vm": "^6.1.2"
   },
   "devDependencies": {
     "@types/node": "^26.1.1",
@@ -53,6 +53,6 @@
     "vitest": "^4.1.10"
   },
   "notes": {
-    "isolated-vm": "Requires node-gyp native compilation. On Windows: install Visual Studio Build Tools + Python. See: https://github.com/nicolo-ribaudo/isolated-vm"
+    "isolated-vm": "Pinned to ^6.1.2 (not ^7.x) — isolated-vm 7.x requires node >=26, which has no LTS release yet (still Node's pre-LTS 'Current' line). 6.1.2 requires only node >=22, satisfied by the 24.x LTS line ('Krypton') this platform targets. This is an engines-range fix, not a build-tools issue — re-evaluate the pin once Node 26 reaches LTS and the platform's baseline moves to it."
   }
 }

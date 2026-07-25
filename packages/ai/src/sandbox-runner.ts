@@ -18,7 +18,7 @@
  *   }
  */
 
-import type { SandboxResult } from "./sandbox-types.js";
+import type { SandboxResult, SandboxRunOptions } from "./sandbox-types.js";
 
 export interface SandboxRunResult extends SandboxResult {
   _sandboxEngine: "isolated-vm" | "fallback";
@@ -47,10 +47,13 @@ async function isIsolatedVmAvailable(): Promise<boolean> {
  * Run untrusted code in the best available sandbox.
  * Always uses isolated-vm in production — warns if falling back.
  */
-export async function runSandbox(code: string): Promise<SandboxRunResult> {
+export async function runSandbox(
+  code: string,
+  options: SandboxRunOptions = {},
+): Promise<SandboxRunResult> {
   if (await isIsolatedVmAvailable()) {
     const { runInSandbox } = await import("./sandbox.js");
-    const result = await runInSandbox(code);
+    const result = await runInSandbox(code, options);
     return { ...result, _sandboxEngine: "isolated-vm" };
   }
 
@@ -68,6 +71,6 @@ export async function runSandbox(code: string): Promise<SandboxRunResult> {
     "[azmr/ai] ⚠ isolated-vm unavailable — using vm fallback (DEV only, not production-safe)\n",
   );
   const { runInFallbackSandbox } = await import("./sandbox-fallback.js");
-  const result = await runInFallbackSandbox(code);
+  const result = await runInFallbackSandbox(code, options);
   return { ...result, _sandboxEngine: "fallback" };
 }

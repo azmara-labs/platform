@@ -19,8 +19,15 @@ declare module "isolated-vm" {
     memoryLimit?: number;
   }
 
+  interface TransferOptions {
+    copy?: boolean;
+    externalCopy?: boolean;
+    reference?: boolean;
+    promise?: boolean;
+  }
+
   interface Reference {
-    set(key: string, value: unknown): Promise<boolean>;
+    set(key: string, value: unknown, options?: TransferOptions): Promise<boolean>;
     derefInto(): unknown;
   }
 
@@ -28,8 +35,18 @@ declare module "isolated-vm" {
     global: Reference;
   }
 
-  interface RunOptions {
+  interface RunOptions extends TransferOptions {
     timeout?: number;
+  }
+
+  interface CallbackOptions {
+    sync?: boolean;
+    async?: boolean;
+    ignored?: boolean;
+  }
+
+  class Callback {
+    constructor(fn: (...args: unknown[]) => unknown, options?: CallbackOptions);
   }
 
   class Script {
@@ -43,7 +60,7 @@ declare module "isolated-vm" {
     dispose(): void;
   }
 
-  const ivm: { Isolate: typeof Isolate };
+  const ivm: { Isolate: typeof Isolate; Callback: typeof Callback };
   export default ivm;
-  export { Isolate };
+  export { Isolate, Callback };
 }

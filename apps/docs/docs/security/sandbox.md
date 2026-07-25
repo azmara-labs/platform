@@ -15,18 +15,18 @@ All AI-generated code runs inside a secure V8 isolate before being applied to an
 | Property | Value |
 |---|---|
 | Node.js API access | ❌ None |
-| File system access | ❌ None |
-| Network access | ❌ None |
+| File system access | ❌ None by default — opt in via a scoped capability |
+| Network access | ❌ None (no fetch capability exists yet — see Capabilities below) |
 | Memory limit | 64 MB |
 | Execution timeout | 5 seconds |
-| Globals exposed | None |
+| Globals exposed | None by default — only what's explicitly passed via `capabilities` |
 
 ## Usage
 
 ```typescript
-import { runInSandbox } from "@azmr/ai";
+import { runSandbox } from "@azmr/ai";
 
-const result = await runInSandbox(`
+const result = await runSandbox(`
   const nums = [1, 2, 3, 4, 5];
   nums.reduce((a, b) => a + b, 0);
 `);
@@ -35,6 +35,27 @@ if (result.success) {
   console.log(result.output); // 15
 }
 ```
+
+## Capabilities
+
+Optionally expose named, host-bridged functions into the sandbox — for example, a file reader scoped to one directory:
+
+```typescript
+import { runSandbox, createFileReadCapability } from "@azmr/ai";
+
+const result = await runSandbox(
+  `const file = await readFile({ path: "notes.txt" }); return file.content;`,
+  { capabilities: { readFile: createFileReadCapability("/allowed/dir") } },
+);
+```
+
+Capability handlers must be **synchronous** — `isolated-vm`'s `Callback` mechanism doesn't await a Promise returned by a handler, so an async handler fails fast with a clear error rather than misbehaving silently. True non-blocking async capabilities (e.g. network fetch) need a `worker_threads` + `Atomics.wait` blocking bridge and aren't implemented yet.
+
+Omitting `capabilities` preserves the sandbox's original zero-capability behavior exactly.
+
+:::info Explicit `return` required when using capabilities
+With `capabilities`, your code runs inside a function body, not as a classic script — a bare trailing expression is silently discarded rather than returned. Use `return` to get a value back in `result.output`. Without `capabilities`, the usual script completion-value behavior (last expression counts) is unchanged.
+:::
 
 ## Auto-fix pipeline
 
