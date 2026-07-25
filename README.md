@@ -99,7 +99,7 @@ pnpm add -g @azmr/cli      # CLI tool
 
 ```bash
 git clone https://github.com/azmara-labs/platform.git
-cd azmara-platform
+cd platform
 pnpm install
 pnpm build
 pnpm test

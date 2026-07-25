@@ -19,7 +19,7 @@ Only the latest published version of each `@azmr/*` package is supported with se
 
 ## What This Repo Already Does
 
-- `pnpm audit --audit-level=high` is run before every PR (see `CLAUDE.md`)
+- `pnpm audit --audit-level=high` is run before every PR
 - Dependency overrides in `pnpm-workspace.yaml` pin known-vulnerable transitive dependencies to patched, verified ranges
 - `@azmr/pr-quality-checks` runs on every PR to catch package hygiene and publish-safety issues
 - Branch protection on `main` requires PRs, passing CI (`Test & Lint`, `Changeset check`), and blocks force-pushes/deletion
