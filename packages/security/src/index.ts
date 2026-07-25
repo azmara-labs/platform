@@ -3,6 +3,16 @@
  * assertSafePath). For a browser/edge-safe subset, import from
  * "@azmr/security/browser" instead.
  */
+export type {
+  AccessCheckQuery,
+  AccessCheckResult,
+  AccessControl,
+  AccessControlOptions,
+  AccessControlSubject,
+  Policy,
+  PolicyRule,
+} from "./access-control.js";
+export { createAccessControl } from "./access-control.js";
 export type { AuditLogger } from "./audit.js";
 export { createAuditLogger } from "./audit.js";
 export type { JWT, JWTOptions, JWTPayload } from "./jwt.js";

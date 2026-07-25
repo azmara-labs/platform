@@ -17,6 +17,22 @@
  * check alone can catch. Its own doc comment says "call this once at the
  * entry point of each app/service" - a server-startup guard by design.
  */
+/**
+ * createAccessControl is browser-safe (no Node built-ins) and included here
+ * deliberately - client-side can() checks are useful for UX gating (hiding
+ * a button a user can't use). They are NEVER a security boundary on their
+ * own - always re-check server-side.
+ */
+export type {
+  AccessCheckQuery,
+  AccessCheckResult,
+  AccessControl,
+  AccessControlOptions,
+  AccessControlSubject,
+  Policy,
+  PolicyRule,
+} from "./access-control.js";
+export { createAccessControl } from "./access-control.js";
 export type { RateLimiter, RateLimitOptions, RateLimitResult } from "./rateLimit.js";
 export { createRateLimiter } from "./rateLimit.js";
 export { assertSafeIdentifier, sanitiseForLog } from "./sanitise.js";
