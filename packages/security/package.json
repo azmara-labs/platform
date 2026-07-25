@@ -1,6 +1,6 @@
 {
   "name": "@azmr/security",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Security utilities — validation, audit logging, sanitisation, env guards",
   "type": "module",
   "license": "MIT",

@@ -1,6 +1,6 @@
 {
   "name": "@azmr/policycore",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Standalone security policy engine — rate limits, auth requirements, and CORS as code for the Azmara platform",
   "type": "module",
   "license": "MIT",
