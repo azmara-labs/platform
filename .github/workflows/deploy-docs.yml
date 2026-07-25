@@ -12,6 +12,9 @@ on:
       - "apps/docs/**"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   deploy:
     name: Deploy to Vercel
@@ -37,7 +40,7 @@ jobs:
         run: pnpm install
 
       - name: Build docs
-        run: pnpm --filter @azmr/docs build
+        run: pnpm --filter "@azmr/docs..." build
 
       - name: Vercel build — Production
         if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || github.event_name == 'workflow_dispatch'

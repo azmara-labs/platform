@@ -1,0 +1,109 @@
+---
+title: "@azmr/policycore"
+description: Security policy engine — rate limits, auth, CORS, request signing, secrets, API keys, and OWASP Top 10 reporting.
+---
+
+`@azmr/policycore` is a standalone security layer built on top of `@azmr/security`'s `createRateLimiter`, `createAccessControl`, and `createAuditLogger` — it composes them rather than reimplementing them.
+
+## Installation
+
+```bash
+pnpm add @azmr/policycore
+```
+
+## Policy engine
+
+Composes rate limiting, an RBAC auth requirement, and CORS as code into one per-route `evaluate()` call.
+
+```typescript
+import { createPolicyEngine } from "@azmr/policycore";
+import { createAccessControl } from "@azmr/security";
+
+const engine = createPolicyEngine({
+  accessControl: createAccessControl({ policy: { admin: [{ resource: "reports", action: "read" }] } }),
+  policies: {
+    "reports:read": {
+      rateLimit: { options: { maxRequests: 100, windowMs: 60_000 } },
+      auth: { resource: "reports", action: "read" },
+      cors: { allowedOrigins: ["https://app.azmara.io"] },
+    },
+  },
+});
+
+const result = await engine.evaluate("reports:read", {
+  subject: { id: "u1", roles: ["admin"] },
+  origin: "https://app.azmara.io",
+});
+// result.allowed, result.rateLimit, result.auth, result.cors
+```
+
+<AutoTypeTable path="../../packages/policycore/src/policy-engine.ts" name="PolicyEngineOptions" />
+
+## Request signing
+
+HMAC-SHA256 request signing for service-to-service calls, with a timestamp tolerance window and opt-in nonce replay tracking.
+
+```typescript
+import { createRequestSigner } from "@azmr/policycore";
+
+const signer = createRequestSigner(process.env.REQUEST_SIGNING_SECRET!);
+
+const header = signer.sign({ method: "POST", path: "/webhooks/ingest", body: rawBody });
+// -> "t=<unix>,n=<hex>,v1=<hex>", send as a header alongside the request
+
+signer.verify({ method: "POST", path: "/webhooks/ingest", body: rawBody, header });
+// throws on any mismatch, expiry, or replay
+```
+
+<AutoTypeTable path="../../packages/policycore/src/request-signing.ts" name="RequestSignerOptions" />
+
+## Secrets
+
+Backend-agnostic secrets retrieval — a local-env adapter ships out of the box, with optional caching.
+
+```typescript
+import { createLocalEnvSecretsAdapter, createSecretsManager } from "@azmr/policycore";
+
+const secrets = createSecretsManager({
+  adapter: createLocalEnvSecretsAdapter(),
+  cacheTtlMs: 60_000,
+});
+
+const apiKey = await secrets.get("STRIPE_API_KEY");
+```
+
+## API keys
+
+Issue/rotate/revoke/verify lifecycle with hashed storage and timing-safe comparison — the raw key is only ever returned once, at issue time.
+
+```typescript
+import { createApiKeyManager } from "@azmr/policycore";
+
+const manager = createApiKeyManager();
+
+const issued = manager.issue("CI pipeline");
+// issued.rawKey — store this now, it's never retrievable again
+
+const result = manager.verify(issued.rawKey);
+// { valid: true, keyId, label }
+```
+
+<AutoTypeTable path="../../packages/policycore/src/api-keys.ts" name="ApiKeyManagerOptions" />
+
+## Static scan & OWASP reporting
+
+`scanSourceForPolicyIssues` flags misconfigurations (e.g. CORS wildcard-with-credentials) directly in source. `generateOwaspReport` maps findings onto OWASP Top 10 (2021) categories with an explicit honesty mechanism — every category is `"not-evaluated"`, `"no-findings"`, or `"findings-present"`, so a clean report is never presented as a certification.
+
+The `azmara policycore:scan` CLI command (see [`@azmr/cli`](/docs/packages/cli)) runs both together against a whole project.
+
+## API Reference
+
+| Export | Description |
+|---|---|
+| `createPolicyEngine(options)` | Compose rate limit + auth + CORS into one `evaluate()` call |
+| `createRequestSigner(secret, options?)` | HMAC-SHA256 request signing with replay protection |
+| `createLocalEnvSecretsAdapter(options?)` / `createSecretsManager(options)` | Backend-agnostic secrets retrieval |
+| `createApiKeyManager(options?)` | API key issue/rotate/revoke/verify |
+| `scanSourceForPolicyIssues(filePath, source)` | Flag policy misconfigurations in source |
+| `generateOwaspReport(findings, options?)` | OWASP Top 10 (2021) compliance report |
+| `formatOwaspReportMarkdown(report)` / `formatOwaspReportJson(report)` | Render a report |

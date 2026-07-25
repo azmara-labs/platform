@@ -1,0 +1,59 @@
+---
+title: Installation
+description: Set up the Azmara Platform monorepo locally.
+---
+
+## Prerequisites
+
+- Node.js >= 20.0.0
+- pnpm >= 9.0.0
+- **For `@azmr/ai`**: Visual Studio 2022 with "Desktop development with C++" workload
+
+## Clone & install
+
+```bash
+git clone https://github.com/azmara-labs/platform.git
+cd platform
+pnpm install
+```
+
+## Environment setup
+
+```bash
+cp .env.example .env
+```
+
+Fill in the required values:
+
+```bash
+# Generate an encryption key
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+## Build all packages
+
+```bash
+pnpm build
+```
+
+## Try the playground
+
+```bash
+pnpm --filter @azmr/docs dev
+```
+
+Then open `/playground` — a live, interactive demo of `@azmr/core`, `@azmr/query`, and `@azmr/ui`
+working together, no separate app to run. See the [Playground](/docs/guide/playground) guide for
+what it demonstrates.
+
+## Native module note
+
+`@azmr/ai` uses `isolated-vm` which requires native compilation.
+
+**Windows:**
+1. Install **Visual Studio 2022** with "Desktop development with C++" workload
+2. Run `pnpm rebuild isolated-vm`
+
+**macOS:** Xcode Command Line Tools (`xcode-select --install`)
+
+**Linux:** `sudo apt install build-essential python3`

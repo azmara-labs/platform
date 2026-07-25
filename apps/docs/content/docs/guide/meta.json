@@ -1,0 +1,12 @@
+{
+  "title": "Guide",
+  "pages": [
+    "---Getting Started---",
+    "introduction",
+    "installation",
+    "playground",
+    "---Concepts---",
+    "reactivity",
+    "data-first"
+  ]
+}

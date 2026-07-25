@@ -1,0 +1,64 @@
+---
+title: Playground
+description: A live, interactive demo of @azmr/core, @azmr/query, and @azmr/ui working together.
+---
+
+The [playground](/playground) is a live, in-browser demo — no local setup required. It's part of this docs site itself, built with the real `@azmr/core`, `@azmr/query`, and `@azmr/ui` packages, not a mockup.
+
+## What it demonstrates
+
+### 1. Reactive engine
+
+The **Reactive Engine** panel wires a `Signal` and two `computed` values to on-screen controls — clicking `+`/`−`/`reset` updates the source signal, and every dependent value re-renders automatically:
+
+```typescript
+const count = new Signal(0);
+const doubled = computed(() => count.get() * 2);
+
+effect(() => {
+  console.log(`count=${count.get()}  doubled=${doubled.get()}`);
+});
+
+count.set(1); // → count=1  doubled=2
+count.set(5); // → count=5  doubled=10
+```
+
+### 2. Query engine
+
+The **Query Engine** panel filters and sorts a live customer list as you drag a "balance ≥" slider — the query re-runs on every signal change, no manual re-fetching:
+
+```typescript
+const active = query(customers)
+  .where(c => c.balance > 0)
+  .orderBy((a, b) => b.balance - a.balance)
+  .select();
+```
+
+### 3. Reactive grid
+
+The **Reactive Grid** panel uses `@azmr/ui`'s `Grid` component over a `Signal<Product[]>` — adding or removing a product re-renders the table with no manual state wiring:
+
+```tsx
+const products = new Signal<Product[]>([...]);
+
+function ProductGrid() {
+  const data = useSignal(products);
+  return <Grid signal={products} />;
+}
+```
+
+### SQLite persistence
+
+The playground doesn't run a live SQLite demo (a shared database file under concurrent public
+requests isn't safe), but the same pattern applies directly to `@azmr/db`:
+
+```typescript
+const db = new SQLiteAdapter(".azmara/playground.db", ".azmara");
+
+await db.createTable("products", { name: "string", price: "number", inStock: "boolean" });
+await db.insertMany("products", [/* ... */]);
+
+const available = query(await db.getAll("products"))
+  .where(p => p.inStock === 1)
+  .select();
+```

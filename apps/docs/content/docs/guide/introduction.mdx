@@ -1,0 +1,33 @@
+---
+title: Introduction
+description: Azmara Platform is a modern, data-first application runtime where your data layer is a first-class citizen, not an afterthought.
+---
+
+Unlike modern stacks that bolt a database onto the side of a framework, Azmara puts data at the centre:
+
+```
+[ Reactive Signals ] → [ Query Engine ] → [ SQLite Persistence ] → [ React UI ]
+                                ↑
+                        [ AI Auto-Fix ]
+```
+
+## Core principles
+
+- **Data-first** — your data layer is integrated, not external
+- **Reactive by default** — UI updates automatically when data changes
+- **Secure by design** — parameterised queries, sandboxed AI, tamper-evident logs
+- **Type-safe throughout** — TypeScript with strict mode across all packages
+
+## Packages
+
+| Package | Purpose |
+|---|---|
+| `@azmr/core` | Reactive signals, effects, computed values |
+| `@azmr/query` | Chainable, data-first query builder |
+| `@azmr/db` | Secure SQLite adapter |
+| `@azmr/db-supabase` | Supabase/PostgREST adapter, same interface as `@azmr/db` |
+| `@azmr/ui` | React components wired to signals |
+| `@azmr/ai` | AI auto-fix with a capability-scoped `isolated-vm` sandbox |
+| `@azmr/security` | Validation, RBAC, JWT, audit logging, sanitisation |
+| `@azmr/policycore` | Security policy engine — rate limits, CORS, request signing, secrets, API keys, OWASP reporting |
+| `@azmr/cli` | Command-line tooling |

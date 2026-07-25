@@ -1,50 +1,47 @@
 {
   "name": "@azmr/docs",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "private": true,
-  "description": "Azmara Platform documentation site — Docusaurus with versioning",
+  "description": "Azmara Platform documentation site — Next.js, Fumadocs, and Tailwind CSS",
   "scripts": {
-    "dev": "docusaurus start",
-    "build": "docusaurus build",
-    "preview": "docusaurus serve",
-    "deploy": "docusaurus deploy",
-    "clear": "docusaurus clear",
-    "version": "docusaurus docs:version",
-    "test": "vitest run --passWithNoTests",
-    "typecheck": "tsc"
+    "predev": "pnpm generate:changelog",
+    "dev": "next dev",
+    "prebuild": "pnpm generate:changelog",
+    "build": "next build",
+    "start": "next start",
+    "lint": "biome check",
+    "format": "biome format --write",
+    "typecheck": "tsc",
+    "test": "vitest run",
+    "generate:changelog": "tsx scripts/build-changelog.ts"
   },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "packageManager": "pnpm@11.15.0",
   "dependencies": {
-    "@docusaurus/core": "^3.10.2",
-    "@docusaurus/preset-classic": "^3.10.2",
-    "@mdx-js/react": "^3.1.1",
-    "clsx": "^2.1.1",
-    "prism-react-renderer": "^2.4.1",
+    "@azmr/core": "workspace:*",
+    "@azmr/query": "workspace:*",
+    "@azmr/ui": "workspace:*",
+    "fumadocs-core": "^16.12.1",
+    "fumadocs-mdx": "^15.2.0",
+    "fumadocs-typescript": "^5.3.0",
+    "fumadocs-ui": "^16.12.1",
+    "next": "^16.2.11",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "^3.10.2",
-    "@docusaurus/tsconfig": "^3.10.2",
-    "@docusaurus/types": "^3.10.2",
+    "@biomejs/biome": "^2.5.4",
     "@tailwindcss/postcss": "^4.3.3",
+    "@types/mdx": "^2.0.14",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.5.4",
     "postcss": "^8.5.20",
     "tailwindcss": "^4.3.3",
-    "typescript": "^5.7.3"
-  },
-  "engines": {
-    "node": ">=20.0.0"
-  },
-  "browserslist": {
-    "production": [
-      ">0.5%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 3 chrome versions",
-      "last 3 firefox versions",
-      "last 5 safari versions"
-    ]
+    "tsx": "^4.23.1",
+    "typescript": "^5.7.3",
+    "vitest": "^4.1.10"
   }
 }

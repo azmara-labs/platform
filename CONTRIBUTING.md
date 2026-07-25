@@ -31,16 +31,16 @@ locally first saves a round trip.
 
 ## Changesets
 
-If your PR changes anything inside `packages/*` or `apps/docs-next`, add a
-changeset describing the version bump:
+If your PR changes anything inside `packages/*`, add a changeset describing
+the version bump:
 
 ```bash
 pnpm changeset add
 ```
 
-- `@azmr/ai`, `@azmr/docs`, `@azmr/docs-next`, and `@azmr/playground` are
-  excluded from changesets versioning (internal apps, or versioned
-  manually) - don't add a changeset for changes scoped only to those.
+- `@azmr/ai`, `@azmr/cli`, and `@azmr/docs` are excluded from changesets
+  versioning (internal app, or versioned manually) - don't add a changeset
+  for changes scoped only to those.
 - Bump type: `patch` for fixes/internal changes, `minor` for new
   backward-compatible features, `major` for breaking changes. Everything
   is currently pre-1.0, so use judgement - a "breaking" change to a
@@ -53,9 +53,9 @@ pnpm changeset add
 
 | Package | Published? |
 |---|---|
-| `@azmr/core`, `@azmr/db`, `@azmr/query`, `@azmr/security`, `@azmr/ui`, `@azmr/cli` | Yes - versioned via changesets |
-| `@azmr/ai` | Yes - versioned manually (changesets-ignored) |
-| `apps/docs`, `apps/docs-next`, `apps/playground` | No - `private: true` |
+| `@azmr/core`, `@azmr/db`, `@azmr/db-supabase`, `@azmr/query`, `@azmr/security`, `@azmr/ui`, `@azmr/policycore` | Yes - versioned via changesets |
+| `@azmr/ai`, `@azmr/cli` | Yes - versioned manually (changesets-ignored, since `@azmr/cli` depends on `@azmr/ai`) |
+| `apps/docs` | No - `private: true` |
 
 ## Review
 

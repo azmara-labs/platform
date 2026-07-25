@@ -1,0 +1,4 @@
+{
+  "title": "Packages",
+  "pages": ["core", "query", "db", "ui", "ai", "security", "policycore", "cli"]
+}

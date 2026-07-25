@@ -11,8 +11,6 @@ dist/
 .azmara/
 *.log
 coverage/
-apps/docs/build/
-apps/docs/.docusaurus/
 .DS_Store
 Thumbs.db
 .claude/
@@ -20,7 +18,14 @@ Thumbs.db
 .vercel
 .env*.local
 
-# Next.js build output (apps/docs-next)
+# Next.js build output (apps/docs)
 .next/
 out/
 next-env.d.ts
+
+# Fumadocs generated codegen (apps/docs)
+.source/
+
+# Build-time generated changelog pages (apps/docs) — regenerated from
+# packages/*/CHANGELOG.md via `pnpm generate:changelog`, never hand-edited.
+apps/docs/content/docs/changelog/
