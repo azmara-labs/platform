@@ -1,0 +1,56 @@
+{
+  "name": "@azmr/policycore",
+  "version": "0.1.0",
+  "description": "Standalone security policy engine — rate limits, auth requirements, and CORS as code for the Azmara platform",
+  "type": "module",
+  "license": "MIT",
+  "author": "Alshafaraz Gazi <alshafaraz.gazi@gmail.com>",
+  "homepage": "https://docs.azmara.io",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/azmara-labs/platform.git",
+    "directory": "packages/policycore"
+  },
+  "keywords": [
+    "security",
+    "policy-engine",
+    "rate-limit",
+    "cors",
+    "rbac",
+    "owasp",
+    "azmara"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "dev": "tsup src/index.ts --format esm --dts --watch",
+    "check-types": "tsc --noEmit",
+    "test": "vitest run",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@azmr/security": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "tsup": "^8.5.1",
+    "typescript": "^5.7.3",
+    "vitest": "^4.1.10"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
