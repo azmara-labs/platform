@@ -1,5 +1,22 @@
 # @azmr/cli
 
+## 0.2.0
+
+### Minor Changes
+
+- Add the `azmara policycore:scan [path]` command — walks a project directory,
+  runs `@azmr/ai`'s static analysis plus `@azmr/policycore`'s own security
+  checks (currently: CORS wildcard-with-credentials misconfiguration) against
+  every matched source file, and reports findings. Supports
+  `--format=table|json|owasp-md|owasp-json` and `--fail-on=error|warning|info|none`.
+
+  This entry is hand-written, not changesets-generated: `@azmr/cli` moved to
+  changesets' `ignore` list alongside `@azmr/ai` in this same release, since
+  it now has a genuine dependency on `@azmr/ai` (which was already
+  ignore-listed) and changesets requires both sides of a dependency on an
+  ignored package to be ignored together. See
+  `ATLAS/decisions/D020-azmr-ai-manual-versioning.md`.
+
 ## 0.1.1
 
 ### Patch Changes
