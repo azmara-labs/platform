@@ -7,5 +7,5 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@azmr/ai", "@azmr/cli", "@azmr/playground", "@azmr/docs", "@azmr/docs-next"]
+  "ignore": ["@azmr/ai", "@azmr/cli", "@azmr/docs"]
 }

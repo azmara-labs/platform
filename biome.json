@@ -30,6 +30,11 @@
       "trailingCommas": "all"
     }
   },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
   "files": {
     "includes": [
       "**",
@@ -42,7 +47,8 @@
       "!**/.claude",
       "!**/.next",
       "!**/.vercel",
-      "!**/coverage"
+      "!**/coverage",
+      "!**/.source"
     ]
   }
 }

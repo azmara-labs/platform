@@ -1,0 +1,67 @@
+---
+title: "@azmr/ui"
+description: React components wired to reactive Signals.
+---
+
+## Installation
+
+```bash
+pnpm add @azmr/ui @azmr/core react react-dom
+```
+
+## Grid
+
+A reactive data grid that automatically re-renders when its Signal updates.
+
+```tsx
+import { Signal } from "@azmr/core";
+import { Grid } from "@azmr/ui";
+
+const customers = new Signal([
+  { name: "Aroha", balance: 150 },
+  { name: "Mere", balance: 320 },
+]);
+
+function App() {
+  return (
+    <Grid
+      signal={customers}
+      labels={{ name: "Customer", balance: "Balance ($)" }}
+    />
+  );
+}
+```
+
+When `customers.set([...])` is called, the grid updates automatically — no state management needed.
+
+## useSignal
+
+Hook to subscribe a React component to any Signal. Uses `Signal.subscribe()` for push-based updates — the component re-renders only when the signal value actually changes.
+
+```tsx
+import { useSignal } from "@azmr/ui";
+
+function Counter({ count }: { count: Signal<number> }) {
+  const value = useSignal(count);
+  return <span>{value}</span>;
+}
+```
+
+## API Reference
+
+### `<Grid />`
+
+| Prop | Type | Description |
+|---|---|---|
+| `signal` | `Signal<T[]>` | Reactive data source |
+| `columns` | `(keyof T)[]` | Optional column order |
+| `labels` | `Partial<Record<keyof T, string>>` | Optional column label overrides |
+| `emptyMessage` | `string` | Message shown when data is empty |
+
+### `useSignal<T>(signal)`
+
+Returns the current Signal value and subscribes the component to updates.
+
+## Security
+
+All cell values are rendered through React's JSX escaping. `dangerouslySetInnerHTML` is never used.

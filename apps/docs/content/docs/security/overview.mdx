@@ -1,0 +1,50 @@
+---
+title: Security Overview
+description: Security is not an add-on in Azmara — it is baked into every layer from the ground up.
+---
+
+## Threat model
+
+| Threat | Where | Mitigation |
+|---|---|---|
+| SQL injection | `@azmr/db` | Parameterised queries only; identifier validation |
+| Path traversal | `@azmr/db`, `@azmr/ai` | `assertSafePath()` on all file operations |
+| Eval / code injection | `@azmr/ai` | No `eval`; AI code runs in a capability-scoped V8 isolate (`isolated-vm`) |
+| XSS | `@azmr/ui` | React JSX escaping; no `dangerouslySetInnerHTML` |
+| Reactive infinite loops | `@azmr/core` | Effect depth limit (100) with descriptive error |
+| Log tampering | `@azmr/security` | SHA-256 hash chain — any modification breaks chain |
+| Missing secrets | All | `validateEnv()` fails fast at startup |
+| Dependency attacks | Root | `pnpm.onlyBuiltDependencies` allowlist; `pnpm audit` |
+| Unauthorised access | `@azmr/security`, `@azmr/policycore` | `createAccessControl` RBAC, policy engine auth requirements |
+| Leaked/weak API keys | `@azmr/policycore` | Hashed storage, timing-safe comparison, rotation with grace period |
+
+## OWASP Top 10 alignment
+
+| OWASP Risk | Status | Implementation |
+|---|---|---|
+| A01 Broken Access Control | ✅ Done | `createAccessControl` (RBAC) and `createJWT` in `@azmr/security`; `@azmr/policycore`'s policy engine adds per-route auth requirements on top |
+| A02 Cryptographic Failures | ✅ Done | AES-256-GCM + scrypt column encryption (`@azmr/db`'s `createColumnEncryption`) |
+| A03 Injection | ✅ Done | Parameterised queries, no eval, identifier validation |
+| A04 Insecure Design | ✅ Done | Threat-modelled from day one |
+| A05 Security Misconfiguration | ✅ Done | WAL/secure_delete PRAGMAs, env validation, `@azmr/policycore`'s CORS wildcard-with-credentials misconfiguration guard |
+| A06 Vulnerable Components | ✅ Done | `onlyBuiltDependencies`, `pnpm audit` |
+| A07 Identification and Authentication Failures | ✅ Done | `createJWT` (timing-safe verify, expiry); `@azmr/policycore`'s API key lifecycle (hashed storage, timing-safe comparison, rotation) |
+| A08 Software & Data Integrity | ✅ Done | Capability-scoped V8 isolate sandbox for all AI code — no capability is available unless explicitly granted |
+| A09 Logging & Monitoring | ✅ Done | Hash-chained tamper-evident audit log |
+| A10 SSRF | 🔲 Planned | URL allowlisting planned for AI fetch capabilities |
+
+## Security layers
+
+```
+┌─────────────────────────────────┐
+│  @azmr/policycore              │  ← Policy engine, request signing, secrets, API keys
+├─────────────────────────────────┤
+│  @azmr/security                │  ← Validation, RBAC, JWT, audit log, sanitisation
+├─────────────────────────────────┤
+│  @azmr/db                      │  ← Parameterised SQL, identifier guards, column encryption
+├─────────────────────────────────┤
+│  @azmr/ai                      │  ← Capability-scoped V8 isolate sandbox (isolated-vm)
+├─────────────────────────────────┤
+│  @azmr/core                    │  ← Effect depth guard
+└─────────────────────────────────┘
+```

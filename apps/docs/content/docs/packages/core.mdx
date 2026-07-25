@@ -1,0 +1,106 @@
+---
+title: "@azmr/core"
+description: Reactive engine — signals, effects, and computed values.
+---
+
+## Installation
+
+```bash
+pnpm add @azmr/core
+```
+
+## Signal
+
+A reactive value container. Any effect that reads `.get()` while active will re-run when the value changes.
+
+```typescript
+import { Signal } from "@azmr/core";
+
+const count = new Signal(0);
+count.set(1);
+console.log(count.get()); // 1
+console.log(count.peek()); // 1 — reads without subscribing
+```
+
+## effect
+
+Runs a function immediately and re-runs whenever any Signal read inside it changes. Returns a disposer.
+
+```typescript
+import { Signal, effect } from "@azmr/core";
+
+const name = new Signal("Aroha");
+
+const dispose = effect(() => {
+  console.log(`Hello, ${name.get()}`);
+});
+// → Hello, Aroha
+
+name.set("Tane");
+// → Hello, Tane
+```
+
+## computed
+
+A read-only Signal whose value is derived from other Signals.
+
+```typescript
+import { Signal, computed } from "@azmr/core";
+
+const price = new Signal(100);
+const gst = computed(() => price.get() * 0.15);
+
+console.log(gst.get()); // 15
+price.set(200);
+console.log(gst.get()); // 30
+```
+
+## subscribe
+
+Listen to a Signal from outside the reactive system — useful for bridging to React, Vue, or any non-reactive code.
+
+```typescript
+import { Signal } from "@azmr/core";
+
+const price = new Signal(100);
+
+const unsubscribe = price.subscribe((value) => {
+  console.log(`price changed to ${value}`);
+});
+
+price.set(200); // → price changed to 200
+
+unsubscribe(); // stop listening
+```
+
+## Safety
+
+The scheduler uses a generation counter to prevent effects from running more than once per flush cycle. An effect that reads and writes the same signal will run at most twice — the re-queue is deduplicated, preventing unbounded loops.
+
+```typescript
+const s = new Signal(0);
+
+// Safe — deduplicated by the scheduler, never runs unboundedly
+effect(() => {
+  s.get();
+  s.set(s.peek() + 1);
+});
+```
+
+## API Reference
+
+### `Signal<T>`
+
+| Method | Returns | Description |
+|---|---|---|
+| `get()` | `T` | Read value and subscribe current effect |
+| `set(value)` | `void` | Update value and notify subscribers |
+| `peek()` | `T` | Read value without subscribing |
+| `subscribe(fn)` | `() => void` | Register a callback, returns unsubscribe function |
+
+### Functions
+
+| Function | Description |
+|---|---|
+| `effect(fn)` | Run `fn` reactively, returns disposer |
+| `computed(fn)` | Create a derived read-only Signal |

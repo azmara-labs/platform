@@ -1,0 +1,134 @@
+---
+title: "@azmr/security"
+description: Shared security utilities — validation, RBAC, JWT, audit logging, sanitisation, and env guards.
+---
+
+## Installation
+
+```bash
+pnpm add @azmr/security
+```
+
+## Validation
+
+```typescript
+import { validate, z } from "@azmr/security";
+
+const UserSchema = z.object({
+  name: z.string().min(1).max(100),
+  email: z.string().email(),
+  balance: z.number().nonnegative(),
+});
+
+const user = validate(UserSchema, req.body);
+// Throws structured error on failure — never leaks raw input
+```
+
+## Environment guard
+
+Call once at startup to fail fast if required env vars are missing.
+
+```typescript
+import { validateEnv } from "@azmr/security";
+
+validateEnv(["OPENAI_API_KEY", "AZMARA_ENCRYPTION_KEY"]);
+```
+
+## Access control (RBAC)
+
+`createAccessControl` is a framework-agnostic role-based access control primitive: `{resource, action, params} → {can, reason}`. Policy is a static grant map keyed by role, with `"*"` wildcards for role/resource/action and fail-closed defaults.
+
+```typescript
+import { createAccessControl } from "@azmr/security";
+
+const ac = createAccessControl({
+  policy: {
+    admin: [{ resource: "*", action: "*" }],
+    editor: [{ resource: "reports", action: "read" }],
+  },
+  defaultEffect: "deny",
+});
+
+const result = await ac.can({ id: "u1", roles: ["editor"] }, {
+  resource: "reports",
+  action: "read",
+});
+// { can: true }
+```
+
+An optional `resolve` callback lets a caller back checks with a database or any other backend — the package never imports a DB client itself.
+
+<AutoTypeTable path="../../packages/security/src/access-control.ts" name="AccessControlOptions" />
+
+## JWT
+
+```typescript
+import { createJWT } from "@azmr/security";
+
+const jwt = createJWT(process.env.AZMARA_JWT_SECRET!); // must be >= 32 chars
+
+const token = jwt.sign({ sub: "u1" });
+const payload = jwt.verify(token); // throws on invalid/expired
+```
+
+HMAC-SHA256, Node `crypto` only, timing-safe signature comparison, default 15-minute expiry.
+
+## Rate limiting
+
+```typescript
+import { createRateLimiter } from "@azmr/security";
+
+const limiter = createRateLimiter({ maxRequests: 100, windowMs: 60_000 });
+
+const result = limiter.check(userId);
+if (!result.allowed) {
+  // result.remaining === 0, result.resetAt is a Date
+}
+```
+
+In-memory sliding window, keyed per caller. Not distributed-safe — use a Redis-backed limiter for multi-process deployments.
+
+## Audit logger
+
+```typescript
+import { createAuditLogger } from "@azmr/security";
+
+const audit = createAuditLogger("my-service");
+audit.log("user:login", { userId: "abc123" });
+```
+
+See [Audit Logging](/docs/security/audit-logging) for full details.
+
+## Sanitisation
+
+```typescript
+import { assertSafeIdentifier, assertSafePath, sanitiseForLog } from "@azmr/security";
+
+assertSafeIdentifier("customers");       // passes
+assertSafeIdentifier("users; DROP TABLE"); // throws
+
+assertSafePath("/data/user.db", "/data"); // passes
+assertSafePath("../../etc/passwd", "/data"); // throws
+
+sanitiseForLog(userInput); // strips null bytes, flattens newlines, truncates
+```
+
+## API Reference
+
+| Export | Description |
+|---|---|
+| `validate(schema, data)` | Zod parse with structured error |
+| `validateEnv(keys)` | Assert env vars present at startup |
+| `createAccessControl(options)` | RBAC: `{resource, action} → {can, reason}`, fail-closed |
+| `createJWT(secret)` | HMAC-SHA256 sign/verify, timing-safe |
+| `createRateLimiter(options)` | In-memory sliding-window rate limiter |
+| `createAuditLogger(context)` | Hash-chained tamper-evident logger |
+| `assertSafeIdentifier(value)` | Validate SQL identifier |
+| `assertSafePath(path, base)` | Prevent path traversal |
+| `sanitiseForLog(value)` | Safe string for log output |
+| `z` | Re-exported Zod instance |
+
+<Callout type="info">
+  For a higher-level policy engine that composes rate limiting, RBAC, and CORS into a single
+  per-route check, see [`@azmr/policycore`](/docs/packages/policycore).
+</Callout>

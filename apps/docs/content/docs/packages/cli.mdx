@@ -1,0 +1,39 @@
+---
+title: "@azmr/cli"
+description: Command-line tooling for the Azmara Platform.
+---
+
+## Usage
+
+```bash
+npx azmara <command>
+```
+
+## Commands
+
+| Command | Status | Description |
+|---|---|---|
+| `azmara version` | ✅ Available | Print CLI version |
+| `azmara help` | ✅ Available | Show help message |
+| `azmara init` | ✅ Available | Scaffold a new Azmara app |
+| `azmara db:query` | ✅ Available | Query a local SQLite database |
+| `azmara audit:verify` | ✅ Available | Verify the audit log's hash chain |
+| `azmara policycore:scan` | ✅ Available | Run `@azmr/ai` static analysis plus `@azmr/policycore` security checks against a project |
+| `azmara fix <file>` | 🚧 Not yet built | Run AI auto-fix on a file (available as a library call — `autoFix()` from `@azmr/ai` — but not wired to the CLI) |
+
+## Examples
+
+```bash
+# Check version
+azmara version
+
+# Get help
+azmara help
+
+# Scan a project for security issues, output an OWASP Top 10 report
+azmara policycore:scan --format=owasp-md
+```
+
+## Roadmap
+
+`azmara init` currently produces a minimal scaffold, not a full app skeleton — making it production-ready (routing/server wiring, `@azmr/security`/`@azmr/ai` pre-wired) is planned next.

@@ -1,0 +1,55 @@
+---
+title: Reactivity
+description: Azmara's reactive system is built around three primitives — Signal, effect, and computed.
+---
+
+## Mental model
+
+Think of it like a spreadsheet:
+- **Signal** = a cell with a value
+- **computed** = a formula cell that derives from other cells
+- **effect** = a side-effect that runs when cells it reads change (like a chart that updates)
+
+## Signals are the source of truth
+
+```typescript
+const price = new Signal(100);
+const quantity = new Signal(3);
+```
+
+## Computed values derive from signals
+
+```typescript
+const subtotal = computed(() => price.get() * quantity.get());
+const gst = computed(() => subtotal.get() * 0.15);
+const total = computed(() => subtotal.get() + gst.get());
+```
+
+## Effects react to changes
+
+```typescript
+effect(() => {
+  console.log(`Total: $${total.get().toFixed(2)}`);
+});
+// → Total: $345.00
+
+price.set(200);
+// → Total: $690.00
+```
+
+## Automatic dependency tracking
+
+You don't declare dependencies manually. The reactive system tracks which Signals are read during each effect or computed run — and only re-runs when those specific signals change.
+
+## Connecting to React
+
+Use `useSignal` from `@azmr/ui` to bridge Signals into React components:
+
+```tsx
+import { useSignal } from "@azmr/ui";
+
+function TotalDisplay({ total }: { total: Signal<number> }) {
+  const value = useSignal(total);
+  return <span>${value.toFixed(2)}</span>;
+}
+```

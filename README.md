@@ -107,18 +107,12 @@ pnpm test
 
 ### Run the playground
 
-```bash
-# Node.js console demo
-pnpm --filter @azmr/playground dev
-
-# Visual browser playground (localhost:5173)
-pnpm --filter @azmr/playground web
-```
+The interactive playground is served from the docs site at `/playground` (see below) — no separate app to run.
 
 ### Run docs locally
 
 ```bash
-pnpm --filter @azmr/docs start
+pnpm --filter @azmr/docs dev
 ```
 
 ### Commands
