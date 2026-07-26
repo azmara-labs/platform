@@ -18,7 +18,7 @@
   "keywords": [],
   "author": "",
   "license": "MIT",
-  "packageManager": "pnpm@11.15.0",
+  "packageManager": "pnpm@11.17.0",
   "dependencies": {
     "@azmr/core": "workspace:*",
     "@azmr/query": "workspace:*",
@@ -27,21 +27,23 @@
     "fumadocs-mdx": "^15.2.0",
     "fumadocs-typescript": "^5.3.0",
     "fumadocs-ui": "^16.12.1",
-    "next": "^16.2.11",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "lucide-react": "^1.27.0",
+    "next": "^16.2.12",
+    "next-themes": "^0.4.6",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.4",
+    "@biomejs/biome": "^2.5.5",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/mdx": "^2.0.14",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.5.4",
-    "postcss": "^8.5.20",
+    "postcss": "^8.5.23",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.1",
-    "typescript": "^5.7.3",
+    "typescript": "^7.0.2",
     "vitest": "^4.1.10"
   }
 }
