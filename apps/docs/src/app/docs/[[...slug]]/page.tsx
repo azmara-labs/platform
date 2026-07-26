@@ -17,7 +17,16 @@ export default async function Page({ params }: PageProps) {
   const MDXContent = page.data.body;
 
   return (
-    <DocsPage toc={page.data.toc}>
+    <DocsPage
+      toc={page.data.toc}
+      className="max-w-[1200px]"
+      editOnGithub={{
+        owner: "azmara-labs",
+        repo: "platform",
+        sha: "main",
+        path: `apps/docs/content/docs/${slug && slug.length > 0 ? slug.join("/") : "index"}.mdx`,
+      }}
+    >
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
       <DocsBody>
