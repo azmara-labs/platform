@@ -19,7 +19,7 @@ export default async function Page({ params }: PageProps) {
   return (
     <DocsPage
       toc={page.data.toc}
-      className="max-w-[1200px]"
+      className="max-w-300"
       editOnGithub={{
         owner: "azmara-labs",
         repo: "platform",
