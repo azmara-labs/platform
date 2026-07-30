@@ -30,13 +30,18 @@
   ],
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./interface": {
+      "types": "./dist/adapter-interface.d.ts",
+      "import": "./dist/adapter-interface.js"
     }
   },
+  "sideEffects": false,
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts --clean",
-    "dev": "tsup src/index.ts --format esm --dts --watch",
+    "build": "tsup src/index.ts src/adapter-interface.ts --format esm --dts --clean",
+    "dev": "tsup src/index.ts src/adapter-interface.ts --format esm --dts --watch",
     "check-types": "tsc --noEmit",
     "test": "vitest run",
     "clean": "rm -rf dist"

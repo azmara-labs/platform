@@ -1,5 +1,5 @@
-import type { ColumnSchema, DbAdapter, Filter } from "@azmr/db";
-import { DbAdapterError } from "@azmr/db";
+import type { ColumnSchema, DbAdapter, Filter } from "@azmr/db/interface";
+import { DbAdapterError } from "@azmr/db/interface";
 import { assertSafeIdentifier, createAuditLogger } from "@azmr/security";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { toDbAdapterError } from "./errors.js";

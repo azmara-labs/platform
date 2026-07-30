@@ -49,6 +49,10 @@ type Filter = Array<{
 
 Conditions are implicitly AND-combined. No OR support yet.
 
+## Runtime footprint
+
+`@azmr/db-supabase` depends on `@azmr/db`, but only via its `./interface` subpath (`DbAdapter`, `DbAdapterError`, `Filter` types) — the same PostgREST-only module graph you'd expect from a pure network client. It does **not** pull in `better-sqlite3` or any native module, so it's safe to bundle into serverless/edge runtimes (Vercel, Next.js server components/actions, Cloudflare Workers, etc.).
+
 ## Requirements
 
 - Node.js ≥ 18
