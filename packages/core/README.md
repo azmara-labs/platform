@@ -100,6 +100,27 @@ effect(() => {
 });
 ```
 
+## onError
+
+Registers a handler for errors thrown by an `effect()` re-run or a `subscribe()` callback during a flush. Without this, one bad subscriber's exception propagates out of an unrelated caller's `set()` and aborts every other subscriber still pending in that flush; with a handler registered, the error is routed here instead and the flush continues. Returns a function that restores whichever handler was active before the call. Doesn't apply to `effect(fn)`'s first, synchronous run, or to a direct `fn()` call inside `batch()`/`untrack()` — those still throw normally to the caller.
+
+```typescript
+import { Signal, effect, onError } from "@azmr/core";
+
+const restore = onError((error) => {
+  console.error("effect failed:", error);
+});
+
+const count = new Signal(0);
+effect(() => {
+  if (count.get() > 10) throw new Error("too high");
+});
+
+restore(); // back to the previous handler (none by default)
+```
+
+If no handler is registered, the error is rethrown asynchronously (so it isn't silently swallowed) without blocking the flush that surfaced it.
+
 ## API
 
 | Export | Description |
@@ -113,6 +134,7 @@ effect(() => {
 | `computed(fn)` | Read-only derived Signal; return value has a `dispose()` |
 | `batch(fn)` | Coalesce `set()` calls inside `fn` into one flush; returns `fn`'s return value |
 | `untrack(fn)` | Run `fn` with dependency tracking suspended; returns `fn`'s return value |
+| `onError(handler)` | Register a handler for errors thrown during a flush; returns a function that restores the previous handler |
 
 ## Requirements
 
