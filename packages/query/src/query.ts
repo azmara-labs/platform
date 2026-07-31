@@ -58,6 +58,20 @@ export class QueryBuilder<T> {
   }
 
   select(): T[] {
+    return this.buildResult(this._limitN);
+  }
+
+  count(): number {
+    return this.select().length;
+  }
+
+  /** Reads at most one row without permanently limiting this builder — unlike `.limit(1).select()`, does not mutate state, so a later `.select()` on the same instance still returns the full result set. */
+  first(): T | undefined {
+    return this.buildResult(1)[0];
+  }
+
+  /** Shared by select() and first() — takes limit as a parameter instead of reading `this._limitN` directly, so first() can request one row without setting builder state. */
+  private buildResult(limit: number | null): T[] {
     // Resolve source — works with plain arrays and reactive Signals
     const raw = isSignal<T[]>(this._source) ? this._source.get() : this._source;
 
@@ -75,19 +89,11 @@ export class QueryBuilder<T> {
       result = result.slice(this._offsetN);
     }
 
-    if (this._limitN !== null) {
-      result = result.slice(0, this._limitN);
+    if (limit !== null) {
+      result = result.slice(0, limit);
     }
 
     return result;
-  }
-
-  count(): number {
-    return this.select().length;
-  }
-
-  first(): T | undefined {
-    return this.limit(1).select()[0];
   }
 }
 
