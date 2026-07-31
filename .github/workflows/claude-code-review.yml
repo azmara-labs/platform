@@ -38,22 +38,16 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: 'code-review@claude-code-plugins'
-          prompt: '/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
-          # Root-caused via show_full_output (two prior debug runs): the very
-          # first tool call - Skill("code-review:code-review") - was denied
-          # ("non_execution_kind": "user-rejected"), because the Skill tool
-          # isn't in this action's default allowed-tools list. Everything
-          # after that was Claude working around the denial by hand (Bash,
-          # Agent, WebFetch...), which produced real findings via
-          # ReportFindings but had no path to actually post them - the
-          # code-review plugin's comment-posting only happens inside the
-          # skill it was blocked from running.
+          # --comment is required - without it the skill only prints its
+          # findings to the run log and explicitly declines to post
+          # anything ("Since this command was invoked without --comment,
+          # I'll stop after reporting findings to the terminal"). Root-caused
+          # across three debug runs with show_full_output: first the Skill
+          # tool itself was denied (needed --allowedTools Skill, below);
+          # once that was fixed, the skill ran cleanly, found real issues,
+          # and still posted nothing - because --comment was never passed.
+          prompt: '/code-review:code-review --comment ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
           claude_args: '--allowedTools Skill'
-          # TEMPORARY debug flag (round 2) - the Skill fix cut denials from
-          # 35 to 12 (and cost $4.05 -> $2.59) but still posted nothing.
-          # Something the skill itself calls internally also needs
-          # allowlisting. Revert once root-caused.
-          show_full_output: true
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
 
