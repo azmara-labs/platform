@@ -7,7 +7,12 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    include: ["packages/*/src/**/*.test.ts", "packages/*/src/**/*.test.tsx"],
+    // Discovers each package's own vitest config (e.g. @azmr/ui's jsdom
+    // environment + setupFiles) rather than running every test under this
+    // config's own defaults — a flat `include` here previously ran ui's
+    // DOM-touching tests under plain Node with no jsdom, silently registering
+    // 0% coverage for anything that actually touched the DOM.
+    projects: ["packages/*"],
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "json-summary", "html", "lcov"],
