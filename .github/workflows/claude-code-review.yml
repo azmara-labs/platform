@@ -41,29 +41,30 @@ jobs:
           # --comment is required - without it the skill only prints its
           # findings to the run log and declines to post anything.
           prompt: '/code-review:code-review --comment ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
-          # Three layers, each root-caused with show_full_output across
-          # separate debug runs:
-          #  1. Skill - the code-review skill itself is invoked via the
-          #     Skill tool, denied by default.
-          #  2. Bash(gh api:*) - the skill's actual comment-posting call is
-          #     a raw `gh api repos/.../pulls/.../comments` shell command,
-          #     not part of the Skill tool at all - a completely separate
-          #     denial once (1) was fixed. Confirmed directly in a run's own
-          #     output: "I attempted to post this as an inline comment via
-          #     `gh api repos/.../pulls/68/comments`, but the command was
-          #     blocked ('This command requires approval')."
-          #  3. Bash(gh pr comment:*) - the fallback route the skill itself
-          #     suggested trying if the inline-comment API call didn't work.
-          #  Quoting bug found via show_full_output: the unquoted comma list
-          #  above got split on spaces too, shredding "Bash(gh api:*)" and
-          #  "Bash(gh pr comment:*)" into meaningless fragments
-          #  (["Skill","Bash(gh","api:*)","pr","comment:*)"] - none of which
-          #  are valid patterns). Wrapping the whole list in double quotes so
-          #  it survives as one token with internal spaces intact.
+          # Tool permissions, each root-caused with show_full_output across
+          # separate debug runs (all confirmed working - the array parses
+          # correctly and every allowed call succeeds with 0 permission
+          # denials): Skill (the plugin itself), Bash(gh api:*) and
+          # Bash(gh pr comment:*) (the two routes the skill uses to post).
+          # The whole value must stay double-quoted, or the space inside
+          # each Bash(...) pattern gets tokenized away along with the comma
+          # separators, silently breaking both patterns.
           claude_args: '--allowedTools "Skill,Bash(gh api:*),Bash(gh pr comment:*)"'
-          # TEMPORARY debug flag - verifying the allowedTools array parses
-          # correctly this time before removing. Revert once confirmed.
-          show_full_output: true
+          # KNOWN UNRESOLVED ISSUE (as of 2026-07-31): even with 0 permission
+          # denials, no comment gets posted. The skill spawns background
+          # sub-agents ("Summarize PR changes", "Find relevant CLAUDE.md
+          # files") and waits for their async completion notifications -
+          # but this is a single-shot, non-interactive `claude -p`
+          # invocation, which exits once the assistant produces a plain-text
+          # turn with no more tool calls ("Background agents are running;
+          # I'll wait..."). There's no live session left to deliver those
+          # notifications into. This looks like an architectural mismatch
+          # between the code-review plugin (designed for an interactive,
+          # persistent host) and one-shot CI execution, not a config
+          # problem - likely needs either a flag to force synchronous/
+          # non-backgrounded tool use, or a custom prompt that doesn't rely
+          # on this packaged skill's own orchestration. Re-add
+          # show_full_output: true to resume debugging.
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
 
