@@ -49,6 +49,11 @@ jobs:
           # code-review plugin's comment-posting only happens inside the
           # skill it was blocked from running.
           claude_args: '--allowedTools Skill'
+          # TEMPORARY debug flag (round 2) - the Skill fix cut denials from
+          # 35 to 12 (and cost $4.05 -> $2.59) but still posted nothing.
+          # Something the skill itself calls internally also needs
+          # allowlisting. Revert once root-caused.
+          show_full_output: true
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
 
