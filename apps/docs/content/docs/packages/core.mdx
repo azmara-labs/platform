@@ -24,7 +24,7 @@ console.log(count.peek()); // 1 — reads without subscribing
 
 ## effect
 
-Runs a function immediately and re-runs whenever any Signal read inside it changes. Returns a disposer.
+Runs a function immediately and re-runs whenever any Signal read inside it changes. Returns a disposer that detaches the effect from every signal it read — safe to call more than once, and safe to call from inside another effect during the same flush.
 
 ```typescript
 import { Signal, effect } from "@azmr/core";
@@ -38,11 +38,19 @@ const dispose = effect(() => {
 
 name.set("Tane");
 // → Hello, Tane
+
+dispose();
+name.set("Mere"); // no longer logged — the effect is detached
 ```
+
+<Callout type="info">
+  A conditional read (`cond.get() ? a.get() : b.get()`) re-evaluates its dependencies on every
+  re-run, so switching branches drops the subscription to the signal in the untaken branch.
+</Callout>
 
 ## computed
 
-A read-only Signal whose value is derived from other Signals.
+A read-only Signal whose value is derived from other Signals. The returned Signal carries a `dispose()` for tearing down the derived chain.
 
 ```typescript
 import { Signal, computed } from "@azmr/core";
@@ -53,6 +61,10 @@ const gst = computed(() => price.get() * 0.15);
 console.log(gst.get()); // 15
 price.set(200);
 console.log(gst.get()); // 30
+
+gst.dispose();
+price.set(9999);
+console.log(gst.peek()); // 30 — frozen at its last computed value
 ```
 
 ## subscribe
@@ -102,5 +114,5 @@ effect(() => {
 
 | Function | Description |
 |---|---|
-| `effect(fn)` | Run `fn` reactively, returns disposer |
-| `computed(fn)` | Create a derived read-only Signal |
+| `effect(fn)` | Run `fn` reactively, returns a disposer that fully detaches it |
+| `computed(fn)` | Create a derived read-only Signal; return value has a `dispose()` |

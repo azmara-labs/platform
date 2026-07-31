@@ -1,6 +1,24 @@
 type Subscriber = () => void;
 
 let currentEffect: Subscriber | null = null;
+// The active effect run's dependency set, populated by Signal.get() as it
+// reads signals during this pass. null outside an effect run.
+let currentDeps: Set<Signal<unknown>> | null = null;
+
+// Subscriber storage lives outside the Signal class (keyed by instance, via
+// WeakMap) rather than as a class field, so effect()'s disposer can remove a
+// subscriber from every signal it read without Signal needing to expose a
+// public removal method on its instance API.
+const subscribersOf = new WeakMap<Signal<unknown>, Set<Subscriber>>();
+
+function trackedSubscribers(signal: Signal<unknown>): Set<Subscriber> {
+  let subs = subscribersOf.get(signal);
+  if (!subs) {
+    subs = new Set();
+    subscribersOf.set(signal, subs);
+  }
+  return subs;
+}
 
 // ── Scheduler ────────────────────────────────────────────────────────────────
 // Deduplicates effects so a single set() call never triggers the same effect
@@ -45,7 +63,6 @@ function flushIfIdle(): void {
  */
 export class Signal<T> {
   private _value: T;
-  private readonly _subscribers = new Set<Subscriber>();
 
   constructor(initialValue: T) {
     this._value = initialValue;
@@ -53,7 +70,8 @@ export class Signal<T> {
 
   get(): T {
     if (currentEffect !== null) {
-      this._subscribers.add(currentEffect);
+      trackedSubscribers(this as Signal<unknown>).add(currentEffect);
+      currentDeps?.add(this as Signal<unknown>);
     }
     return this._value;
   }
@@ -61,8 +79,11 @@ export class Signal<T> {
   set(value: T): void {
     if (Object.is(this._value, value)) return;
     this._value = value;
-    for (const subscriber of this._subscribers) {
-      pendingSubscribers.add(subscriber);
+    const subscribers = subscribersOf.get(this as Signal<unknown>);
+    if (subscribers) {
+      for (const subscriber of subscribers) {
+        pendingSubscribers.add(subscriber);
+      }
     }
     flushIfIdle();
   }
@@ -73,38 +94,71 @@ export class Signal<T> {
 
   subscribe(callback: (value: T) => void): () => void {
     const sub: Subscriber = () => callback(this._value);
-    this._subscribers.add(sub);
-    return () => this._subscribers.delete(sub);
+    const subs = trackedSubscribers(this as Signal<unknown>);
+    subs.add(sub);
+    return () => subs.delete(sub);
   }
+}
+
+/** @internal Test-only accessor for the current subscriber count of a signal. Not exported from index.ts — not part of the public API. */
+export function _debugSubscriberCount(signal: Signal<unknown>): number {
+  return subscribersOf.get(signal)?.size ?? 0;
 }
 
 /**
  * Run `fn` immediately and re-run whenever any Signal read inside it changes.
- * Returns a disposer function.
+ * Returns a disposer that detaches this effect from every signal it read, so
+ * it stops re-running and can be garbage collected. Safe to call more than
+ * once, and safe to call from inside another effect during the same flush —
+ * a disposed effect's `run` is a no-op even if already queued.
  */
 export function effect(fn: () => void): () => void {
+  let deps = new Set<Signal<unknown>>();
+  let disposed = false;
+
   const run: Subscriber = () => {
-    const prev = currentEffect;
+    if (disposed) return;
+
+    // Drop stale deps before each re-run so a conditional branch that stops
+    // being taken (e.g. `cond.get() ? a.get() : b.get()`) doesn't keep this
+    // effect subscribed to the untaken branch's signal.
+    for (const signal of deps) trackedSubscribers(signal).delete(run);
+    deps = new Set();
+
+    const prevEffect = currentEffect;
+    const prevDeps = currentDeps;
     currentEffect = run;
+    currentDeps = deps;
     try {
       fn();
     } finally {
-      currentEffect = prev;
+      currentEffect = prevEffect;
+      currentDeps = prevDeps;
     }
   };
 
   run();
+
   return () => {
-    // Disposer — signals drop this subscriber on next notify cycle
-    // Full cleanup can be wired here in a future pass
+    if (disposed) return;
+    disposed = true;
+    for (const signal of deps) trackedSubscribers(signal).delete(run);
+    deps = new Set();
   };
 }
 
 /**
- * A read-only Signal whose value is derived from other Signals.
+ * A read-only Signal whose value is derived from other Signals. The returned
+ * Signal carries a non-enumerable `dispose()` that stops recomputation (and
+ * detaches from every signal `fn` reads) — call it to tear down the chain.
  */
-export function computed<T>(fn: () => T): Signal<T> {
+export function computed<T>(fn: () => T): Signal<T> & { dispose(): void } {
   const sig = new Signal<T>(fn());
-  effect(() => sig.set(fn()));
-  return sig;
+  const dispose = effect(() => sig.set(fn()));
+  return Object.defineProperty(sig, "dispose", {
+    value: dispose,
+    enumerable: false,
+    writable: false,
+    configurable: false,
+  }) as Signal<T> & { dispose(): void };
 }
