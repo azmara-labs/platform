@@ -157,15 +157,34 @@ export function untrack<T>(fn: () => T): T {
   }
 }
 
+export interface SignalOptions<T> {
+  /**
+   * Replaces the default `Object.is` check `set()` uses to decide whether a
+   * write is a no-op. Useful for object/array values you want compared by
+   * shape rather than by reference — e.g. a deep-equal or shallow-equal
+   * function — so setting a value that's structurally the same as the
+   * current one doesn't notify subscribers or trigger a re-render.
+   */
+  equals?: (a: T, b: T) => boolean;
+}
+
 /**
  * A reactive value container. Any effect that reads `.get()` while active
  * will automatically re-run when the value changes.
  */
 export class Signal<T> {
   private _value: T;
+  // Typed (a: unknown, b: unknown) => boolean rather than (a: T, b: T) =>
+  // boolean — a field using T in parameter (contravariant) position would
+  // make Signal<T> invariant in T, breaking every `signal as Signal<unknown>`
+  // cast this module relies on elsewhere (subscribersOf, currentDeps, etc).
+  private readonly _equals: (a: unknown, b: unknown) => boolean;
 
-  constructor(initialValue: T) {
+  constructor(initialValue: T, options?: SignalOptions<T>) {
     this._value = initialValue;
+    this._equals = options?.equals
+      ? (options.equals as (a: unknown, b: unknown) => boolean)
+      : Object.is;
   }
 
   get(): T {
@@ -177,7 +196,7 @@ export class Signal<T> {
   }
 
   set(value: T): void {
-    if (Object.is(this._value, value)) return;
+    if (this._equals(this._value, value)) return;
     this._value = value;
     const subscribers = subscribersOf.get(this as Signal<unknown>);
     if (subscribers) {

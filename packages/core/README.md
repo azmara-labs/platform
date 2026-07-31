@@ -27,6 +27,17 @@ count.set(5);
 // → count: 5, doubled: 10
 ```
 
+## Custom equality
+
+`set()` uses `Object.is` by default, so setting an object/array to a new reference always notifies subscribers, even if its shape is unchanged. Pass an `equals` option to compare by shape instead:
+
+```typescript
+const shallowEqual = (a: { x: number }, b: { x: number }) => a.x === b.x;
+const point = new Signal({ x: 1 }, { equals: shallowEqual });
+
+point.set({ x: 1 }); // no-op — equals() says these are the same
+```
+
 ## Subscribe (for React / external bridges)
 
 ```typescript
@@ -125,7 +136,7 @@ If no handler is registered, the error is rethrown asynchronously (so it isn't s
 
 | Export | Description |
 |---|---|
-| `Signal<T>` | Reactive value container |
+| `Signal<T>` | Reactive value container; constructor takes an optional `{ equals }` to replace the default `Object.is` check |
 | `Signal.get()` | Read value, subscribe current effect |
 | `Signal.set(value)` | Update value, notify subscribers |
 | `Signal.peek()` | Read value without subscribing |
