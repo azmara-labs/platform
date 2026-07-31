@@ -63,9 +63,6 @@ jobs:
 
             Keep the comment concise and specific - evidence-based findings, not hedged commentary.
           claude_args: '--allowedTools "Read,Grep,Glob,Bash(gh pr diff:*),Bash(gh pr comment:*)"'
-          # TEMPORARY debug flag - verifying this custom-prompt approach
-          # actually posts before removing. Revert once confirmed.
-          show_full_output: true
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
 
