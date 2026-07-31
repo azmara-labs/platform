@@ -85,6 +85,26 @@ price.set(200); // → price changed to 200
 unsubscribe(); // stop listening
 ```
 
+## batch
+
+Coalesces every `set()` call made inside a callback into a single effect flush, instead of one flush per `set()`. Values update synchronously as usual — `.get()`/`.peek()` inside the callback always see the latest write; only the effect flush is deferred. Nests correctly: an inner `batch()` completing does not trigger a flush while an outer one is still open.
+
+```typescript
+import { Signal, batch, effect } from "@azmr/core";
+
+const first = new Signal("Aroha");
+const last = new Signal("Ngata");
+
+effect(() => console.log(`${first.get()} ${last.get()}`));
+// → Aroha Ngata
+
+batch(() => {
+  first.set("Tane");
+  last.set("Mahuta");
+});
+// → Tane Mahuta   (logged once, not twice)
+```
+
 ## Safety
 
 The scheduler uses a generation counter to prevent effects from running more than once per flush cycle. An effect that reads and writes the same signal will run at most twice — the re-queue is deduplicated, preventing unbounded loops.
@@ -116,3 +136,4 @@ effect(() => {
 |---|---|
 | `effect(fn)` | Run `fn` reactively, returns a disposer that fully detaches it |
 | `computed(fn)` | Create a derived read-only Signal; return value has a `dispose()` |
+| `batch(fn)` | Coalesce `set()` calls inside `fn` into one flush; returns `fn`'s return value |

@@ -54,6 +54,26 @@ const doubled = computed(() => count.get() * 2);
 doubled.dispose(); // stops recomputing; doubled.peek() stays at its last value
 ```
 
+## batch
+
+Coalesces every `set()` call made inside a callback into a single effect flush, instead of one flush per `set()`. Values update synchronously as usual — `.get()`/`.peek()` inside the callback always see the latest write; only the effect flush is deferred.
+
+```typescript
+import { Signal, batch, effect } from "@azmr/core";
+
+const first = new Signal("Aroha");
+const last = new Signal("Ngata");
+
+effect(() => console.log(`${first.get()} ${last.get()}`));
+// → Aroha Ngata
+
+batch(() => {
+  first.set("Tane");
+  last.set("Mahuta");
+});
+// → Tane Mahuta   (logged once, not twice)
+```
+
 ## API
 
 | Export | Description |
@@ -65,6 +85,7 @@ doubled.dispose(); // stops recomputing; doubled.peek() stays at its last value
 | `Signal.subscribe(fn)` | Push-based subscription, returns unsubscribe |
 | `effect(fn)` | Run `fn` reactively, returns a disposer that fully detaches it |
 | `computed(fn)` | Read-only derived Signal; return value has a `dispose()` |
+| `batch(fn)` | Coalesce `set()` calls inside `fn` into one flush; returns `fn`'s return value |
 
 ## Requirements
 
