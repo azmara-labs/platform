@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { _debugSubscriberCount, computed, effect, Signal } from "./signal.js";
+import { _debugSubscriberCount, batch, computed, effect, Signal } from "./signal.js";
 
 describe("Signal", () => {
   it("returns initial value", () => {
@@ -147,5 +147,63 @@ describe("computed", () => {
     price.set(999);
     expect(doubled.peek()).toBe(200); // frozen at its last computed value
     expect(_debugSubscriberCount(price)).toBe(0);
+  });
+});
+
+describe("batch", () => {
+  it("coalesces multiple set() calls into a single effect run", () => {
+    const a = new Signal(1);
+    const b = new Signal(2);
+    const fn = vi.fn(() => {
+      a.get();
+      b.get();
+    });
+    effect(fn);
+    expect(fn).toHaveBeenCalledTimes(1);
+
+    batch(() => {
+      a.set(10);
+      b.set(20);
+    });
+    expect(fn).toHaveBeenCalledTimes(2); // one flush, not two
+  });
+
+  it("values update synchronously inside batch — get()/peek() see the latest write immediately", () => {
+    const a = new Signal(1);
+    batch(() => {
+      a.set(5);
+      expect(a.peek()).toBe(5);
+      a.set(10);
+      expect(a.get()).toBe(10);
+    });
+  });
+
+  it("nested batch() only flushes once, when the outermost batch completes", () => {
+    const a = new Signal(1);
+    const fn = vi.fn(() => a.get());
+    effect(fn);
+    fn.mockClear();
+
+    batch(() => {
+      a.set(2);
+      batch(() => {
+        a.set(3);
+      });
+      expect(fn).not.toHaveBeenCalled(); // still inside the outer batch
+    });
+    expect(fn).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns the callback's return value", () => {
+    expect(batch(() => 42)).toBe(42);
+  });
+
+  it("a set() outside any batch still flushes immediately, as before", () => {
+    const a = new Signal(1);
+    const fn = vi.fn(() => a.get());
+    effect(fn);
+    expect(fn).toHaveBeenCalledTimes(1);
+    a.set(2);
+    expect(fn).toHaveBeenCalledTimes(2);
   });
 });

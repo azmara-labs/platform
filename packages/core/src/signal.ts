@@ -33,19 +33,20 @@ function trackedSubscribers(signal: Signal<unknown>): Set<Subscriber> {
 // running again even if it is re-queued by a downstream signal.
 let isFlushing = false;
 let flushGeneration = 0;
+let batchDepth = 0;
 const pendingSubscribers = new Set<Subscriber>();
 const subscriberGeneration = new WeakMap<Subscriber, number>();
 
 function flushIfIdle(): void {
-  if (isFlushing) return;
+  if (isFlushing || batchDepth > 0) return;
   isFlushing = true;
   flushGeneration++;
   const gen = flushGeneration;
   try {
     while (pendingSubscribers.size > 0) {
-      const batch = [...pendingSubscribers];
+      const snapshot = [...pendingSubscribers];
       pendingSubscribers.clear();
-      for (const s of batch) {
+      for (const s of snapshot) {
         if (subscriberGeneration.get(s) !== gen) {
           subscriberGeneration.set(s, gen);
           s();
@@ -54,6 +55,25 @@ function flushIfIdle(): void {
     }
   } finally {
     isFlushing = false;
+  }
+}
+
+/**
+ * Coalesces every `set()` call made inside `fn` into a single flush, so
+ * effects that read multiple signals written during `fn` run once after
+ * `fn` returns, instead of once per `set()` call. Values update
+ * synchronously as usual — `.get()`/`.peek()` inside `fn` always see the
+ * latest write; only the effect flush is deferred. Nests correctly: an
+ * inner `batch()` completing does not trigger a flush while an outer one
+ * is still open.
+ */
+export function batch<T>(fn: () => T): T {
+  batchDepth++;
+  try {
+    return fn();
+  } finally {
+    batchDepth--;
+    if (batchDepth === 0) flushIfIdle();
   }
 }
 
