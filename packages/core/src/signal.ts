@@ -78,6 +78,30 @@ export function batch<T>(fn: () => T): T {
 }
 
 /**
+ * Runs `fn` with dependency tracking suspended, so any `.get()` calls made
+ * inside it — including ones buried in code `fn` calls into, not just a
+ * direct call at the top level — do not register a dependency on the
+ * currently-running effect. Unlike `.peek()`, which only works where you
+ * control the call site, `untrack()` composes: it works even when `fn`
+ * calls third-party or generic code you can't rewrite to use `.peek()`
+ * internally. A no-op outside an effect. An effect created inside `fn`
+ * still tracks its own reads normally — the suspension only applies to the
+ * effect that was active when `untrack()` was called.
+ */
+export function untrack<T>(fn: () => T): T {
+  const prevEffect = currentEffect;
+  const prevDeps = currentDeps;
+  currentEffect = null;
+  currentDeps = null;
+  try {
+    return fn();
+  } finally {
+    currentEffect = prevEffect;
+    currentDeps = prevDeps;
+  }
+}
+
+/**
  * A reactive value container. Any effect that reads `.get()` while active
  * will automatically re-run when the value changes.
  */
