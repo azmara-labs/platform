@@ -39,6 +39,16 @@ Each line is a JSON object:
 }
 ```
 
+## Concurrency and restarts
+
+Every `createAuditLogger()` call targeting the same resolved log path — including one from a different package, or one created after a process restart — shares one hash chain. On creation, the logger seeds itself from the last valid entry already on disk, rather than starting a fresh chain at `prevHash: ""`. This means two loggers (e.g. `@azmr/db` and `@azmr/ai`, both writing to the default `.azmara/audit.log`) interleave into a single valid chain instead of each producing false "chain broken" reports.
+
+<Callout type="warn" title="Single writer process per log file">
+  This module assumes one writer **process** per log file — there is no file locking. Two separate OS processes appending to the same path concurrently can still interleave writes and desync their chains. If multiple processes must write to the same audit log, route them through one process rather than writing directly from each.
+</Callout>
+
+`log()` appends synchronously (`fs.appendFileSync`), so each call blocks the event loop until the write completes — a deliberate trade of throughput for simple, easy-to-reason-about ordering.
+
 ## Log location
 
 Default: `.azmara/audit.log`
