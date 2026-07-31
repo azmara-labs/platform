@@ -62,6 +62,23 @@ const removed = await db.deleteWhere("customers", [
 
 <AutoTypeTable path="../../packages/db/src/adapter-interface.ts" name="DbAdapter" />
 
+### Interface-only import: `@azmr/db/interface`
+
+<Callout type="info">
+  `@azmr/db`'s root export includes `SQLiteAdapter`, which pulls in `better-sqlite3` — a native,
+  node-gyp-built module. If you only need the `DbAdapter`/`DbAdapterError`/`Filter` types (for
+  example, building a new adapter, or consuming `@azmr/db-supabase`), import from
+  `@azmr/db/interface` instead. It never touches `SQLiteAdapter` or `better-sqlite3`, so it's
+  safe to bundle into serverless/edge runtimes.
+</Callout>
+
+```typescript
+import type { DbAdapter, Filter } from "@azmr/db/interface";
+import { DbAdapterError } from "@azmr/db/interface";
+```
+
+`@azmr/db-supabase` uses this subpath internally for exactly this reason.
+
 ## Security features
 
 <Callout type="warning">

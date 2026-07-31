@@ -67,6 +67,17 @@ db.close();
 - WAL mode, `secure_delete ON`, `foreign_keys ON`
 - Every mutation written to a hash-chained audit log
 
+## Interface-only usage (`@azmr/db/interface`)
+
+If you only need the storage-agnostic `DbAdapter` shape — `DbAdapter`, `DbAdapterError`, `Filter`, `FilterCondition`, `FilterOperator`, `ColumnSchema`, `ColumnType` — without pulling in `better-sqlite3` (a native module), import from the `./interface` subpath instead of the package root:
+
+```typescript
+import type { DbAdapter, Filter } from "@azmr/db/interface";
+import { DbAdapterError } from "@azmr/db/interface";
+```
+
+This is what `@azmr/db-supabase` and any other non-SQLite `DbAdapter` implementation should use. The root `@azmr/db` export (`import { SQLiteAdapter } from "@azmr/db"`) still includes the native module and remains the right choice when you actually want SQLite.
+
 ## Requirements
 
 - Node.js ≥ 18

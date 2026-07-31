@@ -1,4 +1,4 @@
-import { DbAdapterError } from "@azmr/db";
+import { DbAdapterError } from "@azmr/db/interface";
 import type { PostgrestError } from "@supabase/supabase-js";
 
 /** Wraps a PostgREST error into a DbAdapterError, preserving code/details/hint and the original error as `cause`. */
