@@ -111,6 +111,18 @@ describe("query — count / first", () => {
         .first(),
     ).toBeUndefined();
   });
+
+  it("does not permanently limit the builder — select() after first() still returns the full result set", () => {
+    const q = query(customers);
+    q.first();
+    expect(q.select()).toHaveLength(customers.length);
+  });
+
+  it("first() still respects an explicit .limit() set before it, without changing what it means afterwards", () => {
+    const q = query(customers).limit(2);
+    expect(q.first()).toBeDefined();
+    expect(q.select()).toHaveLength(2); // the explicit limit(2), not limit(1) from first()
+  });
 });
 
 describe("query — does not mutate source", () => {
