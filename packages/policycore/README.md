@@ -148,6 +148,7 @@ console.log(formatOwaspReportMarkdown(report));
 
 - Node.js ≥ 18
 - `@azmr/security` (peer, for `createRateLimiter`/`createAccessControl`)
+- ESM only — no CommonJS build. `require("@azmr/policycore")` will not work; use `import`.
 
 ## Documentation
 

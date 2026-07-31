@@ -53,6 +53,7 @@ Conditions are implicitly AND-combined. No OR support yet.
 
 - Node.js ≥ 18
 - `@supabase/supabase-js` ^2.103.0
+- ESM only — no CommonJS build. `require("@azmr/db-supabase")` will not work; use `import`.
 
 ## Documentation
 

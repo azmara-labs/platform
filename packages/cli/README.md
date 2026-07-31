@@ -79,6 +79,7 @@ azmara version
 ## Requirements
 
 - Node.js ≥ 18
+- ESM only — no CommonJS build. `require("@azmr/cli")` will not work; use `import`.
 
 ## Documentation
 

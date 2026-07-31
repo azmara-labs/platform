@@ -69,6 +69,8 @@ pnpm add @azmr/ui          # React components
 pnpm add -g @azmr/cli      # CLI tool
 ```
 
+> **ESM only.** Every package here ships as ESM with no CommonJS build (`"type": "module"`, a single `import` condition in `exports`). `require("@azmr/...")` will not work — use `import` or dynamic `import()`. Given the platform targets modern Node 20+ and Next.js, this is a deliberate choice, not an oversight.
+
 ---
 
 ## Architecture
