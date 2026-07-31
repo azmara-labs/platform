@@ -48,6 +48,19 @@ name.set("Mere"); // no longer logged — the effect is detached
   re-run, so switching branches drops the subscription to the signal in the untaken branch.
 </Callout>
 
+### Cleanup
+
+The callback may return a cleanup function. It runs right before the next re-run (after stale
+dependencies are dropped, before the callback runs again) and on dispose — the same shape as
+React's `useEffect`.
+
+```typescript
+effect(() => {
+  const id = setInterval(() => console.log(count.get()), 1000);
+  return () => clearInterval(id);
+});
+```
+
 ## computed
 
 A read-only Signal whose value is derived from other Signals. The returned Signal carries a `dispose()` for tearing down the derived chain.

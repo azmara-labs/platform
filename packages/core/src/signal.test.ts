@@ -127,6 +127,56 @@ describe("effect", () => {
     dispose();
     expect(() => dispose()).not.toThrow();
   });
+
+  it("does not call a cleanup on the very first run", () => {
+    const cleanup = vi.fn();
+    effect(() => cleanup);
+    expect(cleanup).not.toHaveBeenCalled();
+  });
+
+  it("runs the previous cleanup before each re-run, not after", () => {
+    const s = new Signal(0);
+    const order: string[] = [];
+    effect(() => {
+      const value = s.get();
+      order.push(`run:${value}`);
+      return () => order.push(`cleanup:${value}`);
+    });
+    expect(order).toEqual(["run:0"]);
+
+    s.set(1);
+    expect(order).toEqual(["run:0", "cleanup:0", "run:1"]);
+
+    s.set(2);
+    expect(order).toEqual(["run:0", "cleanup:0", "run:1", "cleanup:1", "run:2"]);
+  });
+
+  it("runs the last cleanup on dispose", () => {
+    const cleanup = vi.fn();
+    const dispose = effect(() => cleanup);
+    expect(cleanup).not.toHaveBeenCalled();
+    dispose();
+    expect(cleanup).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not run cleanup again on a second dispose call", () => {
+    const cleanup = vi.fn();
+    const dispose = effect(() => cleanup);
+    dispose();
+    dispose();
+    expect(cleanup).toHaveBeenCalledTimes(1);
+  });
+
+  it("works fine when fn returns nothing", () => {
+    const s = new Signal(0);
+    const fn = vi.fn(() => {
+      s.get();
+    });
+    const dispose = effect(fn);
+    expect(() => s.set(1)).not.toThrow();
+    expect(() => dispose()).not.toThrow();
+    expect(fn).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe("computed", () => {
