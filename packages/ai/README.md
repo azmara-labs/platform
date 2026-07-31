@@ -99,8 +99,9 @@ console.log(formatReport(result));
 
 ## Requirements
 
-- Node.js ≥ 18 (isolated-vm's own required version varies by its own release — see `notes.isolated-vm` in `package.json`)
+- Node.js ≥ 22 (matches `isolated-vm@^6.1.2`'s own requirement — see `notes.isolated-vm` in `package.json`; re-evaluate once the platform's baseline moves past Node 26 LTS)
 - TypeScript ≥ 5 (types included)
+- ESM only — no CommonJS build. `require("@azmr/ai")` will not work; use `import`.
 
 ## Documentation
 

@@ -60,6 +60,7 @@ String-based predicates are rejected at both type and runtime level — only Typ
 
 - Node.js ≥ 18
 - TypeScript ≥ 5 (types included)
+- ESM only — no CommonJS build. `require("@azmr/query")` will not work; use `import`.
 
 ## Documentation
 

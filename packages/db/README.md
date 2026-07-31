@@ -82,6 +82,7 @@ This is what `@azmr/db-supabase` and any other non-SQLite `DbAdapter` implementa
 
 - Node.js ≥ 18
 - TypeScript ≥ 5 (types included)
+- ESM only — no CommonJS build. `require("@azmr/db")` will not work; use `import`.
 
 ## Documentation
 
