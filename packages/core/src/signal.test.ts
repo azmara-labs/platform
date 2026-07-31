@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { _debugSubscriberCount, batch, computed, effect, Signal } from "./signal.js";
+import { _debugSubscriberCount, batch, computed, effect, Signal, untrack } from "./signal.js";
 
 describe("Signal", () => {
   it("returns initial value", () => {
@@ -205,5 +205,70 @@ describe("batch", () => {
     expect(fn).toHaveBeenCalledTimes(1);
     a.set(2);
     expect(fn).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("untrack", () => {
+  it("reads a signal without registering a dependency on the active effect", () => {
+    const a = new Signal(1);
+    const fn = vi.fn(() => untrack(() => a.get()));
+    effect(fn);
+    expect(fn).toHaveBeenCalledTimes(1);
+
+    a.set(2); // not tracked — must not trigger a re-run
+    expect(fn).toHaveBeenCalledTimes(1);
+    expect(_debugSubscriberCount(a)).toBe(0);
+  });
+
+  it("composes through nested function calls, unlike peek() at a single call site", () => {
+    const a = new Signal(1);
+    // Simulates third-party/generic code the caller doesn't control, that
+    // uses .get() internally rather than .peek() — untrack() still works.
+    function genericHelper() {
+      return a.get() * 10;
+    }
+    const fn = vi.fn(() => untrack(genericHelper));
+    effect(fn);
+    expect(fn).toHaveBeenCalledTimes(1);
+
+    a.set(5);
+    expect(fn).toHaveBeenCalledTimes(1); // still untracked despite the indirection
+  });
+
+  it("is a no-op outside an effect and returns fn's value", () => {
+    const a = new Signal(42);
+    expect(untrack(() => a.get())).toBe(42);
+  });
+
+  it("does not suppress tracking for a signal read outside the untrack callback", () => {
+    const a = new Signal(1);
+    const b = new Signal(10);
+    const fn = vi.fn(() => {
+      untrack(() => a.get());
+      b.get(); // read normally, outside untrack
+    });
+    effect(fn);
+    expect(fn).toHaveBeenCalledTimes(1);
+
+    a.set(2);
+    expect(fn).toHaveBeenCalledTimes(1); // a is untracked
+
+    b.set(20);
+    expect(fn).toHaveBeenCalledTimes(2); // b is tracked as usual
+  });
+
+  it("an effect created inside untrack() still tracks its own reads normally", () => {
+    const a = new Signal(1);
+    const inner = vi.fn();
+    untrack(() => {
+      effect(() => {
+        a.get();
+        inner();
+      });
+    });
+    expect(inner).toHaveBeenCalledTimes(1);
+
+    a.set(2);
+    expect(inner).toHaveBeenCalledTimes(2); // the inner effect's own tracking is unaffected
   });
 });

@@ -74,6 +74,23 @@ batch(() => {
 // → Tane Mahuta   (logged once, not twice)
 ```
 
+## untrack
+
+Runs a callback with dependency tracking suspended — any `.get()` calls made inside it (including ones buried in code you call into, not just a direct call at the top level) don't register a dependency on the currently-running effect. Unlike `.peek()`, which only works where you control the call site, `untrack()` composes through indirection.
+
+```typescript
+import { Signal, effect, untrack } from "@azmr/core";
+
+const count = new Signal(0);
+const debugFlag = new Signal(false);
+
+effect(() => {
+  // Reacts to count, but reading debugFlag here should never itself
+  // trigger a re-run — it's just checked, not depended on.
+  if (untrack(() => debugFlag.get())) console.log(`count: ${count.get()}`);
+});
+```
+
 ## API
 
 | Export | Description |
@@ -86,6 +103,7 @@ batch(() => {
 | `effect(fn)` | Run `fn` reactively, returns a disposer that fully detaches it |
 | `computed(fn)` | Read-only derived Signal; return value has a `dispose()` |
 | `batch(fn)` | Coalesce `set()` calls inside `fn` into one flush; returns `fn`'s return value |
+| `untrack(fn)` | Run `fn` with dependency tracking suspended; returns `fn`'s return value |
 
 ## Requirements
 
