@@ -155,10 +155,23 @@ export function _debugSubscriberCount(signal: Signal<unknown>): number {
  * it stops re-running and can be garbage collected. Safe to call more than
  * once, and safe to call from inside another effect during the same flush —
  * a disposed effect's `run` is a no-op even if already queued.
+ *
+ * `fn` may return a cleanup function. It runs right before the next re-run
+ * (after deps are dropped, before `fn` runs again) and on dispose — mirrors
+ * React's `useEffect` cleanup semantics.
  */
-export function effect(fn: () => void): () => void {
+export function effect(fn: () => unknown): () => void {
   let deps = new Set<Signal<unknown>>();
   let disposed = false;
+  let cleanup: (() => void) | undefined;
+
+  const runCleanup = () => {
+    if (cleanup) {
+      const run = cleanup;
+      cleanup = undefined;
+      run();
+    }
+  };
 
   const run: Subscriber = () => {
     if (disposed) return;
@@ -169,12 +182,15 @@ export function effect(fn: () => void): () => void {
     for (const signal of deps) trackedSubscribers(signal).delete(run);
     deps = new Set();
 
+    runCleanup();
+
     const prevEffect = currentEffect;
     const prevDeps = currentDeps;
     currentEffect = run;
     currentDeps = deps;
     try {
-      fn();
+      const result = fn();
+      cleanup = typeof result === "function" ? (result as () => void) : undefined;
     } finally {
       currentEffect = prevEffect;
       currentDeps = prevDeps;
@@ -188,6 +204,7 @@ export function effect(fn: () => void): () => void {
     disposed = true;
     for (const signal of deps) trackedSubscribers(signal).delete(run);
     deps = new Set();
+    runCleanup();
   };
 }
 

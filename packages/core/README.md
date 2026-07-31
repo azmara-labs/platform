@@ -47,6 +47,15 @@ const dispose = effect(() => console.log(count.get()));
 dispose(); // stops re-running; count.set(...) no longer triggers it
 ```
 
+`effect()`'s callback may also return a cleanup function. It runs right before the next re-run and on dispose — the same shape as React's `useEffect`:
+
+```typescript
+effect(() => {
+  const id = setInterval(() => console.log(count.get()), 1000);
+  return () => clearInterval(id);
+});
+```
+
 `computed()`'s return value carries a `dispose()` too, for tearing down the whole derived chain:
 
 ```typescript
@@ -100,7 +109,7 @@ effect(() => {
 | `Signal.set(value)` | Update value, notify subscribers |
 | `Signal.peek()` | Read value without subscribing |
 | `Signal.subscribe(fn)` | Push-based subscription, returns unsubscribe |
-| `effect(fn)` | Run `fn` reactively, returns a disposer that fully detaches it |
+| `effect(fn)` | Run `fn` reactively, returns a disposer that fully detaches it; `fn` may return a cleanup function |
 | `computed(fn)` | Read-only derived Signal; return value has a `dispose()` |
 | `batch(fn)` | Coalesce `set()` calls inside `fn` into one flush; returns `fn`'s return value |
 | `untrack(fn)` | Run `fn` with dependency tracking suspended; returns `fn`'s return value |
