@@ -39,6 +39,11 @@ jobs:
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: 'code-review@claude-code-plugins'
           prompt: '/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
+          # TEMPORARY debug flag - two prior runs hit 4 and 35 permission
+          # denials respectively and posted nothing, despite pull-requests:
+          # write. This reveals which tool call is actually being denied.
+          # Revert once root-caused.
+          show_full_output: true
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
 
