@@ -379,10 +379,11 @@ describe("onError", () => {
 
   it("restores the previously active handler when the disposer is called", () => {
     const outer = vi.fn();
-    const restoreOuter = onError(outer);
+    restoreFns.push(onError(outer));
     const inner = vi.fn();
-    const restoreInner = onError(inner);
-    restoreInner(); // back to outer
+    // Restored synchronously, before any assertion below — cleanup for this
+    // one doesn't depend on the test not failing, unlike outer's.
+    onError(inner)();
 
     const a = new Signal(1);
     effect(() => {
@@ -391,8 +392,6 @@ describe("onError", () => {
     a.set(2);
     expect(outer).toHaveBeenCalledOnce();
     expect(inner).not.toHaveBeenCalled();
-
-    restoreOuter();
   });
 
   it("without a registered handler, the error is rethrown asynchronously instead of swallowed", () => {
