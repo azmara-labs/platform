@@ -54,7 +54,16 @@ jobs:
           #     blocked ('This command requires approval')."
           #  3. Bash(gh pr comment:*) - the fallback route the skill itself
           #     suggested trying if the inline-comment API call didn't work.
-          claude_args: '--allowedTools Skill,Bash(gh api:*),Bash(gh pr comment:*)'
+          #  Quoting bug found via show_full_output: the unquoted comma list
+          #  above got split on spaces too, shredding "Bash(gh api:*)" and
+          #  "Bash(gh pr comment:*)" into meaningless fragments
+          #  (["Skill","Bash(gh","api:*)","pr","comment:*)"] - none of which
+          #  are valid patterns). Wrapping the whole list in double quotes so
+          #  it survives as one token with internal spaces intact.
+          claude_args: '--allowedTools "Skill,Bash(gh api:*),Bash(gh pr comment:*)"'
+          # TEMPORARY debug flag - verifying the allowedTools array parses
+          # correctly this time before removing. Revert once confirmed.
+          show_full_output: true
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
 
