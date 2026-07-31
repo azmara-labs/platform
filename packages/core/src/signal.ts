@@ -37,6 +37,36 @@ let batchDepth = 0;
 const pendingSubscribers = new Set<Subscriber>();
 const subscriberGeneration = new WeakMap<Subscriber, number>();
 
+type ErrorHandler = (error: unknown) => void;
+
+// No handler registered by default — rethrown asynchronously (via a resolved
+// Promise, since queueMicrotask isn't in this package's ES2022 lib target)
+// so a subscriber error is never silently swallowed, without blocking the
+// flush that surfaced it (see the default branch in flushIfIdle below).
+let errorHandler: ErrorHandler | null = null;
+
+/**
+ * Registers a handler for errors thrown by a subscriber (an `effect()` re-run
+ * or a `subscribe()` callback) during a flush. Without this, one bad
+ * subscriber's exception would propagate out of an unrelated caller's
+ * `set()` and abort every other subscriber still pending in that flush — with
+ * a handler registered, the error is routed here instead and the flush
+ * continues. Returns a function that restores whichever handler was active
+ * before this call.
+ *
+ * Does not catch errors thrown by `effect(fn)`'s first, synchronous run, or
+ * by any direct call to `fn()` (e.g. inside `batch()`/`untrack()`) — those
+ * still throw normally to the caller, who is right there to catch them. Only
+ * re-runs driven by the flush scheduler are affected.
+ */
+export function onError(handler: ErrorHandler): () => void {
+  const prev = errorHandler;
+  errorHandler = handler;
+  return () => {
+    errorHandler = prev;
+  };
+}
+
 function flushIfIdle(): void {
   if (isFlushing || batchDepth > 0) return;
   isFlushing = true;
@@ -49,7 +79,17 @@ function flushIfIdle(): void {
       for (const s of snapshot) {
         if (subscriberGeneration.get(s) !== gen) {
           subscriberGeneration.set(s, gen);
-          s();
+          try {
+            s();
+          } catch (error) {
+            if (errorHandler) {
+              errorHandler(error);
+            } else {
+              Promise.resolve().then(() => {
+                throw error;
+              });
+            }
+          }
         }
       }
     }

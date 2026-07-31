@@ -1,5 +1,13 @@
-import { describe, expect, it, vi } from "vitest";
-import { _debugSubscriberCount, batch, computed, effect, Signal, untrack } from "./signal.js";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+  _debugSubscriberCount,
+  batch,
+  computed,
+  effect,
+  onError,
+  Signal,
+  untrack,
+} from "./signal.js";
 
 describe("Signal", () => {
   it("returns initial value", () => {
@@ -320,5 +328,98 @@ describe("untrack", () => {
 
     a.set(2);
     expect(inner).toHaveBeenCalledTimes(2); // the inner effect's own tracking is unaffected
+  });
+});
+
+describe("onError", () => {
+  // Each test registers via onError() and restores via the returned
+  // disposer, but a failed assertion mid-test would skip that restore —
+  // this net guarantees the module-level handler never leaks between tests.
+  const restoreFns: Array<() => void> = [];
+  afterEach(() => {
+    for (const restore of restoreFns.splice(0)) restore();
+  });
+
+  it("a re-run's exception does not propagate out of set()", () => {
+    restoreFns.push(onError(() => {}));
+    const a = new Signal(1);
+    effect(() => {
+      if (a.get() === 2) throw new Error("boom");
+    });
+    expect(() => a.set(2)).not.toThrow();
+  });
+
+  it("routes the error to the registered handler", () => {
+    const handler = vi.fn();
+    restoreFns.push(onError(handler));
+    const a = new Signal(1);
+    const err = new Error("boom");
+    effect(() => {
+      if (a.get() === 2) throw err;
+    });
+    a.set(2);
+    expect(handler).toHaveBeenCalledExactlyOnceWith(err);
+  });
+
+  it("a throwing subscriber does not stop other subscribers in the same flush", () => {
+    restoreFns.push(onError(() => {}));
+    const a = new Signal(1);
+    const ok = vi.fn();
+    effect(() => {
+      if (a.get() === 2) throw new Error("boom");
+    });
+    effect(() => {
+      a.get();
+      ok();
+    });
+    ok.mockClear();
+    a.set(2);
+    expect(ok).toHaveBeenCalledTimes(1);
+  });
+
+  it("restores the previously active handler when the disposer is called", () => {
+    const outer = vi.fn();
+    const restoreOuter = onError(outer);
+    const inner = vi.fn();
+    const restoreInner = onError(inner);
+    restoreInner(); // back to outer
+
+    const a = new Signal(1);
+    effect(() => {
+      if (a.get() === 2) throw new Error("boom");
+    });
+    a.set(2);
+    expect(outer).toHaveBeenCalledOnce();
+    expect(inner).not.toHaveBeenCalled();
+
+    restoreOuter();
+  });
+
+  it("without a registered handler, the error is rethrown asynchronously instead of swallowed", () => {
+    const thenSpy = vi.fn();
+    // biome-ignore lint/suspicious/noThenProperty: test double standing in for a resolved Promise, not a real thenable
+    const fakeResolvedPromise = { then: thenSpy } as unknown as Promise<void>;
+    const resolveSpy = vi.spyOn(Promise, "resolve").mockReturnValue(fakeResolvedPromise);
+
+    const a = new Signal(1);
+    const err = new Error("boom");
+    effect(() => {
+      if (a.get() === 2) throw err;
+    });
+
+    expect(() => a.set(2)).not.toThrow(); // the flush itself is synchronous and must not throw
+    expect(thenSpy).toHaveBeenCalledOnce();
+    const rethrow = thenSpy.mock.calls[0]?.[0] as () => void;
+    expect(rethrow).toThrow(err);
+
+    resolveSpy.mockRestore();
+  });
+
+  it("effect(fn)'s first, synchronous run still throws directly to the caller", () => {
+    expect(() =>
+      effect(() => {
+        throw new Error("boom");
+      }),
+    ).toThrow("boom");
   });
 });

@@ -1,1 +1,1 @@
-export { batch, computed, effect, Signal, untrack } from "./signal.js";
+export { batch, computed, effect, onError, Signal, untrack } from "./signal.js";
