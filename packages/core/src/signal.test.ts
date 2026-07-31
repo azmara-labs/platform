@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { computed, effect, Signal } from "./signal.js";
+import { _debugSubscriberCount, computed, effect, Signal } from "./signal.js";
 
 describe("Signal", () => {
   it("returns initial value", () => {
@@ -52,6 +52,81 @@ describe("effect", () => {
     expect(fn.mock.calls.length).toBeLessThanOrEqual(3);
     expect(s.peek()).toBeGreaterThan(0);
   });
+
+  it("stops running after dispose", () => {
+    const s = new Signal(1);
+    const fn = vi.fn(() => s.get());
+    const dispose = effect(fn);
+    expect(fn).toHaveBeenCalledTimes(1);
+
+    dispose();
+    s.set(2);
+    expect(fn).toHaveBeenCalledTimes(1); // no re-run
+  });
+
+  it("drops a dependency on a branch that stops being taken, and stays subscribed to the one still read", () => {
+    const cond = new Signal(true);
+    const a = new Signal("a");
+    const b = new Signal("b");
+    const fn = vi.fn(() => (cond.get() ? a.get() : b.get()));
+    effect(fn);
+    expect(fn).toHaveBeenCalledTimes(1);
+
+    cond.set(false); // switches to reading only b; re-run drops the `a` dependency
+    expect(fn).toHaveBeenCalledTimes(2);
+    expect(_debugSubscriberCount(a)).toBe(0);
+    expect(_debugSubscriberCount(b)).toBeGreaterThan(0);
+
+    a.set("a2"); // no longer read — must not trigger a re-run
+    expect(fn).toHaveBeenCalledTimes(2);
+
+    b.set("b2"); // still read — must trigger a re-run
+    expect(fn).toHaveBeenCalledTimes(3);
+  });
+
+  it("disposing one effect from inside another during the same flush does not crash and the disposed effect does not run", () => {
+    const trigger = new Signal(0);
+    const target = new Signal(0);
+    let targetRuns = 0;
+
+    const disposeTarget = effect(() => {
+      target.get();
+      targetRuns++;
+    });
+    expect(targetRuns).toBe(1);
+
+    effect(() => {
+      if (trigger.get() > 0) disposeTarget();
+    });
+
+    expect(() => trigger.set(1)).not.toThrow();
+    expect(_debugSubscriberCount(target)).toBe(0);
+
+    target.set(1); // target's effect is disposed — must not run again
+    expect(targetRuns).toBe(1);
+  });
+
+  it("subscriber count returns to 0 after dispose", () => {
+    const a = new Signal(1);
+    const b = new Signal(2);
+    const dispose = effect(() => {
+      a.get();
+      b.get();
+    });
+    expect(_debugSubscriberCount(a)).toBe(1);
+    expect(_debugSubscriberCount(b)).toBe(1);
+
+    dispose();
+    expect(_debugSubscriberCount(a)).toBe(0);
+    expect(_debugSubscriberCount(b)).toBe(0);
+  });
+
+  it("dispose is idempotent — calling it twice does not throw", () => {
+    const s = new Signal(0);
+    const dispose = effect(() => s.get());
+    dispose();
+    expect(() => dispose()).not.toThrow();
+  });
 });
 
 describe("computed", () => {
@@ -61,5 +136,16 @@ describe("computed", () => {
     expect(doubled.get()).toBe(200);
     price.set(50);
     expect(doubled.get()).toBe(100);
+  });
+
+  it("dispose() stops recomputation and detaches from its source signals", () => {
+    const price = new Signal(100);
+    const doubled = computed(() => price.get() * 2);
+    expect(doubled.peek()).toBe(200);
+
+    doubled.dispose();
+    price.set(999);
+    expect(doubled.peek()).toBe(200); // frozen at its last computed value
+    expect(_debugSubscriberCount(price)).toBe(0);
   });
 });

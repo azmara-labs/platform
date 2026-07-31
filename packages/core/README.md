@@ -38,6 +38,22 @@ count.set(10); // → changed: 10
 unsub();        // stop listening
 ```
 
+## Disposing effects and computed values
+
+`effect()` returns a disposer that detaches it from every signal it read, so it stops re-running and can be garbage collected. Safe to call more than once, and safe to call from inside another effect during the same flush.
+
+```typescript
+const dispose = effect(() => console.log(count.get()));
+dispose(); // stops re-running; count.set(...) no longer triggers it
+```
+
+`computed()`'s return value carries a `dispose()` too, for tearing down the whole derived chain:
+
+```typescript
+const doubled = computed(() => count.get() * 2);
+doubled.dispose(); // stops recomputing; doubled.peek() stays at its last value
+```
+
 ## API
 
 | Export | Description |
@@ -47,8 +63,8 @@ unsub();        // stop listening
 | `Signal.set(value)` | Update value, notify subscribers |
 | `Signal.peek()` | Read value without subscribing |
 | `Signal.subscribe(fn)` | Push-based subscription, returns unsubscribe |
-| `effect(fn)` | Run `fn` reactively, returns disposer |
-| `computed(fn)` | Read-only derived Signal |
+| `effect(fn)` | Run `fn` reactively, returns a disposer that fully detaches it |
+| `computed(fn)` | Read-only derived Signal; return value has a `dispose()` |
 
 ## Requirements
 
