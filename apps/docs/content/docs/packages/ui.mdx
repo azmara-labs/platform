@@ -60,7 +60,7 @@ function Counter({ count }: { count: Signal<number> }) {
 
 ### `useSignal<T>(signal)`
 
-Returns the current Signal value and subscribes the component to updates.
+Returns the current Signal value and subscribes the component to updates. Built on `useSyncExternalStore`, so it's safe under React 18/19 concurrent rendering — no tearing between a signal update and a render that's mid-flight.
 
 ## Security
 
