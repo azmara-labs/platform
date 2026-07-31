@@ -422,4 +422,37 @@ describe("onError", () => {
       }),
     ).toThrow("boom");
   });
+
+  it("a throwing handler does not itself take down the flush or leak out of set()", () => {
+    const thenSpy = vi.fn();
+    // biome-ignore lint/suspicious/noThenProperty: test double standing in for a resolved Promise, not a real thenable
+    const fakeResolvedPromise = { then: thenSpy } as unknown as Promise<void>;
+    const resolveSpy = vi.spyOn(Promise, "resolve").mockReturnValue(fakeResolvedPromise);
+
+    const handlerErr = new Error("handler is also broken");
+    restoreFns.push(
+      onError(() => {
+        throw handlerErr;
+      }),
+    );
+
+    const a = new Signal(1);
+    const ok = vi.fn();
+    effect(() => {
+      if (a.get() === 2) throw new Error("boom");
+    });
+    effect(() => {
+      a.get();
+      ok();
+    });
+    ok.mockClear();
+
+    expect(() => a.set(2)).not.toThrow();
+    expect(ok).toHaveBeenCalledTimes(1); // the second subscriber still ran
+    expect(thenSpy).toHaveBeenCalledOnce();
+    const rethrow = thenSpy.mock.calls[0]?.[0] as () => void;
+    expect(rethrow).toThrow(handlerErr);
+
+    resolveSpy.mockRestore();
+  });
 });

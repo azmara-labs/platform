@@ -58,6 +58,10 @@ let errorHandler: ErrorHandler | null = null;
  * by any direct call to `fn()` (e.g. inside `batch()`/`untrack()`) — those
  * still throw normally to the caller, who is right there to catch them. Only
  * re-runs driven by the flush scheduler are affected.
+ *
+ * If `handler` itself throws, that error is rethrown asynchronously instead
+ * of propagating out of the flush — a broken handler can't reintroduce the
+ * bug this function exists to fix.
  */
 export function onError(handler: ErrorHandler): () => void {
   const prev = errorHandler;
@@ -65,6 +69,24 @@ export function onError(handler: ErrorHandler): () => void {
   return () => {
     errorHandler = prev;
   };
+}
+
+// A throwing errorHandler must not itself take down the flush — that would
+// reintroduce the exact bug onError() exists to fix, just relocated from the
+// subscriber to the handler. Falls back to the same async-rethrow path used
+// when no handler is registered at all.
+function reportError(error: unknown): void {
+  try {
+    if (errorHandler) {
+      errorHandler(error);
+      return;
+    }
+  } catch (handlerError) {
+    error = handlerError;
+  }
+  Promise.resolve().then(() => {
+    throw error;
+  });
 }
 
 function flushIfIdle(): void {
@@ -82,13 +104,7 @@ function flushIfIdle(): void {
           try {
             s();
           } catch (error) {
-            if (errorHandler) {
-              errorHandler(error);
-            } else {
-              Promise.resolve().then(() => {
-                throw error;
-              });
-            }
+            reportError(error);
           }
         }
       }
