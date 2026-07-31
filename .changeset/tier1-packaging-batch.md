@@ -1,6 +1,4 @@
 ---
-"@azmr/ai": patch
-"@azmr/cli": patch
 "@azmr/db-supabase": patch
 "@azmr/policycore": patch
 "@azmr/query": patch
@@ -33,3 +31,13 @@ package README that didn't already have it (`ai`, `cli`, `db`,
 an earlier PR).
 
 No public API change.
+
+**Note:** `@azmr/ai` and `@azmr/cli` are excluded from this changeset's
+frontmatter even though their `package.json`/README changes are part of
+this PR — both are in `.changeset/config.json`'s `ignore` list, and
+changesets rejects a changeset mixing ignored and non-ignored packages.
+Since they're ignored, the normal `changesets/action` release flow will
+never version-bump or publish them — their fixes land in the repo but
+won't reach npm without a manual publish or a deliberate change to the
+ignore list. Flagged as an open question for the maintainer; not resolved
+in this PR.
