@@ -22,6 +22,17 @@ console.log(count.get()); // 1
 console.log(count.peek()); // 1 — reads without subscribing
 ```
 
+### Custom equality
+
+`set()` uses `Object.is` by default, so setting an object/array to a new reference always notifies subscribers, even if its shape is unchanged. Pass an `equals` option to compare by shape instead:
+
+```typescript
+const shallowEqual = (a: { x: number }, b: { x: number }) => a.x === b.x;
+const point = new Signal({ x: 1 }, { equals: shallowEqual });
+
+point.set({ x: 1 }); // no-op — equals() says these are the same
+```
+
 ## effect
 
 Runs a function immediately and re-runs whenever any Signal read inside it changes. Returns a disposer that detaches the effect from every signal it read — safe to call more than once, and safe to call from inside another effect during the same flush.
@@ -176,6 +187,8 @@ effect(() => {
 ## API Reference
 
 ### `Signal<T>`
+
+Constructor: `new Signal(initialValue, options?)`. `options.equals` replaces the default `Object.is` check `set()` uses to decide whether a write is a no-op.
 
 | Method | Returns | Description |
 |---|---|---|

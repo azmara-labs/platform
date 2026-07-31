@@ -29,6 +29,39 @@ describe("Signal", () => {
     s.set(5); // same value
     expect(fn).not.toHaveBeenCalled();
   });
+
+  it("defaults to Object.is — a new object reference always notifies, even with the same shape", () => {
+    const s = new Signal({ x: 1 });
+    const fn = vi.fn(() => s.get());
+    effect(fn);
+    fn.mockClear();
+    s.set({ x: 1 }); // structurally identical, but a different reference
+    expect(fn).toHaveBeenCalledTimes(1);
+  });
+
+  it("a custom equals suppresses set() when it returns true, even for a different reference", () => {
+    const shallowEqual = (a: { x: number }, b: { x: number }) => a.x === b.x;
+    const s = new Signal({ x: 1 }, { equals: shallowEqual });
+    const fn = vi.fn(() => s.get());
+    effect(fn);
+    fn.mockClear();
+
+    s.set({ x: 1 }); // different reference, equal by shallowEqual
+    expect(fn).not.toHaveBeenCalled();
+    expect(s.peek()).toEqual({ x: 1 });
+
+    s.set({ x: 2 }); // not equal — notifies as usual
+    expect(fn).toHaveBeenCalledTimes(1);
+    expect(s.peek()).toEqual({ x: 2 });
+  });
+
+  it("a custom equals is not consulted by get()/peek(), only by set()", () => {
+    const alwaysEqual = () => true;
+    const s = new Signal(1, { equals: alwaysEqual });
+    s.set(999); // suppressed — alwaysEqual() says every write is a no-op
+    expect(s.peek()).toBe(1);
+    expect(s.get()).toBe(1);
+  });
 });
 
 describe("effect", () => {
