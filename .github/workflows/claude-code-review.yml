@@ -39,11 +39,16 @@ jobs:
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: 'code-review@claude-code-plugins'
           prompt: '/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
-          # TEMPORARY debug flag - two prior runs hit 4 and 35 permission
-          # denials respectively and posted nothing, despite pull-requests:
-          # write. This reveals which tool call is actually being denied.
-          # Revert once root-caused.
-          show_full_output: true
+          # Root-caused via show_full_output (two prior debug runs): the very
+          # first tool call - Skill("code-review:code-review") - was denied
+          # ("non_execution_kind": "user-rejected"), because the Skill tool
+          # isn't in this action's default allowed-tools list. Everything
+          # after that was Claude working around the denial by hand (Bash,
+          # Agent, WebFetch...), which produced real findings via
+          # ReportFindings but had no path to actually post them - the
+          # code-review plugin's comment-posting only happens inside the
+          # skill it was blocked from running.
+          claude_args: '--allowedTools Skill'
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
 
