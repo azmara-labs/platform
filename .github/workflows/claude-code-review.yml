@@ -48,6 +48,15 @@ jobs:
           # and still posted nothing - because --comment was never passed.
           prompt: '/code-review:code-review --comment ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
           claude_args: '--allowedTools Skill'
+          # TEMPORARY debug flag (round 3) - --comment landed but a 36-turn
+          # run still posted nothing, with no error. Hypothesis:
+          # --allowedTools Skill lets the skill START but whatever tool it
+          # calls internally to actually post a comment (likely a specific
+          # mcp__ tool, not Skill itself) may also need allowlisting - the
+          # same class of problem as the original Skill denial, one layer
+          # deeper. Full output should show the exact tool name near the
+          # end of the transcript. Revert once root-caused.
+          show_full_output: true
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
 
