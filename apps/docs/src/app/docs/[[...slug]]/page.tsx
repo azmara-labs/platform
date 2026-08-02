@@ -48,8 +48,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!page) return {};
 
+  const { title, description } = page.data;
+
   return {
-    title: page.data.title,
-    description: page.data.description,
+    title,
+    description,
+    alternates: { canonical: page.url },
+    openGraph: { title, description, url: page.url },
+    twitter: { title, description },
   };
 }
