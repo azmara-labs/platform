@@ -20,6 +20,19 @@ function trackedSubscribers(signal: Signal<unknown>): Set<Subscriber> {
   return subs;
 }
 
+// Monotonically increasing stamp, bumped on every real (non-equal)
+// Signal.set(). A ComputedSignal's subscription to its own dependencies is
+// only established the first time something reads it — so two consumers
+// reading a shared upstream signal in different orders (e.g. an effect
+// reading a raw signal before a computed derived from it) can end up
+// subscribed to that signal in either order. Relying solely on push-based
+// dirty flagging then lets a computed be read as stale before its own
+// _markDirty subscriber has had a turn in the same flush. Comparing version
+// stamps at _sync() time re-derives freshness directly, independent of
+// subscriber-notification order.
+let globalVersion = 0;
+const versionOf = new WeakMap<Signal<unknown>, number>();
+
 // ── Scheduler ────────────────────────────────────────────────────────────────
 // Deduplicates effects so a single set() call never triggers the same effect
 // more than once per flush cycle, even when a computed chain causes the same
@@ -187,7 +200,14 @@ export class Signal<T> {
       : Object.is;
   }
 
+  /**
+   * Overridden by `computed()`'s internal Signal subclass to lazily bring
+   * `_value` up to date immediately before a read. No-op on a plain Signal.
+   */
+  protected _sync(): void {}
+
   get(): T {
+    this._sync();
     if (currentEffect !== null) {
       trackedSubscribers(this as Signal<unknown>).add(currentEffect);
       currentDeps?.add(this as Signal<unknown>);
@@ -198,6 +218,7 @@ export class Signal<T> {
   set(value: T): void {
     if (this._equals(this._value, value)) return;
     this._value = value;
+    versionOf.set(this as Signal<unknown>, ++globalVersion);
     const subscribers = subscribersOf.get(this as Signal<unknown>);
     if (subscribers) {
       for (const subscriber of subscribers) {
@@ -208,10 +229,12 @@ export class Signal<T> {
   }
 
   peek(): T {
+    this._sync();
     return this._value;
   }
 
   subscribe(callback: (value: T) => void): () => void {
+    this._sync();
     const sub: Subscriber = () => callback(this._value);
     const subs = trackedSubscribers(this as Signal<unknown>);
     subs.add(sub);
@@ -283,18 +306,143 @@ export function effect(fn: () => unknown): () => void {
   };
 }
 
+// computed()'s implementation: lazy and pull-based. Nothing runs at
+// creation — _dirty starts true, so the deferred first computation happens
+// on whichever `get()`/`peek()` reads it first. While unobserved (nobody
+// reading it from an active effect/computed/subscribe()), an upstream
+// change from _markDirty only flags staleness; it does NOT recompute, so an
+// upstream signal that changes N times without ever being read costs
+// nothing beyond the flag. Once observed, _markDirty switches to
+// recomputing eagerly on every upstream change instead — same as the old
+// eager computed — so set()'s equals check still suppresses notifying this
+// computed's own subscribers when the recomputed value is unchanged.
+class ComputedSignal<T> extends Signal<T> {
+  private _dirty = true;
+  private _disposed = false;
+  // Distinguishes "never computed yet" from "computed at least once, now
+  // stale" — dispose() alone doesn't clear _dirty (an unobserved upstream
+  // change before dispose() leaves it stale), so _sync() needs this to know
+  // whether a post-dispose read is the one deliberate deferred-first-read
+  // catch-up (see _recompute below) or a case that must stay frozen instead.
+  private _everComputed = false;
+  private _deps = new Set<Signal<unknown>>();
+  // Version stamps of each dependency as of the last successful recompute —
+  // see versionOf's comment above for why push-based _dirty flagging alone
+  // isn't sufficient to detect staleness.
+  private _depVersions = new Map<Signal<unknown>, number>();
+  private readonly _fn: () => T;
+
+  constructor(fn: () => T) {
+    // Placeholder — _dirty starts true, so _sync() always computes a real
+    // value before this is ever observed by a caller.
+    super(undefined as T);
+    this._fn = fn;
+  }
+
+  private _isObserved(): boolean {
+    const subscribers = subscribersOf.get(this as Signal<unknown>);
+    return !!subscribers && subscribers.size > 0;
+  }
+
+  private _markDirty: Subscriber = () => {
+    if (this._disposed) return;
+    if (!this._isObserved()) {
+      this._dirty = true;
+      return;
+    }
+    // Another subscriber may have already pulled this computed fresh —
+    // via _sync()'s staleness check, reading it before this push
+    // notification got its turn (e.g. a diamond where a sibling computed
+    // depends on both the changed signal and this computed), or via a
+    // direct read made mid-batch (batch()'s own docs guarantee get()/peek()
+    // inside it see the latest write immediately, ahead of the flush this
+    // push notification belongs to). Recomputing again here would be
+    // redundant at best; for an `fn` that returns a new object/array each
+    // call, the second result wouldn't be Object.is-equal to the first,
+    // bypassing set()'s equals suppression and firing a spurious extra
+    // notification for a value that didn't actually change again. Reusing
+    // _isStale() here (rather than a generation counter) means this check
+    // is correct regardless of *when* the earlier pull happened relative to
+    // the current flush.
+    if (this._everComputed && !this._isStale()) return;
+    this._recompute();
+  };
+
+  private _isStale(): boolean {
+    for (const [dep, version] of this._depVersions) {
+      if ((versionOf.get(dep) ?? 0) !== version) return true;
+    }
+    return false;
+  }
+
+  protected override _sync(): void {
+    // Once disposed, only the deferred first computation (never having run
+    // at all yet) is still allowed through — a computed disposed after
+    // already producing a real value must stay frozen at it, even if an
+    // unobserved upstream change left it marked dirty beforehand.
+    if (this._disposed && this._everComputed) return;
+    // _dirty alone can lag behind reality: it's only set by _markDirty,
+    // whose subscription is established on first read, so a consumer that
+    // reads a shared upstream signal before this computed can end up
+    // subscribed ahead of _markDirty in that signal's subscriber list —
+    // meaning this computed could be read as "not dirty yet" even though the
+    // upstream value backing it has already changed. The version check
+    // catches that regardless of subscriber-notification order.
+    if (!this._dirty && this._everComputed && this._isStale()) this._dirty = true;
+    if (this._dirty) this._recompute();
+  }
+
+  private _recompute(): void {
+    for (const signal of this._deps) trackedSubscribers(signal).delete(this._markDirty);
+    this._deps = new Set();
+
+    const prevEffect = currentEffect;
+    const prevDeps = currentDeps;
+    currentEffect = this._markDirty;
+    currentDeps = this._deps;
+    let next: T;
+    try {
+      next = this._fn();
+    } finally {
+      currentEffect = prevEffect;
+      currentDeps = prevDeps;
+    }
+    this._dirty = false;
+    this._everComputed = true;
+    this._depVersions = new Map();
+    for (const dep of this._deps) this._depVersions.set(dep, versionOf.get(dep) ?? 0);
+    this.set(next);
+
+    if (this._disposed) {
+      // dispose() was called before this (deferred) first computation ever
+      // ran — this was that one-time catch-up read. Don't leave it
+      // subscribed; tear the just-established deps straight back down.
+      for (const signal of this._deps) trackedSubscribers(signal).delete(this._markDirty);
+      this._deps = new Set();
+      this._depVersions = new Map();
+    }
+  }
+
+  dispose(): void {
+    if (this._disposed) return;
+    this._disposed = true;
+    for (const signal of this._deps) trackedSubscribers(signal).delete(this._markDirty);
+    this._deps = new Set();
+  }
+}
+
 /**
- * A read-only Signal whose value is derived from other Signals. The returned
- * Signal carries a non-enumerable `dispose()` that stops recomputation (and
- * detaches from every signal `fn` reads) — call it to tear down the chain.
+ * A read-only Signal whose value is derived from other Signals, computed
+ * lazily — `fn` doesn't run at creation, and an upstream change while
+ * nobody is reading this computed only marks it stale, deferring the real
+ * recomputation to the next `get()`/`peek()`. Once something depends on it
+ * (an effect, another computed, or `subscribe()`), it recomputes eagerly on
+ * every upstream change instead, exactly like before.
+ *
+ * The returned Signal carries a non-enumerable `dispose()` that stops
+ * recomputation (and detaches from every signal `fn` reads) — call it to
+ * tear down the chain.
  */
 export function computed<T>(fn: () => T): Signal<T> & { dispose(): void } {
-  const sig = new Signal<T>(fn());
-  const dispose = effect(() => sig.set(fn()));
-  return Object.defineProperty(sig, "dispose", {
-    value: dispose,
-    enumerable: false,
-    writable: false,
-    configurable: false,
-  }) as Signal<T> & { dispose(): void };
+  return new ComputedSignal(fn);
 }
