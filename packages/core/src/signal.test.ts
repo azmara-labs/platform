@@ -369,6 +369,30 @@ describe("computed", () => {
       [300, 600], // must never see a torn pair like [300, 200]
     ]);
   });
+
+  it("an eagerly-observed diamond of computeds does not double-invoke a shared dependency's fn within one flush", () => {
+    // b's fn returns a new object each call — a redundant second recompute
+    // within the same flush would produce a non-Object.is-equal result,
+    // slipping past set()'s equals suppression and firing a spurious extra
+    // notification. c reads a directly before reading b, so c's own recompute
+    // pulls b fresh (via the staleness check) before b's own _markDirty gets
+    // its turn later in the same flush's subscriber queue.
+    const a = new Signal(100);
+    const bFn = vi.fn(() => ({ doubled: a.get() * 2 }));
+    const b = computed(bFn);
+    const c = computed(() => a.get() + b.get().doubled);
+    const seen: number[] = [];
+    effect(() => {
+      c.get();
+      seen.push(b.get().doubled);
+    });
+    expect(bFn).toHaveBeenCalledTimes(1);
+    expect(seen).toEqual([200]);
+
+    a.set(300);
+    expect(bFn).toHaveBeenCalledTimes(2); // recomputed exactly once more, not twice
+    expect(seen).toEqual([200, 600]); // exactly one additional effect run, not two
+  });
 });
 
 describe("batch", () => {
