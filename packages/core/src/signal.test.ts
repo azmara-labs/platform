@@ -348,6 +348,27 @@ describe("computed", () => {
     price.set(5000); // no effect — already unsubscribed by dispose()
     expect(doubled.peek()).toBe(200); // frozen at the pre-dispose value, not recomputed against price's current value
   });
+
+  it("an effect reading the source signal before a computed derived from it never observes a torn/stale pair", () => {
+    // Reading price before doubled (rather than the other way round) means
+    // this effect's `run` subscribes to price before doubled's own
+    // _markDirty does — the exact subscriber-order dependency that used to
+    // let doubled be read as still-fresh (via its now-stale cached value)
+    // one flush cycle before its own recompute had a turn.
+    const price = new Signal(100);
+    const doubled = computed(() => price.get() * 2);
+    const seen: Array<[number, number]> = [];
+    effect(() => {
+      seen.push([price.get(), doubled.get()]);
+    });
+    expect(seen).toEqual([[100, 200]]);
+
+    price.set(300);
+    expect(seen).toEqual([
+      [100, 200],
+      [300, 600], // must never see a torn pair like [300, 200]
+    ]);
+  });
 });
 
 describe("batch", () => {

@@ -20,6 +20,19 @@ function trackedSubscribers(signal: Signal<unknown>): Set<Subscriber> {
   return subs;
 }
 
+// Monotonically increasing stamp, bumped on every real (non-equal)
+// Signal.set(). A ComputedSignal's subscription to its own dependencies is
+// only established the first time something reads it — so two consumers
+// reading a shared upstream signal in different orders (e.g. an effect
+// reading a raw signal before a computed derived from it) can end up
+// subscribed to that signal in either order. Relying solely on push-based
+// dirty flagging then lets a computed be read as stale before its own
+// _markDirty subscriber has had a turn in the same flush. Comparing version
+// stamps at _sync() time re-derives freshness directly, independent of
+// subscriber-notification order.
+let globalVersion = 0;
+const versionOf = new WeakMap<Signal<unknown>, number>();
+
 // ── Scheduler ────────────────────────────────────────────────────────────────
 // Deduplicates effects so a single set() call never triggers the same effect
 // more than once per flush cycle, even when a computed chain causes the same
@@ -205,6 +218,7 @@ export class Signal<T> {
   set(value: T): void {
     if (this._equals(this._value, value)) return;
     this._value = value;
+    versionOf.set(this as Signal<unknown>, ++globalVersion);
     const subscribers = subscribersOf.get(this as Signal<unknown>);
     if (subscribers) {
       for (const subscriber of subscribers) {
@@ -312,6 +326,10 @@ class ComputedSignal<T> extends Signal<T> {
   // catch-up (see _recompute below) or a case that must stay frozen instead.
   private _everComputed = false;
   private _deps = new Set<Signal<unknown>>();
+  // Version stamps of each dependency as of the last successful recompute —
+  // see versionOf's comment above for why push-based _dirty flagging alone
+  // isn't sufficient to detect staleness.
+  private _depVersions = new Map<Signal<unknown>, number>();
   private readonly _fn: () => T;
 
   constructor(fn: () => T) {
@@ -335,12 +353,27 @@ class ComputedSignal<T> extends Signal<T> {
     this._recompute();
   };
 
+  private _isStale(): boolean {
+    for (const [dep, version] of this._depVersions) {
+      if ((versionOf.get(dep) ?? 0) !== version) return true;
+    }
+    return false;
+  }
+
   protected override _sync(): void {
     // Once disposed, only the deferred first computation (never having run
     // at all yet) is still allowed through — a computed disposed after
     // already producing a real value must stay frozen at it, even if an
     // unobserved upstream change left it marked dirty beforehand.
     if (this._disposed && this._everComputed) return;
+    // _dirty alone can lag behind reality: it's only set by _markDirty,
+    // whose subscription is established on first read, so a consumer that
+    // reads a shared upstream signal before this computed can end up
+    // subscribed ahead of _markDirty in that signal's subscriber list —
+    // meaning this computed could be read as "not dirty yet" even though the
+    // upstream value backing it has already changed. The version check
+    // catches that regardless of subscriber-notification order.
+    if (!this._dirty && this._everComputed && this._isStale()) this._dirty = true;
     if (this._dirty) this._recompute();
   }
 
@@ -361,6 +394,8 @@ class ComputedSignal<T> extends Signal<T> {
     }
     this._dirty = false;
     this._everComputed = true;
+    this._depVersions = new Map();
+    for (const dep of this._deps) this._depVersions.set(dep, versionOf.get(dep) ?? 0);
     this.set(next);
 
     if (this._disposed) {
@@ -369,6 +404,7 @@ class ComputedSignal<T> extends Signal<T> {
       // subscribed; tear the just-established deps straight back down.
       for (const signal of this._deps) trackedSubscribers(signal).delete(this._markDirty);
       this._deps = new Set();
+      this._depVersions = new Map();
     }
   }
 
