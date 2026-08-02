@@ -220,6 +220,7 @@ export class Signal<T> {
   }
 
   subscribe(callback: (value: T) => void): () => void {
+    this._sync();
     const sub: Subscriber = () => callback(this._value);
     const subs = trackedSubscribers(this as Signal<unknown>);
     subs.add(sub);

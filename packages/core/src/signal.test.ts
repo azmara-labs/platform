@@ -298,6 +298,17 @@ describe("computed", () => {
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
+  it("subscribe() bootstraps a computed that was never read via get()/peek() first", () => {
+    const price = new Signal(100);
+    const doubled = computed(() => price.get() * 2);
+    const values: number[] = [];
+
+    doubled.subscribe((v) => values.push(v)); // no prior get()/peek() — subscribe() alone must observe it
+
+    price.set(200);
+    expect(values).toEqual([400]); // proves _fn ran and doubled is subscribed to price
+  });
+
   it("a throwing fn() defers the error to the first read, not to computed() itself", () => {
     let c!: Signal<number> & { dispose(): void };
     expect(() => {
