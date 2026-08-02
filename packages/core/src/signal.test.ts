@@ -336,6 +336,18 @@ describe("computed", () => {
     expect(doubled.peek()).toBe(200); // frozen — no further recomputation after that one read
     expect(fn).toHaveBeenCalledTimes(1);
   });
+
+  it("dispose() after going stale while unobserved still freezes at the last real value, not a stale-but-live recompute", () => {
+    const price = new Signal(100);
+    const doubled = computed(() => price.get() * 2);
+    expect(doubled.peek()).toBe(200); // computed once — dirty is now false
+
+    price.set(999); // unobserved — only marks dirty, doesn't recompute
+    doubled.dispose(); // disposed while dirty=true and already computed once before
+
+    price.set(5000); // no effect — already unsubscribed by dispose()
+    expect(doubled.peek()).toBe(200); // frozen at the pre-dispose value, not recomputed against price's current value
+  });
 });
 
 describe("batch", () => {

@@ -305,6 +305,12 @@ export function effect(fn: () => unknown): () => void {
 class ComputedSignal<T> extends Signal<T> {
   private _dirty = true;
   private _disposed = false;
+  // Distinguishes "never computed yet" from "computed at least once, now
+  // stale" — dispose() alone doesn't clear _dirty (an unobserved upstream
+  // change before dispose() leaves it stale), so _sync() needs this to know
+  // whether a post-dispose read is the one deliberate deferred-first-read
+  // catch-up (see _recompute below) or a case that must stay frozen instead.
+  private _everComputed = false;
   private _deps = new Set<Signal<unknown>>();
   private readonly _fn: () => T;
 
@@ -330,6 +336,11 @@ class ComputedSignal<T> extends Signal<T> {
   };
 
   protected override _sync(): void {
+    // Once disposed, only the deferred first computation (never having run
+    // at all yet) is still allowed through — a computed disposed after
+    // already producing a real value must stay frozen at it, even if an
+    // unobserved upstream change left it marked dirty beforehand.
+    if (this._disposed && this._everComputed) return;
     if (this._dirty) this._recompute();
   }
 
@@ -349,6 +360,7 @@ class ComputedSignal<T> extends Signal<T> {
       currentDeps = prevDeps;
     }
     this._dirty = false;
+    this._everComputed = true;
     this.set(next);
 
     if (this._disposed) {
