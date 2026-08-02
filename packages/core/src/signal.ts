@@ -330,13 +330,6 @@ class ComputedSignal<T> extends Signal<T> {
   // see versionOf's comment above for why push-based _dirty flagging alone
   // isn't sufficient to detect staleness.
   private _depVersions = new Map<Signal<unknown>, number>();
-  // The flushGeneration this computed was last recomputed in, regardless of
-  // which path triggered it — a push from _markDirty, or a pull from
-  // _sync()'s staleness check while being read from inside another
-  // subscriber's own recompute. Guards _markDirty against redundantly
-  // recomputing a second time in the same flush when the pull already did
-  // it first (see _markDirty below).
-  private _recomputedInGeneration = 0;
   private readonly _fn: () => T;
 
   constructor(fn: () => T) {
@@ -357,16 +350,21 @@ class ComputedSignal<T> extends Signal<T> {
       this._dirty = true;
       return;
     }
-    // Another subscriber may have already pulled this computed fresh this
-    // same flush (via _sync()'s staleness check, reading it before this
-    // push notification got its turn — e.g. a diamond where a sibling
-    // computed depends on both the changed signal and this computed).
-    // Recomputing again here would be redundant at best; for an `fn` that
-    // returns a new object/array each call, the second result wouldn't be
-    // Object.is-equal to the first, bypassing set()'s equals suppression
-    // and firing a spurious extra notification for a value that didn't
-    // actually change again.
-    if (this._recomputedInGeneration === flushGeneration) return;
+    // Another subscriber may have already pulled this computed fresh —
+    // via _sync()'s staleness check, reading it before this push
+    // notification got its turn (e.g. a diamond where a sibling computed
+    // depends on both the changed signal and this computed), or via a
+    // direct read made mid-batch (batch()'s own docs guarantee get()/peek()
+    // inside it see the latest write immediately, ahead of the flush this
+    // push notification belongs to). Recomputing again here would be
+    // redundant at best; for an `fn` that returns a new object/array each
+    // call, the second result wouldn't be Object.is-equal to the first,
+    // bypassing set()'s equals suppression and firing a spurious extra
+    // notification for a value that didn't actually change again. Reusing
+    // _isStale() here (rather than a generation counter) means this check
+    // is correct regardless of *when* the earlier pull happened relative to
+    // the current flush.
+    if (this._everComputed && !this._isStale()) return;
     this._recompute();
   };
 
@@ -411,7 +409,6 @@ class ComputedSignal<T> extends Signal<T> {
     }
     this._dirty = false;
     this._everComputed = true;
-    this._recomputedInGeneration = flushGeneration;
     this._depVersions = new Map();
     for (const dep of this._deps) this._depVersions.set(dep, versionOf.get(dep) ?? 0);
     this.set(next);

@@ -393,6 +393,25 @@ describe("computed", () => {
     expect(bFn).toHaveBeenCalledTimes(2); // recomputed exactly once more, not twice
     expect(seen).toEqual([200, 600]); // exactly one additional effect run, not two
   });
+
+  it("a mid-batch read of an observed computed does not cause a redundant recompute once the batch's flush runs", () => {
+    // batch()'s own contract guarantees get()/peek() inside it see the
+    // latest write immediately — pulling b here recomputes it ahead of the
+    // flush that its own _markDirty push notification belongs to.
+    const a = new Signal(1);
+    const bFn = vi.fn(() => ({ doubled: a.get() * 2 }));
+    const b = computed(bFn);
+    effect(() => b.get()); // observed — eager recompute-on-write path
+    expect(bFn).toHaveBeenCalledTimes(1);
+
+    batch(() => {
+      a.set(2);
+      expect(b.get().doubled).toBe(4); // pulled mid-batch, ahead of the eventual flush
+    });
+
+    expect(bFn).toHaveBeenCalledTimes(2); // recomputed exactly once for this update, not twice
+    expect(b.peek()).toEqual({ doubled: 4 });
+  });
 });
 
 describe("batch", () => {
