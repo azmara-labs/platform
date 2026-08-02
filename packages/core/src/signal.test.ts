@@ -239,6 +239,92 @@ describe("computed", () => {
     expect(doubled.peek()).toBe(200); // frozen at its last computed value
     expect(_debugSubscriberCount(price)).toBe(0);
   });
+
+  it("does not run fn at creation, and does not recompute on upstream changes while unobserved — only on the next read", () => {
+    const price = new Signal(100);
+    const fn = vi.fn(() => price.get() * 2);
+    const doubled = computed(fn);
+    expect(fn).not.toHaveBeenCalled(); // nothing runs at creation
+
+    price.set(200);
+    price.set(300);
+    expect(fn).not.toHaveBeenCalled(); // unobserved — upstream changes only mark it stale
+
+    expect(doubled.get()).toBe(600); // first read recomputes exactly once, from the latest value
+    expect(fn).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not subscribe to its source signal until first read", () => {
+    const price = new Signal(100);
+    const doubled = computed(() => price.get() * 2);
+    expect(_debugSubscriberCount(price)).toBe(0);
+
+    doubled.get();
+    expect(_debugSubscriberCount(price)).toBe(1);
+  });
+
+  it("an observed computed still suppresses downstream re-runs when the recomputed value is unchanged", () => {
+    const n = new Signal(0);
+    const isEven = computed(() => (n.get() % 2 === 0 ? "even" : "odd"));
+    const fn = vi.fn(() => isEven.get());
+    effect(fn); // observing isEven switches it to eager recompute on every upstream change
+    expect(fn).toHaveBeenCalledTimes(1);
+
+    n.set(2); // still even — isEven's own value is unchanged, so its subscriber must not re-run
+    expect(fn).toHaveBeenCalledTimes(1);
+
+    n.set(3); // now odd — value changes, subscriber re-runs
+    expect(fn).toHaveBeenCalledTimes(2);
+  });
+
+  it("stops eagerly recomputing once its last observer is disposed", () => {
+    const price = new Signal(100);
+    const fn = vi.fn(() => price.get() * 2);
+    const doubled = computed(fn);
+    const dispose = effect(() => doubled.get());
+    expect(fn).toHaveBeenCalledTimes(1); // observed — first read recomputes
+
+    price.set(200);
+    expect(fn).toHaveBeenCalledTimes(2); // still observed — eager recompute on upstream change
+
+    dispose();
+    fn.mockClear();
+
+    price.set(300);
+    price.set(400);
+    expect(fn).not.toHaveBeenCalled(); // unobserved again — no recompute until next read
+
+    expect(doubled.get()).toBe(800);
+    expect(fn).toHaveBeenCalledTimes(1);
+  });
+
+  it("a throwing fn() defers the error to the first read, not to computed() itself", () => {
+    let c!: Signal<number> & { dispose(): void };
+    expect(() => {
+      c = computed((): number => {
+        throw new Error("boom");
+      });
+    }).not.toThrow();
+
+    expect(() => c.get()).toThrow("boom");
+  });
+
+  it("disposing before ever reading still allows exactly one read afterward, computed from current values", () => {
+    const price = new Signal(100);
+    const fn = vi.fn(() => price.get() * 2);
+    const doubled = computed(fn);
+
+    doubled.dispose(); // disposed before ever being read — fn hasn't run yet
+    expect(fn).not.toHaveBeenCalled();
+
+    expect(doubled.get()).toBe(200); // the deferred first read still computes, from current values
+    expect(fn).toHaveBeenCalledTimes(1);
+    expect(_debugSubscriberCount(price)).toBe(0); // torn back down immediately after — no leak
+
+    price.set(999);
+    expect(doubled.peek()).toBe(200); // frozen — no further recomputation after that one read
+    expect(fn).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("batch", () => {

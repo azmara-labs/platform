@@ -74,6 +74,22 @@ const doubled = computed(() => count.get() * 2);
 doubled.dispose(); // stops recomputing; doubled.peek() stays at its last value
 ```
 
+### Lazy evaluation
+
+`computed()` is lazy: `fn` doesn't run at creation, and while nothing is reading the computed (no `effect()`, no other `computed()`, no `subscribe()`), an upstream change only marks it stale — it doesn't recompute. The real computation happens on the next `.get()`/`.peek()`, always from the latest values. Once something does depend on it, it switches to recomputing eagerly on every upstream change, exactly as before, so an effect reading it still only re-runs when the derived value actually changes.
+
+```typescript
+const price = new Signal(100);
+const doubled = computed(() => price.get() * 2); // fn hasn't run yet
+
+price.set(200); // doubled is unobserved — just marked stale, not recomputed
+price.set(300);
+
+doubled.get(); // 600 — computes once here, from the latest value
+```
+
+**Behaviour change:** a throwing `fn` used to throw synchronously from `computed(fn)` itself; it now throws from the first `.get()`/`.peek()` instead, since that's when `fn` actually runs.
+
 ## batch
 
 Coalesces every `set()` call made inside a callback into a single effect flush, instead of one flush per `set()`. Values update synchronously as usual — `.get()`/`.peek()` inside the callback always see the latest write; only the effect flush is deferred.
@@ -142,7 +158,7 @@ If no handler is registered, the error is rethrown asynchronously (so it isn't s
 | `Signal.peek()` | Read value without subscribing |
 | `Signal.subscribe(fn)` | Push-based subscription, returns unsubscribe |
 | `effect(fn)` | Run `fn` reactively, returns a disposer that fully detaches it; `fn` may return a cleanup function |
-| `computed(fn)` | Read-only derived Signal; return value has a `dispose()` |
+| `computed(fn)` | Read-only derived Signal, computed lazily; return value has a `dispose()` |
 | `batch(fn)` | Coalesce `set()` calls inside `fn` into one flush; returns `fn`'s return value |
 | `untrack(fn)` | Run `fn` with dependency tracking suspended; returns `fn`'s return value |
 | `onError(handler)` | Register a handler for errors thrown during a flush; returns a function that restores the previous handler |

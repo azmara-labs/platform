@@ -187,7 +187,14 @@ export class Signal<T> {
       : Object.is;
   }
 
+  /**
+   * Overridden by `computed()`'s internal Signal subclass to lazily bring
+   * `_value` up to date immediately before a read. No-op on a plain Signal.
+   */
+  protected _sync(): void {}
+
   get(): T {
+    this._sync();
     if (currentEffect !== null) {
       trackedSubscribers(this as Signal<unknown>).add(currentEffect);
       currentDeps?.add(this as Signal<unknown>);
@@ -208,6 +215,7 @@ export class Signal<T> {
   }
 
   peek(): T {
+    this._sync();
     return this._value;
   }
 
@@ -283,18 +291,94 @@ export function effect(fn: () => unknown): () => void {
   };
 }
 
+// computed()'s implementation: lazy and pull-based. Nothing runs at
+// creation — _dirty starts true, so the deferred first computation happens
+// on whichever `get()`/`peek()` reads it first. While unobserved (nobody
+// reading it from an active effect/computed/subscribe()), an upstream
+// change from _markDirty only flags staleness; it does NOT recompute, so an
+// upstream signal that changes N times without ever being read costs
+// nothing beyond the flag. Once observed, _markDirty switches to
+// recomputing eagerly on every upstream change instead — same as the old
+// eager computed — so set()'s equals check still suppresses notifying this
+// computed's own subscribers when the recomputed value is unchanged.
+class ComputedSignal<T> extends Signal<T> {
+  private _dirty = true;
+  private _disposed = false;
+  private _deps = new Set<Signal<unknown>>();
+  private readonly _fn: () => T;
+
+  constructor(fn: () => T) {
+    // Placeholder — _dirty starts true, so _sync() always computes a real
+    // value before this is ever observed by a caller.
+    super(undefined as T);
+    this._fn = fn;
+  }
+
+  private _isObserved(): boolean {
+    const subscribers = subscribersOf.get(this as Signal<unknown>);
+    return !!subscribers && subscribers.size > 0;
+  }
+
+  private _markDirty: Subscriber = () => {
+    if (this._disposed) return;
+    if (!this._isObserved()) {
+      this._dirty = true;
+      return;
+    }
+    this._recompute();
+  };
+
+  protected override _sync(): void {
+    if (this._dirty) this._recompute();
+  }
+
+  private _recompute(): void {
+    for (const signal of this._deps) trackedSubscribers(signal).delete(this._markDirty);
+    this._deps = new Set();
+
+    const prevEffect = currentEffect;
+    const prevDeps = currentDeps;
+    currentEffect = this._markDirty;
+    currentDeps = this._deps;
+    let next: T;
+    try {
+      next = this._fn();
+    } finally {
+      currentEffect = prevEffect;
+      currentDeps = prevDeps;
+    }
+    this._dirty = false;
+    this.set(next);
+
+    if (this._disposed) {
+      // dispose() was called before this (deferred) first computation ever
+      // ran — this was that one-time catch-up read. Don't leave it
+      // subscribed; tear the just-established deps straight back down.
+      for (const signal of this._deps) trackedSubscribers(signal).delete(this._markDirty);
+      this._deps = new Set();
+    }
+  }
+
+  dispose(): void {
+    if (this._disposed) return;
+    this._disposed = true;
+    for (const signal of this._deps) trackedSubscribers(signal).delete(this._markDirty);
+    this._deps = new Set();
+  }
+}
+
 /**
- * A read-only Signal whose value is derived from other Signals. The returned
- * Signal carries a non-enumerable `dispose()` that stops recomputation (and
- * detaches from every signal `fn` reads) — call it to tear down the chain.
+ * A read-only Signal whose value is derived from other Signals, computed
+ * lazily — `fn` doesn't run at creation, and an upstream change while
+ * nobody is reading this computed only marks it stale, deferring the real
+ * recomputation to the next `get()`/`peek()`. Once something depends on it
+ * (an effect, another computed, or `subscribe()`), it recomputes eagerly on
+ * every upstream change instead, exactly like before.
+ *
+ * The returned Signal carries a non-enumerable `dispose()` that stops
+ * recomputation (and detaches from every signal `fn` reads) — call it to
+ * tear down the chain.
  */
 export function computed<T>(fn: () => T): Signal<T> & { dispose(): void } {
-  const sig = new Signal<T>(fn());
-  const dispose = effect(() => sig.set(fn()));
-  return Object.defineProperty(sig, "dispose", {
-    value: dispose,
-    enumerable: false,
-    writable: false,
-    configurable: false,
-  }) as Signal<T> & { dispose(): void };
+  return new ComputedSignal(fn);
 }

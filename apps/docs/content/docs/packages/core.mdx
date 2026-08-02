@@ -91,6 +91,25 @@ price.set(9999);
 console.log(gst.peek()); // 30 — frozen at its last computed value
 ```
 
+### Lazy evaluation
+
+`fn` doesn't run at creation. While the computed is unobserved — nothing reading it via `effect()`, another `computed()`, or `subscribe()` — an upstream change only marks it stale; the actual recomputation is deferred to the next `.get()`/`.peek()`, and always uses the latest values, not whatever was current when the signal changed. Once something depends on it, it switches to recomputing eagerly on every upstream change, matching the old always-eager behaviour, so an observing effect still only re-runs when the derived value itself actually changes.
+
+```typescript
+const price = new Signal(100);
+const gst = computed(() => price.get() * 0.15); // fn hasn't run yet
+
+price.set(200); // gst is unobserved — just marked stale, not recomputed
+price.set(300);
+
+gst.get(); // 45 — computes once here, from the latest value
+```
+
+<Callout type="warn">
+  Behaviour change: a throwing `fn` used to throw synchronously from `computed(fn)` itself. It now
+  throws from the first `.get()`/`.peek()` instead, since that's when `fn` actually runs.
+</Callout>
+
 ## subscribe
 
 Listen to a Signal from outside the reactive system — useful for bridging to React, Vue, or any non-reactive code.
@@ -202,7 +221,7 @@ Constructor: `new Signal(initialValue, options?)`. `options.equals` replaces the
 | Function | Description |
 |---|---|
 | `effect(fn)` | Run `fn` reactively, returns a disposer that fully detaches it |
-| `computed(fn)` | Create a derived read-only Signal; return value has a `dispose()` |
+| `computed(fn)` | Create a derived read-only Signal, computed lazily; return value has a `dispose()` |
 | `batch(fn)` | Coalesce `set()` calls inside `fn` into one flush; returns `fn`'s return value |
 | `untrack(fn)` | Run `fn` with dependency tracking suspended; returns `fn`'s return value |
 | `onError(handler)` | Register a handler for errors thrown during a flush; returns a function that restores the previous handler |
