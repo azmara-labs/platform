@@ -71,3 +71,12 @@ minimumReleaseAgeExclude:
   - '@next/swc-win32-x64-msvc@16.2.12'
   - lucide-react@1.27.0
   - next@16.2.12
+
+auditConfig:
+  ignoreGhsas:
+    # braces <=3.0.3 stack-exhaustion DoS on deeply nested patterns. No patched
+    # release exists on npm (3.0.3 is the latest 3.x; advisory lists >=3.0.4).
+    # Only reachable via @changesets/cli > ... > micromatch (dev tooling, never
+    # shipped, patterns come from this repo). Remove this entry once braces
+    # >=3.0.4 is published and the lockfile picks it up.
+    - GHSA-vfj7-8cjw-p6xm

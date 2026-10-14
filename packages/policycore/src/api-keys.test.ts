@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createApiKeyManager } from "./api-keys.js";
 
 describe("createApiKeyManager", () => {
@@ -85,16 +85,23 @@ describe("createApiKeyManager", () => {
     expect(rotated.rotatedFrom).toBe(original.keyId);
   });
 
-  it("rotate honors an opt-in grace period before invalidating the old key", async () => {
-    const mgr = createApiKeyManager();
-    const original = mgr.issue("client-a");
-    mgr.rotate(original.keyId, { graceMs: 30 });
+  it("rotate honors an opt-in grace period before invalidating the old key", () => {
+    // Fake only Date: rotate() writes an fsync'd audit entry, which can take
+    // longer than a real-time grace window on slow disks and made this flaky.
+    vi.useFakeTimers({ toFake: ["Date"] });
+    try {
+      const mgr = createApiKeyManager();
+      const original = mgr.issue("client-a");
+      mgr.rotate(original.keyId, { graceMs: 30 });
 
-    expect(mgr.verify(original.rawKey).valid).toBe(true);
+      expect(mgr.verify(original.rawKey).valid).toBe(true);
 
-    await new Promise((resolve) => setTimeout(resolve, 60));
+      vi.setSystemTime(Date.now() + 60);
 
-    expect(mgr.verify(original.rawKey).reason).toBe("revoked");
+      expect(mgr.verify(original.rawKey).reason).toBe("revoked");
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("rotate throws for an unknown keyId", () => {
