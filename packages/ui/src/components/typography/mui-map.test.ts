@@ -43,6 +43,11 @@ describe("MUI Typography variant mapping (data for the migration codemod)", () =
   });
 
   it("records where the mapping is approximate, so the codemod can flag it", () => {
+    // Ours are muted text; MUI's subtitle1, caption and overline use the normal text colour.
+    for (const name of ["subtitle1", "subtitle2", "caption", "overline", "button", "inherit"]) {
+      expect(variants[name]?.approximate, name).toBe(true);
+      expect(variants[name]?.note, name).toBeTruthy();
+    }
     expect(variants.subtitle2?.approximate).toBe(true);
     expect(variants.button?.approximate).toBe(true);
     expect(variants.h1?.approximate).toBeUndefined();

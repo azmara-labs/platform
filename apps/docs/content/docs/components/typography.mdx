@@ -32,16 +32,16 @@ Everything else a native element accepts passes through, and `ref` is the render
 
 ## Migrating from MUI Typography
 
-`@azmr/ui/typography/mui-map` is plain data the migration codemod uses. Exact mappings are rewritten; approximate ones (a small difference in weight or case) are flagged for a person to look at.
+`@azmr/ui/typography/mui-map` is plain data the migration codemod uses. Exact mappings are rewritten; approximate ones (a small difference in weight, case or colour) are flagged for a person to look at.
 
 | MUI `variant` | `@azmr/ui` | Note |
 | --- | --- | --- |
 | `h1` to `h6` | `h1` to `h6` | exact |
-| `subtitle1` | `lead` | exact |
+| `subtitle1` | `lead` | `lead` is muted; add `className="text-foreground"` for MUI's colour |
 | `subtitle2` | `small` | MUI is medium weight: add `weight="medium"` on `Text` |
 | `body1` (MUI's default) | `body` | exact |
 | `body2` | `small` | exact |
-| `caption`, `overline` | `caption`, `overline` | exact |
+| `caption`, `overline` | `caption`, `overline` | ours are muted; add `className="text-foreground"` for MUI's colour |
 | `button` | `small` | MUI is uppercase medium: add `weight="medium"` and `className="uppercase"` |
 | `inherit` | `body` | takes the parent's font in MUI; use `className="text-inherit"` if that is the intent |
 

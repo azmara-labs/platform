@@ -21,7 +21,11 @@ export const muiTypographyMap = {
     h4: { variant: "h4" },
     h5: { variant: "h5" },
     h6: { variant: "h6" },
-    subtitle1: { variant: "lead" },
+    subtitle1: {
+      variant: "lead",
+      approximate: true,
+      note: '`lead` is muted text; MUI subtitle1 uses the normal text colour. Add className="text-foreground" to match.',
+    },
     subtitle2: {
       variant: "small",
       approximate: true,
@@ -29,8 +33,16 @@ export const muiTypographyMap = {
     },
     body1: { variant: "body" },
     body2: { variant: "small" },
-    caption: { variant: "caption" },
-    overline: { variant: "overline" },
+    caption: {
+      variant: "caption",
+      approximate: true,
+      note: '`caption` is muted text; MUI caption uses the normal text colour. Add className="text-foreground" to match.',
+    },
+    overline: {
+      variant: "overline",
+      approximate: true,
+      note: '`overline` is muted text; MUI overline uses the normal text colour. Add className="text-foreground" to match.',
+    },
     button: {
       variant: "small",
       approximate: true,
