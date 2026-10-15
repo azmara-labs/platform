@@ -1,0 +1,37 @@
+---
+title: Avatar
+description: A person or entity as an image with initials as the fallback, plus a group with a labelled overflow count. Built on Base UI.
+---
+
+## Usage
+
+```tsx
+import { Avatar, AvatarGroup } from "@azmr/ui/avatar";
+```
+
+<Demo name="avatar/basic" />
+
+When `src` is missing, still loading, or fails (offline, a 404), the **initials of `name`** are shown instead, so an avatar never turns into a broken-image icon. `getInitials` is exported: the first character of the first two words, uppercased, counting whole characters so an emoji or a rare character is never cut in half. Pass `fallback` to show something else, and `delayMs` to avoid a flash of initials while a fast image loads.
+
+## Naming
+
+An avatar must say who it is, so the types require one of `name`, `alt` or `decorative`:
+
+- `name` labels the avatar and supplies the initials. `alt` overrides the label ("Aroha, account owner").
+- `decorative` hides it from assistive technology, for an avatar beside a name that already says who it is.
+
+The avatar element carries the label; the image inside is `alt=""` so it is not announced twice.
+
+## AvatarGroup
+
+`AvatarGroup` overlaps its avatars and shows at most `max`, then a `+N` avatar labelled "N more" (`overflowLabel` to localise). It is a `role="group"`: give it an `aria-label` ("Project team").
+
+## Props
+
+<AutoTypeTable path="../../packages/ui/src/components/avatar/avatar.tsx" name="AvatarGroupProps" />
+
+## Accessibility
+
+- `role="img"` with the name as its label, or `aria-hidden` when decorative.
+- The overflow avatar says how many people are hidden.
+- No keyboard interaction; put an avatar inside a button or link when it should be interactive, and give that control the name.

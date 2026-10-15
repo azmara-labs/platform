@@ -1,9 +1,11 @@
 import type { ComponentType } from "react";
+import AvatarBasic from "./avatar/basic.demo";
 import ButtonIcons from "./button/icons.demo";
 import ButtonLoading from "./button/loading.demo";
 import ButtonVariants from "./button/variants.demo";
 import DisplayAlerts from "./display/alerts.demo";
 import DisplayCards from "./display/cards.demo";
+import DisplayChips from "./display/chips.demo";
 import DisplayPlaceholders from "./display/placeholders.demo";
 import IconBasic from "./icon/basic.demo";
 import IconNamed from "./icon/named.demo";
@@ -12,6 +14,8 @@ import InputStates from "./input/states.demo";
 import LayoutContainer from "./layout/container.demo";
 import LayoutGrid from "./layout/grid.demo";
 import LayoutStack from "./layout/stack.demo";
+import ProgressBasic from "./progress/basic.demo";
+import ProgressCircular from "./progress/circular.demo";
 import ScrollAreaBasic from "./scroll-area/basic.demo";
 import SpinnerBasic from "./spinner/basic.demo";
 import TypographyInline from "./typography/inline.demo";
@@ -24,11 +28,13 @@ import TypographyScale from "./typography/scale.demo";
  * rot or be forgotten.
  */
 export const demos = {
+  "avatar/basic": AvatarBasic,
   "button/variants": ButtonVariants,
   "button/loading": ButtonLoading,
   "button/icons": ButtonIcons,
   "display/alerts": DisplayAlerts,
   "display/cards": DisplayCards,
+  "display/chips": DisplayChips,
   "display/placeholders": DisplayPlaceholders,
   "icon/basic": IconBasic,
   "icon/named": IconNamed,
@@ -38,6 +44,8 @@ export const demos = {
   "layout/stack": LayoutStack,
   "input/states": InputStates,
   "scroll-area/basic": ScrollAreaBasic,
+  "progress/basic": ProgressBasic,
+  "progress/circular": ProgressCircular,
   "spinner/basic": SpinnerBasic,
   "typography/inline": TypographyInline,
   "typography/scale": TypographyScale,

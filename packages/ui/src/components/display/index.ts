@@ -9,6 +9,7 @@ export {
   CardTitle,
   type CardTitleProps,
 } from "./card.js";
+export { Chip, type ChipProps } from "./chip.js";
 export { EmptyState, type EmptyStateProps } from "./empty-state.js";
 export { Skeleton, type SkeletonProps } from "./skeleton.js";
 export type { StatusVariant } from "./status.js";

@@ -101,5 +101,15 @@
     "name": "@azmr/ui/display",
     "path": "dist/display.js",
     "limit": "14 kB"
+  },
+  {
+    "name": "@azmr/ui/progress",
+    "path": "dist/progress.js",
+    "limit": "18 kB"
+  },
+  {
+    "name": "@azmr/ui/avatar",
+    "path": "dist/avatar.js",
+    "limit": "18 kB"
   }
 ]
