@@ -96,5 +96,10 @@
     "name": "@azmr/ui/scroll-area",
     "path": "dist/scroll-area.js",
     "limit": "18 kB"
+  },
+  {
+    "name": "@azmr/ui/display",
+    "path": "dist/display.js",
+    "limit": "14 kB"
   }
 ]

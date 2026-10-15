@@ -1,0 +1,52 @@
+---
+title: Display
+description: Card, Badge, Alert, Skeleton and EmptyState. Server Components with status colours checked for contrast in both themes.
+---
+
+## Usage
+
+```tsx
+import { Card, Badge, Alert, Skeleton, EmptyState } from "@azmr/ui/display";
+```
+
+All of these are **Server Components**: no hooks, no `"use client"`.
+
+## Card and Badge
+
+<Demo name="display/cards" />
+
+A `Card` is a bordered surface from tokens, with `CardHeader`, `CardTitle` (an `h3` by default; pass `as` to fit your outline), `CardDescription`, `CardContent` and `CardFooter`. A `Badge` is a small label for status or a count, with the semantic variants `info`, `success`, `warning` and `destructive`.
+
+## Alert
+
+<Demo name="display/alerts" />
+
+Problems (`warning`, `destructive`) are announced assertively with `role="alert"`; `info` and `success` politely with `role="status"`, so a screen reader is not interrupted for good news. An icon is shown per variant (replace it with `icon`, remove it with `icon={null}`). `onDismiss` adds a labelled dismiss button (`dismissLabel` to localise it); the Alert does not hide itself, so you own that state. The dismiss handler works when the Alert is rendered from a Client Component.
+
+## Badge, Skeleton and EmptyState
+
+<Demo name="display/placeholders" />
+
+- **`Skeleton`** is a decorative placeholder (`aria-hidden`). Mark the loading container `aria-busy` and announce the result instead. It pulses, and the global reduced-motion rule stills it for people who ask.
+- **`EmptyState`** says what is missing and what to do about it: a title, optional description, icon and action, with a heading level (`headingLevel`) that fits your page outline.
+
+## Status colours are checked
+
+Alerts and badges paint a tint of a status colour over the page and put text on it. The test suite computes the contrast on the **blended surface**, in light and dark, over both the page and a card, from the same class names the components use: body text at 4.5:1 or better, badge text at 4.5:1, icons at 3:1. This caught a real failure while the components were being built (the destructive badge was 4.26:1 on a dark card), so its tint is lighter than first designed.
+
+## Props
+
+<AutoTypeTable path="../../packages/ui/src/components/display/alert.tsx" name="AlertProps" />
+
+## Accessibility
+
+- Alerts use `role="alert"` or `role="status"` according to urgency; the icon is decorative and the text carries the meaning, so colour is never the only signal.
+- The dismiss button is a real button with an accessible name, reachable and operable with Tab, Enter and Space.
+- Skeletons are hidden from assistive technology; use `aria-busy` on the container.
+
+<KeyboardMap
+  rows={[
+    { keys: ["Tab"], action: "Moves focus to the dismiss button of an Alert that has one." },
+    { keys: ["Enter", "Space"], action: "Dismisses the Alert (calls onDismiss)." },
+  ]}
+/>

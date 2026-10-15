@@ -93,6 +93,10 @@
       "types": "./dist/scroll-area.d.ts",
       "import": "./dist/scroll-area.js"
     },
+    "./display": {
+      "types": "./dist/display.d.ts",
+      "import": "./dist/display.js"
+    },
     "./styles.css": "./dist/styles.css",
     "./tokens.css": "./dist/tokens.css"
   },

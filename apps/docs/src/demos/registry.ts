@@ -2,6 +2,9 @@ import type { ComponentType } from "react";
 import ButtonIcons from "./button/icons.demo";
 import ButtonLoading from "./button/loading.demo";
 import ButtonVariants from "./button/variants.demo";
+import DisplayAlerts from "./display/alerts.demo";
+import DisplayCards from "./display/cards.demo";
+import DisplayPlaceholders from "./display/placeholders.demo";
 import IconBasic from "./icon/basic.demo";
 import IconNamed from "./icon/named.demo";
 import InputBasic from "./input/basic.demo";
@@ -24,6 +27,9 @@ export const demos = {
   "button/variants": ButtonVariants,
   "button/loading": ButtonLoading,
   "button/icons": ButtonIcons,
+  "display/alerts": DisplayAlerts,
+  "display/cards": DisplayCards,
+  "display/placeholders": DisplayPlaceholders,
   "icon/basic": IconBasic,
   "icon/named": IconNamed,
   "input/basic": InputBasic,
