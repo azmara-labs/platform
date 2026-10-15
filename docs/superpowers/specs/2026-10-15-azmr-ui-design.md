@@ -257,7 +257,7 @@ Sizes are relative (S, M, L). There is no deadline; each phase is built in depth
 
 | Phase | Scope | Exit criteria | Size |
 |---|---|---|---|
-| 0 Foundation | Tokens and `styles.css`, build config (per-entry `use client`), `cn`, boundary check, size and a11y test harness, docs shell, registry skeleton, Base UI coverage spike, icon system, fixes for PAZM-37/38/40/42 groundwork | Fresh Next 16 + Tailwind 4 fixture app consumes `@azmr/ui` in CI; Button and Input proven end to end | M |
+| 0 Foundation | Tokens and `styles.css`, build config (per-entry `use client`), `cn`, boundary check, size and a11y test harness, docs shell, registry skeleton, icon system (the Base UI coverage spike is done: Appendix A), fixes for PAZM-37/38/40/42 groundwork | Fresh Next 16 + Tailwind 4 fixture app consumes `@azmr/ui` in CI; Button and Input proven end to end | M |
 | 1 Core components | Section 8.1; registry published; codemods v1 (imports, icons) | Pilot swaps Button/Input/Dialog; all components pass a11y tests | L |
 | 2 Forms and inputs | Section 8.2 incl. debounced Number/Money, date family, Combobox, rich text, adapters | Forms in pilot screens on `Field` + RHF; no `Controller` needed | L |
 | 3 App shell | Section 8.3 | Pilot shell + 5 screens migrated (SC1) | M |
