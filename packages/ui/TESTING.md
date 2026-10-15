@@ -47,3 +47,14 @@ describe("Thing", () => {
 - Write the failing test first, and see it fail for the right reason.
 - When a test guards a rule (a manifest rule, a token threshold, a budget), prove it fails by breaking the rule once.
 - Tests that need real layout or a real browser (focus rings, scrolling, virtualisation) belong in Playwright component tests (added with the data grid).
+
+## Consumer fixture (`pnpm --filter @azmr/ui verify:consumer`)
+
+Unit tests cannot prove that a published package works in a real app. `scripts/verify-consumer.mjs` packs `@azmr/core` and `@azmr/ui` into the same tarballs `npm publish` would ship, installs them into a fresh Next.js 16 + Tailwind v4 app outside the workspace (`fixtures/next-app`), builds it, serves it and checks:
+
+- **Server Components** import the server-safe entries (`lib`, `theme`) and render the client components; the build fails if a `"use client"` directive is missing where it matters.
+- **Tailwind scans the package in `node_modules`** (the `@source` rule): classes that exist only inside `dist` must appear in the app's CSS.
+- **Server-rendered theme**: `data-theme` / `data-density` come from cookies on the first byte, and hostile cookie values are ignored, not reflected.
+- The **exports map** resolves from a real install, including `@azmr/core` as a peer.
+
+The checks are themselves tested: `--sabotage=no-source` strips the `@source` rule and `--sabotage=no-client-directive` strips `"use client"` from `react.js`; each run must fail where expected (exit 0) or the script reports the fault as undetected (exit 1). `--keep` leaves the work directory for inspection. Next lowers `light-dark()` to `--lightningcss-*` toggles for its browser targets; the check accepts either form.

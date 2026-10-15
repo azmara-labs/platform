@@ -40,6 +40,9 @@ jobs:
       - name: Size budgets (@azmr/ui)
         run: pnpm --filter @azmr/ui size
 
+      - name: Consumer fixture (@azmr/ui packed into a fresh Next.js + Tailwind app)
+        run: pnpm --filter @azmr/ui verify:consumer
+
       - name: Run tests with coverage
         run: pnpm test:coverage
 
