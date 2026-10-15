@@ -151,17 +151,24 @@ async function main() {
     cwd: app,
     shell: isWin,
     detached: !isWin,
-    stdio: "ignore",
+    stdio: ["ignore", "pipe", "pipe"],
   });
+  let serverOutput = "";
+  for (const stream of [server.stdout, server.stderr]) {
+    stream?.on("data", (chunk) => {
+      serverOutput = (serverOutput + chunk).slice(-8000);
+    });
+  }
   let up = false;
   for (let i = 0; i < 60 && !up; i++) {
     try {
       up = (await fetch(BASE)).ok;
     } catch {
-      await sleep(1000);
+      // not listening yet
     }
+    if (!up) await sleep(1000);
   }
-  check("server started", up);
+  check("server started", up, up ? "" : tail(serverOutput));
   if (!up) return;
 
   const html = await (await fetch(BASE)).text();
