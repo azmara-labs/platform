@@ -243,7 +243,8 @@ function statusPair(brand: Oklch, mode: "light" | "dark"): { bg: Oklch; fg: Oklc
     const bg = shiftUntil(brand, -1, 1, (c) => holdsOnHover(c, WHITE, "light"));
     return { bg: bg ?? clampToGamut({ ...brand, l: 0.2 }), fg: WHITE };
   }
-  // Lightness starts at 0.7 or more, so a colour that clears near-black also clears the dark card.
+  // Lightness is floored at 0.7, which on its own is more than 6:1 on the dark page and card, so
+  // only the near-black label constrains the result.
   const start = clampToGamut({ ...brand, l: Math.min(0.88, Math.max(0.7, brand.l)) });
   const bg = shiftUntil(start, 1, 0.3, (c) => holdsOnHover(c, NEAR_BLACK, "dark"));
   return { bg: bg ?? start, fg: NEAR_BLACK };

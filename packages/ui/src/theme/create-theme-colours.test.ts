@@ -147,11 +147,7 @@ describe("createTheme: which variables each colour option sets", () => {
 });
 
 describe("createTheme: stays faithful to the supplied hue", () => {
-  const hueOf = (value: string) => {
-    const c = parse(value) as { h?: number; mode: string };
-    const oklch = parse(value.replace(/^oklch/, "oklch"));
-    return oklch ? (oklch as { h?: number }).h : c.h;
-  };
+  const hueOf = (value: string) => (parse(value) as { h?: number }).h;
 
   it.each(["success", "info", "destructive"] as const)("%s keeps its hue in both modes", (name) => {
     const { cssVariables } = createTheme({ [name]: "#2E7D32" });
