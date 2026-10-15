@@ -67,8 +67,10 @@ export function checkConventions(files: SourceFiles, options: Options = {}): Vio
 
     codeLines.forEach((text, i) => {
       const line = i + 1;
-      if ((originalLines[i] ?? "").includes(IGNORE_MARKER)) return;
-      if (!legacy.has(file) && RAW_COLOUR.test(text)) {
+      // The marker exempts a literal colour only. Banned APIs (dangerouslySetInnerHTML) and
+      // import rules have no escape hatch.
+      const colourExempt = (originalLines[i] ?? "").includes(IGNORE_MARKER);
+      if (!colourExempt && !legacy.has(file) && RAW_COLOUR.test(text)) {
         report(
           "no-raw-colour",
           file,

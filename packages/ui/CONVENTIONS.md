@@ -20,7 +20,7 @@ styles      tokens (styles.css)
 
 Components read design tokens: Tailwind utilities such as `bg-background`, `text-muted-foreground`, `border-border`, or `var(--foreground)` in a style value. Hex, `rgb()`, `hsl()`, `oklch()` and other colour literals are rejected (`no-raw-colour`). Colours are defined once, in `src/styles/styles.css`.
 
-If a literal colour is genuinely required (for example a third-party brand logo), add `conventions-ignore: <reason>` in a comment on that line.
+If a literal colour is genuinely required (for example a third-party brand logo), add `conventions-ignore: <reason>` in a comment on that line. The marker exempts colours only: `dangerouslySetInnerHTML` and the import rules have no escape hatch.
 
 ## No `dangerouslySetInnerHTML`
 

@@ -104,6 +104,11 @@ describe("no-dangerous-html", () => {
     }
   });
 
+  it("cannot be silenced with the colour escape hatch", () => {
+    const line = "<div dangerouslySetInnerHTML={{ __html: x }} /> // conventions-ignore: nope";
+    expect(rules({ "components/a.tsx": line })).toEqual(["no-dangerous-html"]);
+  });
+
   it("does not flag the word in a comment or in tests", () => {
     expect(rules({ "components/a.tsx": "// never use dangerouslySetInnerHTML here" })).toEqual([]);
     expect(rules({ "components/a.test.tsx": "const s = 'dangerouslySetInnerHTML';" })).toEqual([]);
@@ -176,6 +181,11 @@ describe("layer-boundary (tokens < primitives < components < blocks < dynamic)",
 });
 
 describe("base-ui-only-in-primitives", () => {
+  it("cannot be silenced with the colour escape hatch either", () => {
+    const line = 'import { Dialog } from "@base-ui/react/dialog"; // conventions-ignore: nope';
+    expect(rules({ "components/a.tsx": line })).toContain("base-ui-only-in-primitives");
+  });
+
   it("allows @base-ui/react inside primitives", () => {
     expect(
       rules({ "primitives/dialog.tsx": 'import { Dialog } from "@base-ui/react/dialog";' }),
