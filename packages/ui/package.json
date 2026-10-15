@@ -41,6 +41,14 @@
       "types": "./dist/lib.d.ts",
       "import": "./dist/lib.js"
     },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "import": "./dist/react.js"
+    },
+    "./theme": {
+      "types": "./dist/theme.d.ts",
+      "import": "./dist/theme.js"
+    },
     "./styles.css": "./dist/styles.css"
   },
   "sideEffects": [

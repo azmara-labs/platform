@@ -180,6 +180,41 @@ describe("layer-boundary (tokens < primitives < components < blocks < dynamic)",
   });
 });
 
+describe("server-safe-no-react (lib and theme ship in server-safe entries)", () => {
+  it("flags React imports in server-safe folders", () => {
+    for (const path of ["lib/a.ts", "theme/b.ts"]) {
+      expect(rules({ [path]: 'import { useState } from "react";' }), path).toContain(
+        "server-safe-no-react",
+      );
+      expect(rules({ [path]: 'import { createRoot } from "react-dom/client";' }), path).toContain(
+        "server-safe-no-react",
+      );
+    }
+  });
+
+  it("allows React where React is expected", () => {
+    for (const path of ["react/a.tsx", "components/b.tsx", "hooks.ts", "blocks/c.tsx"]) {
+      expect(rules({ [path]: 'import { useState } from "react";' }), path).toEqual([]);
+    }
+  });
+
+  it("does not confuse react-like package names", () => {
+    expect(rules({ "lib/a.ts": 'import x from "reactive-thing";' })).toEqual([]);
+  });
+
+  it("lets the react folder use the theme folder, but never the other way round", () => {
+    expect(rules({ "react/a.tsx": 'import { createLocale } from "../theme/locale.js";' })).toEqual(
+      [],
+    );
+    expect(
+      rules({ "theme/a.ts": 'import { ThemeProvider } from "../react/ThemeProvider.js";' }),
+    ).toContain("server-safe-no-react");
+    expect(rules({ "lib/a.ts": 'import { useTheme } from "../react/index.js";' })).toContain(
+      "server-safe-no-react",
+    );
+  });
+});
+
 describe("base-ui-only-in-primitives", () => {
   it("cannot be silenced with the colour escape hatch either", () => {
     const line = 'import { Dialog } from "@base-ui/react/dialog"; // conventions-ignore: nope';
