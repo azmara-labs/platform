@@ -8,6 +8,7 @@ export type Rule =
   | "no-dangerous-html"
   | "layer-boundary"
   | "server-safe-no-react"
+  | "server-component-stateless"
   | "base-ui-only-in-primitives";
 
 export interface Violation {
@@ -23,6 +24,11 @@ export interface Options {
    * from `no-raw-colour` only. Every entry needs a removal condition at its call site.
    */
   legacy?: string[];
+  /**
+   * Folders (relative to src, with a trailing slash) whose entries ship as Server Components:
+   * stateless React only, no hooks or context, no "use client". Taken from build/entries.json.
+   */
+  serverComponentDirs?: string[];
 }
 
 /** Lowest to highest. A layer may import itself and anything below it. */
@@ -37,6 +43,11 @@ const RAW_COLOUR =
 const IMPORT_SPECIFIER =
   /(?:import|export)\s[^'"`;]*?from\s*["']([^"']+)["']|import\s*["']([^"']+)["']|import\(\s*["']([^"']+)["']\s*\)/g;
 const IGNORE_MARKER = "conventions-ignore";
+// Everything that needs a client runtime: all hooks, context and class components.
+const STATEFUL_REACT = /^(?:use[A-Z]\w*|createContext|Component|PureComponent)$/;
+const REACT_NAMED_IMPORT = /import\s*(?:type\s*)?\{([^}]*)\}\s*from\s*["']react["']/g;
+const REACT_NAMESPACE_IMPORT = /import\s*\*\s*as\s+(\w+)\s+from\s*["']react["']/;
+const USE_CLIENT = /^\s*["']use client["']/;
 
 const isTestCode = (file: string) =>
   /\.test\.(ts|tsx)$/.test(file) || file.startsWith("test-utils/") || file === "test-setup.ts";
@@ -58,6 +69,7 @@ const lineOf = (code: string, index: number) => code.slice(0, index).split("\n")
 
 export function checkConventions(files: SourceFiles, options: Options = {}): Violation[] {
   const legacy = new Set(options.legacy ?? []);
+  const serverComponentDirs = options.serverComponentDirs ?? [];
   const violations: Violation[] = [];
   const report = (rule: Rule, file: string, line: number, message: string) =>
     violations.push({ rule, file, line, message });
@@ -91,6 +103,49 @@ export function checkConventions(files: SourceFiles, options: Options = {}): Vio
       }
     });
 
+    if (serverComponentDirs.some((dir) => file.startsWith(dir))) {
+      if (USE_CLIENT.test(code)) {
+        report(
+          "server-component-stateless",
+          file,
+          1,
+          'a Server Component entry must not carry "use client"',
+        );
+      }
+      for (const match of code.matchAll(REACT_NAMED_IMPORT)) {
+        for (const part of (match[1] ?? "").split(",")) {
+          const name =
+            part
+              .trim()
+              .replace(/^type\s+/, "")
+              .split(/\s+as\s+/)[0] ?? "";
+          if (STATEFUL_REACT.test(name)) {
+            report(
+              "server-component-stateless",
+              file,
+              lineOf(code, match.index ?? 0),
+              `"${name}" needs a client runtime; this folder ships as a Server Component`,
+            );
+          }
+        }
+      }
+      const namespace = code.match(REACT_NAMESPACE_IMPORT)?.[1];
+      if (namespace) {
+        const used = new RegExp(
+          `\\b${namespace}\\.(use[A-Z]\\w*|createContext|Component|PureComponent)\\b`,
+          "g",
+        );
+        for (const match of code.matchAll(used)) {
+          report(
+            "server-component-stateless",
+            file,
+            lineOf(code, match.index ?? 0),
+            `"${match[0]}" needs a client runtime; this folder ships as a Server Component`,
+          );
+        }
+      }
+    }
+
     const layer = topSegment(file);
     const layerIndex = (LAYERS as readonly string[]).indexOf(layer);
     const isFoundation = (FOUNDATION as readonly string[]).includes(layer);
@@ -106,6 +161,18 @@ export function checkConventions(files: SourceFiles, options: Options = {}): Vio
           file,
           line,
           `"${specifier}" may only be imported from src/primitives so the engine stays swappable`,
+        );
+      }
+
+      if (
+        /^react-dom(?:\/|$)/.test(specifier) &&
+        serverComponentDirs.some((dir) => file.startsWith(dir))
+      ) {
+        report(
+          "server-component-stateless",
+          file,
+          line,
+          `"${specifier}" is not allowed in a Server Component folder`,
         );
       }
 

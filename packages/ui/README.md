@@ -106,6 +106,46 @@ const { register } = useForm();
 
 `<Spinner />` is decorative; `<Spinner label="Loading customers" />` is announced as a status. It keeps spinning under `prefers-reduced-motion` because a frozen spinner reads as a hung page.
 
+## Icons
+
+`Icon` renders any icon component with consistent size, stroke, motion and accessibility. It is a **Server Component** (no hooks, no `"use client"`), so it works in `loading.tsx`, layouts and Suspense fallbacks.
+
+```tsx
+import { Icon } from "@azmr/ui/icons";
+import { Search } from "lucide-react";
+import { IconBell } from "@tabler/icons-react";   // optional: any set, or your own SVG component
+
+<Icon icon={Search} />                              {/* decorative: aria-hidden */}
+<Icon icon={Search} aria-label="Search" size="lg" /> {/* meaningful: role="img" + name */}
+<Icon icon={IconBell} strokeWidth={1.5} />
+<Icon icon={Loader} spin />                          {/* keeps spinning under reduced motion */}
+```
+
+- **Sizes:** `xs`, `sm`, `md` (default), `lg`, `xl` follow the size tokens; a number is a pixel size. `className` merges last, so `className="size-8"` wins.
+- **Accessible by default:** decorative (`aria-hidden`) unless you pass `aria-label` or `aria-labelledby`. An icon-only button is named by a labelled icon.
+- **Bring any set.** Lucide (ISC) is the default; Tabler (MIT) and your own SVG components work through the same `icon` prop with no adapter. `react-icons` is deliberately not bundled: it mixes licences and only tree-shakes through exact subpath imports.
+- **Tree-shaking is tested:** the Icon core bundles no icon at all, and an app that imports one icon bundles that icon only.
+
+**By name.** Three ways, from most to least isolated:
+
+```tsx
+// 1. The curated Lucide set, with typed names (about 60 everyday icons; Lucide's own kebab-case names)
+import { Icon } from "@azmr/ui/icons/lucide";
+<Icon name="circle-alert" />
+
+// 2. Your own typed set: nothing global, only the icons you list are bundled
+import { createIconSet } from "@azmr/ui/icons";
+export const { Icon } = createIconSet({ check: Check, "my-logo": MyLogo });
+
+// 3. A global registry for custom SVGs (names are untyped strings)
+import { registerIcons } from "@azmr/ui/icons";
+registerIcons({ "my-logo": MyLogo });   // then <Icon name="my-logo" />
+```
+
+An unknown name renders nothing and logs one development warning; it never crashes the page.
+
+**Migrating from `@mui/icons-material`.** `@azmr/ui/icons/mui-map` is plain data: `resolveMuiIcon("SearchOutlined")` returns `{ name: "Search", variant: "outlined", lucide: "search", tabler: "IconSearch" }`. It covers over 300 common Material icons, strips the `Outlined` / `Rounded` / `Sharp` / `TwoTone` variants (and the legacy `Outline` spelling older MUI versions export), maps brand icons to Tabler only (Lucide has none), and lists the common names it deliberately does not map in `unmappedMuiIcons`. Every name in it is checked by tests against the real `@mui/icons-material`, `lucide-react` and `@tabler/icons-react`. The migration codemod uses it and reports anything unmapped instead of guessing.
+
 ## Entry points
 
 | Import | Contents | Directive |
@@ -116,7 +156,10 @@ const { register } = useForm();
 | `@azmr/ui/react` | `ThemeProvider`, `useTheme`, `LocaleProvider`, `useLocale` | `"use client"` |
 | `@azmr/ui/button` | `Button`, `buttonVariants` | `"use client"` |
 | `@azmr/ui/input` | `Input` | `"use client"` |
-| `@azmr/ui/spinner` | `Spinner` | `"use client"` |
+| `@azmr/ui/spinner` | `Spinner` | none, importable from Server Components |
+| `@azmr/ui/icons` | `Icon`, `createIconSet`, `registerIcons` | none, importable from Server Components |
+| `@azmr/ui/icons/lucide` | `Icon` bound to the curated Lucide set, `lucideIcons` | none, importable from Server Components |
+| `@azmr/ui/icons/mui-map` | `resolveMuiIcon`, `muiIconMap`, `unmappedMuiIcons` (migration data) | none, pure data |
 | `@azmr/ui/lib` | `cn()` and other server-safe helpers | none, importable from Server Components |
 
 `cn(...classes)` merges class names and resolves conflicting Tailwind utilities, last one wins: `cn("p-2", "p-4")` → `"p-4"`.

@@ -16,6 +16,18 @@ styles      tokens (styles.css)
 - `lib`, `hooks`, `icons` and `motion` are shared foundation modules: every layer may use them, and they may not import any layer.
 - Only `src/primitives` may import `@base-ui/react` (`base-ui-only-in-primitives`), so the engine stays swappable.
 
+## Entry kinds: client, server component, server
+
+`build/entries.json` sorts every public entry into one of three kinds, and `scripts/verify-dist.mjs` enforces the kind on the built files, **including every shared chunk the entry reaches** (parent-directory imports from nested entries included):
+
+| Kind | Directive | May import from React | Examples |
+|---|---|---|---|
+| `client` | `"use client"` | anything | `Button`, `Input`, `ThemeProvider`, `useSignal` |
+| `serverComponents` | none | stateless only: `forwardRef`, `createElement`, the JSX runtime. **No hooks, no context, no `react-dom`.** | `Spinner`, `Icon` |
+| `server` | none | nothing | `cn()`, `createTheme`, `muiIconMap` |
+
+A stateless component belongs in `serverComponents` so apps can use it in `loading.tsx`, layouts and Suspense fallbacks without a client boundary. `server-component-stateless` checks the same rule on source for those folders (derived from `entries.json`, so the two cannot drift), and the dist check is the authority.
+
 ## No raw colours
 
 Components read design tokens: Tailwind utilities such as `bg-background`, `text-muted-foreground`, `border-border`, or `var(--foreground)` in a style value. Hex, `rgb()`, `hsl()`, `oklch()` and other colour literals are rejected (`no-raw-colour`). Colours are defined once, in `src/styles/styles.css`.

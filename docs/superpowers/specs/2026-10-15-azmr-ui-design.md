@@ -139,7 +139,8 @@ Base UI is the primitive layer: shadcn's default since July 2026, and the engine
 
 ## 7. Icons
 
-- `@azmr/ui/icons` exports `<Icon name="..." />` plus named exports. **Lucide** (MIT) is the default set; an optional **Tabler** pack (MIT, ~5,000 icons) shares the same API; `registerIcons()` accepts custom SVGs.
+- `@azmr/ui/icons` exports `<Icon icon={...} />` (any icon component: Lucide, Tabler, or your own SVG) and `<Icon name="..." />` for named lookup, plus `createIconSet()` (typed, per-set names) and `registerIcons()` (global names for custom SVGs). **Lucide** (ISC licence, not MIT as first drafted) is the default set, shipped as a curated named subset at `@azmr/ui/icons/lucide`; the optional **Tabler** pack (MIT, ~5,000 icons) works through the same `icon` prop, with no adapter, because stroke width is applied to the SVG itself. Both libraries and custom components render identically.
+- *Built (PAZM-51):* `Icon` is a Server Component (stateless; verified by `verify-dist`). Lucide 1.x icons are client components internally, which is fine: the server `Icon` renders them as client references.
 - Size tokens (`xs`..`xl`), `strokeWidth`, `spin`; decorative by default (`aria-hidden`), `aria-label` makes it meaningful. Icons are server-safe.
 - `react-icons` is **not** bundled wholesale: it is a meta-package of many sets with differing licences, and it only tree-shakes through exact subpath imports.
 - A data file maps MUI icon names (including the `Rounded`/`Outlined` variants) to our icons; the codemod uses it and lists unmapped names.
@@ -294,7 +295,7 @@ Team PAZM, project `@azmr/ui`: one **milestone per phase**; one issue per compon
 | D5 | shadcn token names, Tailwind v4, CVA, `tailwind-merge` | Compatibility with the shadcn ecosystem |
 | D6 | TanStack Table v9 + Virtual for the grid; server-side first | Mature headless engine; matches observed usage |
 | D7 | Recharts 3 for charts, behind our wrappers | Default React charting; shadcn pattern; swappable |
-| D8 | Lucide default icons, optional Tabler, no wholesale `react-icons` | MIT licences, tree-shaking, one clear API |
+| D8 | Lucide default icons (ISC), optional Tabler (MIT), no wholesale `react-icons` | Permissive licences, tree-shaking, one clear API |
 | D9 | React Hook Form adapter first, Zod bridge, components form-library agnostic | Widely used; real refs make `register()` work |
 | D10 | Docs on platform.azmara.io, no Storybook | One source of truth; demos double as tests |
 | D11 | `@azmr/core` is a peer dependency | Avoids duplicate `Signal` copies |

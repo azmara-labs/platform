@@ -1,20 +1,27 @@
 // Post-build checks on dist/. Fails the build when the packaging contract breaks:
 //   - every client entry starts with a "use client" directive
-//   - no server-safe entry has one
+//   - no server entry (server or serverComponents) has one
+//   - "server" entries (and every chunk they reach) import no React at all
+//   - "serverComponents" entries (and their chunks) use stateless React only: no hooks, no context
 //   - every entry has JS + type declarations
 //   - the package.json "exports" map matches the entry list exactly
+// The rules live in dist-rules.mjs so they can be unit-tested.
 import { existsSync, readFileSync } from "node:fs";
+import {
+  hasUseClientDirective,
+  relativeImports,
+  resolveImport,
+  serverComponentProblems,
+  serverPureProblems,
+} from "./dist-rules.mjs";
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
 const entries = JSON.parse(read("../build/entries.json"));
 const pkg = JSON.parse(read("../package.json"));
 const problems = [];
 
-const stripLeadingComments = (code) =>
-  code.replace(/^(?:\s*\/\/[^\n]*\n|\s*\/\*[\s\S]*?\*\/)*/, "").trimStart();
-const hasDirective = (code) => /^["']use client["'];?/.test(stripLeadingComments(code));
-// Everything a server-safe entry can reach through relative imports (shared chunks included)
-// must be free of React, or a Server Component importing it would drag a client runtime in.
+// Everything a server entry can reach through relative imports (shared chunks included): a
+// Server Component importing it must not pull a client runtime in through a chunk.
 function reachableFiles(startName) {
   const seen = new Set();
   const queue = [`${startName}.js`];
@@ -24,37 +31,37 @@ function reachableFiles(startName) {
     seen.add(file);
     const url = new URL(`../dist/${file}`, import.meta.url);
     if (!existsSync(url)) continue;
-    const code = readFileSync(url, "utf8");
-    // `from "./x.js"`, `import "./x.js"` (side effect) and `import("./x.js")`
-    for (const match of code.matchAll(/(?:from|import)\s*\(?\s*["']\.\/([^"']+\.js)["']/g)) {
-      queue.push(match[1]);
+    for (const specifier of relativeImports(readFileSync(url, "utf8"))) {
+      queue.push(resolveImport(file, specifier));
     }
   }
   return seen;
 }
-const importsReact = (code) =>
-  /(?:from|import)\s*\(?\s*["']react(?:-dom)?(?:\/[^"']*)?["']|require\(\s*["']react/.test(code);
 
 const subpath = (name) => (name === "index" ? "." : `./${name}`);
+const KINDS = ["client", "serverComponents", "server"];
+const rulesFor = { server: serverPureProblems, serverComponents: serverComponentProblems };
 
-for (const [kind, map] of Object.entries(entries)) {
-  for (const name of Object.keys(map)) {
+for (const kind of KINDS) {
+  for (const name of Object.keys(entries[kind] ?? {})) {
     const js = new URL(`../dist/${name}.js`, import.meta.url);
     const dts = new URL(`../dist/${name}.d.ts`, import.meta.url);
     if (!existsSync(js) || !existsSync(dts)) {
       problems.push(`dist/${name}.js or dist/${name}.d.ts is missing`);
       continue;
     }
-    const withDirective = hasDirective(readFileSync(js, "utf8"));
+    const withDirective = hasUseClientDirective(readFileSync(js, "utf8"));
     if (kind === "client" && !withDirective)
       problems.push(`client entry "${name}" lacks "use client"`);
-    if (kind === "server" && withDirective)
-      problems.push(`server-safe entry "${name}" must not have "use client"`);
-    if (kind === "server") {
+    if (kind !== "client" && withDirective)
+      problems.push(`${kind} entry "${name}" must not have "use client"`);
+    const rule = rulesFor[kind];
+    if (rule) {
       for (const file of reachableFiles(name)) {
         const url = new URL(`../dist/${file}`, import.meta.url);
-        if (existsSync(url) && importsReact(readFileSync(url, "utf8"))) {
-          problems.push(`server-safe entry "${name}" reaches React through dist/${file}`);
+        if (!existsSync(url)) continue;
+        for (const problem of rule(readFileSync(url, "utf8"))) {
+          problems.push(`${kind} entry "${name}": ${problem} (dist/${file})`);
         }
       }
     }
@@ -69,9 +76,7 @@ else if (!/@source\s+["'][^"']+["']/.test(readFileSync(cssUrl, "utf8"))) {
   problems.push('dist/styles.css has no @source rule (Tailwind would not scan "node_modules")');
 }
 
-const expected = new Set(
-  [...Object.keys(entries.client), ...Object.keys(entries.server)].map(subpath),
-);
+const expected = new Set(KINDS.flatMap((kind) => Object.keys(entries[kind] ?? {})).map(subpath));
 expected.add("./styles.css");
 const actual = new Set(Object.keys(pkg.exports));
 for (const s of expected)

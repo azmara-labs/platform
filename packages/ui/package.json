@@ -61,6 +61,18 @@
       "types": "./dist/spinner.d.ts",
       "import": "./dist/spinner.js"
     },
+    "./icons": {
+      "types": "./dist/icons.d.ts",
+      "import": "./dist/icons.js"
+    },
+    "./icons/lucide": {
+      "types": "./dist/icons/lucide.d.ts",
+      "import": "./dist/icons/lucide.js"
+    },
+    "./icons/mui-map": {
+      "types": "./dist/icons/mui-map.d.ts",
+      "import": "./dist/icons/mui-map.js"
+    },
     "./styles.css": "./dist/styles.css"
   },
   "sideEffects": [
@@ -79,6 +91,7 @@
     "@base-ui/react": "^1.9.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "lucide-react": "^1.57.0",
     "tailwind-merge": "^3.7.0"
   },
   "peerDependencies": {
@@ -88,7 +101,9 @@
   },
   "devDependencies": {
     "@azmr/core": "workspace:*",
+    "@mui/icons-material": "^9.5.0",
     "@size-limit/preset-small-lib": "^14.2.0",
+    "@tabler/icons-react": "^3.49.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/user-event": "^14.6.8",
@@ -99,6 +114,7 @@
     "@vitest/browser": "^4.1.10",
     "axe-core": "^4.14.0",
     "culori": "^4.0.2",
+    "esbuild": "^0.27.7",
     "jsdom": "^29.1.1",
     "postcss": "^8.5.30",
     "react": "^19.2.7",
