@@ -73,7 +73,8 @@
       "types": "./dist/icons/mui-map.d.ts",
       "import": "./dist/icons/mui-map.js"
     },
-    "./styles.css": "./dist/styles.css"
+    "./styles.css": "./dist/styles.css",
+    "./tokens.css": "./dist/tokens.css"
   },
   "sideEffects": [
     "**/*.css"

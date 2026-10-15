@@ -36,6 +36,7 @@ describe("package manifest (packaging rules)", () => {
       expect.arrayContaining([".", "./hooks", "./lib", "./styles.css"]),
     );
     expect(manifest.exports["./styles.css"]).toBe("./dist/styles.css");
+    expect(manifest.exports["./tokens.css"]).toBe("./dist/tokens.css");
   });
 
   it("marks only CSS as side-effectful so JavaScript stays tree-shakeable", () => {
