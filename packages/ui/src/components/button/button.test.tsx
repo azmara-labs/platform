@@ -70,6 +70,9 @@ describe("Button: variants and sizes (tokens only)", () => {
     ["outline", "border-input"],
     ["ghost", "hover:bg-accent"],
     ["destructive", "bg-destructive"],
+    ["success", "bg-success"],
+    ["warning", "bg-warning"],
+    ["info", "bg-info"],
     ["link", "underline-offset-4"],
   ] as const)("variant %s applies %s", (variant, expected) => {
     const { container } = renderUi(<Button variant={variant}>x</Button>);

@@ -66,11 +66,20 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 - `system` (the default) needs no attribute and no JavaScript: the tokens use `light-dark()`, so the page follows the operating system.
 - `useTheme()` returns `{ theme, resolvedTheme, setTheme, density, setDensity }`. Changes update `<html>` immediately and are remembered in a cookie (`persist={false}` turns that off).
 - Static sites that cannot read cookies on the server can inline `themeInitScript()` instead (add your CSP nonce to the tag).
-- `createTheme({ primary, radius, font, density })` turns a brand colour (`#rrggbb`, `oklch(L C H)` or `{ l, c, h }`) into token overrides. It guarantees WCAG AA: `--primary-foreground` on `--primary` is at least 4.5:1 and the focus ring at least 3:1, in both modes, adjusting lightness where needed and keeping the hue. Input is validated strictly because the output is CSS.
+- `createTheme({ primary, secondary, success, warning, info, destructive, radius, font, density })` turns brand colours (`#rrggbb`, `oklch(L C H)` or `{ l, c, h }`) into token overrides. Every colour option is optional and keeps its default when omitted (`destructive` is the "danger" colour). It guarantees WCAG AA in both modes, adjusting lightness where needed and keeping the hue:
+  - each `-foreground` is at least 4.5:1 on its colour, **including on a solid button's hover surface** (a button blends with the page on hover, which can pull a colour that only just passes below 4.5:1; the derivation checks the blend);
+  - `success`, `info` and `destructive` are also readable as **text** on the page and on cards (`Text tone`, form errors), and `warning` gets a separate readable `--warning-text`;
+  - the focus ring is at least 3:1.
+  Input is validated strictly because the output is CSS, and an error names the option that was wrong.
 
 ```tsx
 import { createTheme } from "@azmr/ui/theme";
-const theme = createTheme({ primary: "#1E88E5", radius: "0.5rem" });
+const theme = createTheme({
+  primary: "#1E88E5",
+  success: "#2E7D32",
+  destructive: "#D32F2F",
+  radius: "0.5rem",
+});
 // <style>{theme.css}</style>   or   <html style={theme.cssVariables}>
 ```
 
@@ -92,7 +101,7 @@ import { Button } from "@azmr/ui/button";
 <Button nativeButton={false} render={<a href="/docs" />}>Docs</Button>   {/* renders a link */}
 ```
 
-- **Variants:** `default`, `secondary`, `outline`, `ghost`, `destructive`, `link`. **Sizes:** `sm`, `md` (follows the density token), `lg`, `icon`.
+- **Variants:** `default`, `secondary`, `outline`, `ghost`, `destructive`, `success`, `warning`, `info`, `link`. **Sizes:** `sm`, `md` (follows the density token), `lg`, `icon`.
 - **`loading`:** shows a spinner, sets `aria-busy`, ignores clicks and keyboard activation, **stays focusable** (keyboard users keep their place). `loadingText` replaces the label while loading; `startIcon` is replaced by the spinner, `endIcon` stays.
 - **`type` is `"button"` by default**, so a button inside a form never submits by accident; pass `type="submit"` explicitly.
 - **Icon-only buttons are type-checked:** `size="icon"` requires `aria-label` or `aria-labelledby`.
