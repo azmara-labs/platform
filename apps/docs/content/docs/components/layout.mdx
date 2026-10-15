@@ -43,7 +43,7 @@ Breakpoints are Tailwind's: `sm` 640, `md` 768, `lg` 1024, `xl` 1280, `2xl` 1536
 | `<Grid item xs={12} md={6}>` | `<GridItem span={{ base: 12, md: 6 }}>` |
 | `alignItems`, `justifyContent` | `align`, `justify` |
 | `<Stack spacing={2} direction="row">` | `<Stack gap={4} direction="row">` |
-| `<Container maxWidth="md">` | `<Container size="md">` (`xs` is approximate; `false` is `full`) |
+| `<Container maxWidth="md">` | `<Container size="md">` (`xl` becomes `2xl`, 96rem = 1536px; `xs` is approximate; `false` is `full`) |
 | `disableGutters` | `gutters={false}` |
 
 A spacing with no matching step (such as 7), and item props that cannot be expressed (`xs="auto"`, `xs={true}`), are reported by the helpers as `undefined` or in `unsupported` so the codemod flags them rather than guessing. MUI's breakpoints are 0/600/900/1200/1536px and Tailwind's are 0/640/768/1024/1280px, so check layouts near the boundaries.

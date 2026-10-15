@@ -53,7 +53,7 @@ describe("MUI Container maxWidth", () => {
     ["sm", "sm"],
     ["md", "md"],
     ["lg", "lg"],
-    ["xl", "xl"],
+    ["xl", "2xl"],
   ] as const)("%s maps to %s", (maxWidth, size) => {
     expect(muiContainerSize(maxWidth)?.size).toBe(size);
   });

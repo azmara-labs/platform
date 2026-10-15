@@ -95,7 +95,7 @@ const MUI_CONTAINER: Record<string, ContainerSizeTarget> = {
   sm: { size: "sm" },
   md: { size: "md" },
   lg: { size: "lg" },
-  xl: { size: "xl" },
+  xl: { size: "2xl" },
 };
 
 /** `maxWidth` of a MUI Container. `undefined` is MUI's default (`lg`); `false` removes the limit. */
