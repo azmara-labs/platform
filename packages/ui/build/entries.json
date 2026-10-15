@@ -1,0 +1,9 @@
+{
+  "client": {
+    "index": "src/index.ts",
+    "hooks": "src/hooks.ts"
+  },
+  "server": {
+    "lib": "src/lib/index.ts"
+  }
+}
