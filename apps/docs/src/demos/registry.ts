@@ -3,6 +3,10 @@ import AvatarBasic from "./avatar/basic.demo";
 import ButtonIcons from "./button/icons.demo";
 import ButtonLoading from "./button/loading.demo";
 import ButtonVariants from "./button/variants.demo";
+import AccordionBasic from "./disclosure/accordion.demo";
+import CollapsibleBasic from "./disclosure/collapsible.demo";
+import TabsBasic from "./disclosure/tabs.demo";
+import TabsUrl from "./disclosure/tabs-url.demo";
 import DisplayAlerts from "./display/alerts.demo";
 import DisplayCards from "./display/cards.demo";
 import DisplayChips from "./display/chips.demo";
@@ -32,6 +36,10 @@ export const demos = {
   "button/variants": ButtonVariants,
   "button/loading": ButtonLoading,
   "button/icons": ButtonIcons,
+  "disclosure/accordion": AccordionBasic,
+  "disclosure/collapsible": CollapsibleBasic,
+  "disclosure/tabs": TabsBasic,
+  "disclosure/tabs-url": TabsUrl,
   "display/alerts": DisplayAlerts,
   "display/cards": DisplayCards,
   "display/chips": DisplayChips,

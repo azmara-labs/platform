@@ -105,6 +105,10 @@
       "types": "./dist/avatar.d.ts",
       "import": "./dist/avatar.js"
     },
+    "./disclosure": {
+      "types": "./dist/disclosure.d.ts",
+      "import": "./dist/disclosure.js"
+    },
     "./styles.css": "./dist/styles.css",
     "./tokens.css": "./dist/tokens.css"
   },

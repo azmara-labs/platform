@@ -111,5 +111,10 @@
     "name": "@azmr/ui/avatar",
     "path": "dist/avatar.js",
     "limit": "18 kB"
+  },
+  {
+    "name": "@azmr/ui/disclosure",
+    "path": "dist/disclosure.js",
+    "limit": "23 kB"
   }
 ]

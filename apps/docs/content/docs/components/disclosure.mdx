@@ -1,0 +1,100 @@
+---
+title: Disclosure
+description: Accordion, Collapsible and Tabs. Show and hide content with the keyboard maps users expect. Built on Base UI.
+---
+
+## Usage
+
+```tsx
+import {
+  Accordion, AccordionItem, AccordionTrigger, AccordionContent,
+  Collapsible, CollapsibleTrigger, CollapsibleContent,
+  Tabs, TabsList, TabsTrigger, TabsContent,
+} from "@azmr/ui/disclosure";
+```
+
+These are interactive, so they are client components: import them from a file (or a tree) that is already `"use client"`, or use them from a client page.
+
+## Collapsible
+
+One region that shows and hides. Use it for a single "show more".
+
+<Demo name="disclosure/collapsible" />
+
+The trigger is a real `<button>` with `aria-expanded` and `aria-controls`. Pass `render={<Button … />}` to use your own element.
+
+## Accordion
+
+A stack of collapsible sections. One section is open at a time; add `multiple` to allow several.
+
+<Demo name="disclosure/accordion" />
+
+Each trigger sits inside a heading so assistive technology can list the sections. It defaults to an `<h3>`: set `headingLevel` to fit the page outline. `defaultValue` (uncontrolled) or `value` and `onValueChange` (controlled) take an array of item values, even when only one can be open.
+
+## Tabs
+
+<Demo name="disclosure/tabs" />
+
+Give the `TabsList` an accessible name with `aria-label`. Tabs are selected **manually** by default: arrows move focus, Enter or Space selects. That is the safer default when a panel is expensive to render or load. Add `activateOnFocus` to `TabsList` to select as you arrow. Disabled tabs stay focusable (and are announced as disabled) so people can discover them; they cannot be selected.
+
+Panels are focusable (`tabindex="0"`), so a keyboard user can reach and scroll a panel that has no controls in it. Only the selected panel is in the DOM unless you pass `keepMounted`.
+
+### Keep the tab in the URL
+
+`useUrlTab` stores the selected tab in a search parameter, so a tab can be linked to and reloaded, and Back restores it.
+
+<Demo name="disclosure/tabs-url" />
+
+```tsx
+const [tab, setTab] = useUrlTab({ values: ["usage", "api"], defaultValue: "usage" });
+<Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>…</Tabs>
+```
+
+- The URL is untrusted input. A value that is not in `values` is ignored and the default is used.
+- The default tab has no parameter, so URLs stay clean. Other parameters and the hash are kept.
+- `history: "replace"` (default) rewrites the current entry. Use `"push"` if each tab should be a Back step.
+- On the server and during hydration it returns the default, so there is no mismatch.
+- It is router-agnostic: it reads and writes `window.location` and the History API. In a framework with its own router you can drive `Tabs` from that router's search params instead.
+
+## Motion
+
+Accordion and Collapsible panels animate their **height**. Base UI measures the panel and exposes `--accordion-panel-height` (or `--collapsible-panel-height`); the styles transition from `0` to that height with `--motion-duration-base`. Under `prefers-reduced-motion` those tokens collapse to near zero, so panels open and close instantly.
+
+The original plan was a `grid-template-rows` trick with no JavaScript measuring. Base UI already measures the panel to keep `hidden` and `aria-expanded` correct, and a second mechanism fighting it is how animations get stuck, so the shipped components use Base UI's own height variable.
+
+## Props
+
+<AutoTypeTable path="../../packages/ui/src/components/disclosure/accordion.tsx" name="AccordionTriggerProps" />
+
+The rest are Base UI's props, passed through. `className` on `AccordionContent` and `CollapsibleContent` styles an inner wrapper, so padding never fights the height animation.
+
+## Accessibility
+
+- Accordion triggers are buttons in headings with `aria-expanded` and `aria-controls`.
+- Tabs follow the WAI-ARIA tabs pattern: `tablist`, `tab` with `aria-selected`, `tabpanel` with `aria-labelledby`, and a roving tab stop.
+- Focus rings are full strength.
+- Chevron icons are decorative (`aria-hidden`).
+
+### Accordion keys
+
+<KeyboardMap
+  rows={[
+    { keys: ["Tab"], action: "Moves to the next trigger (or the first focusable element in an open panel)." },
+    { keys: ["Enter", "Space"], action: "Opens or closes the focused section." },
+    { keys: ["ArrowDown", "ArrowUp"], action: "Moves focus to the next or previous trigger and wraps. It does not open anything." },
+    { keys: ["Home", "End"], action: "Moves focus to the first or last trigger." },
+  ]}
+/>
+
+Base UI 1.9 declares `loopFocus` but does not implement arrow navigation for the accordion, so `@azmr/ui` adds it. Keys pressed inside a panel (in a text field, say) are never taken, and a nested accordion handles its own keys.
+
+### Tabs keys
+
+<KeyboardMap
+  rows={[
+    { keys: ["Tab"], action: "Enters the tab list at the selected tab, then moves on to the panel." },
+    { keys: ["ArrowRight", "ArrowLeft"], action: "Moves focus between tabs and wraps (ArrowDown and ArrowUp when vertical)." },
+    { keys: ["Home", "End"], action: "Moves focus to the first or last tab." },
+    { keys: ["Enter", "Space"], action: "Selects the focused tab (not needed with activateOnFocus)." },
+  ]}
+/>
