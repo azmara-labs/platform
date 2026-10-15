@@ -1,0 +1,36 @@
+---
+title: Spinner
+description: An indeterminate progress indicator that is a Server Component and keeps spinning under reduced motion.
+---
+
+## Usage
+
+```tsx
+import { Spinner } from "@azmr/ui/spinner";
+```
+
+<Demo name="spinner/basic" />
+
+`Spinner` is a **Server Component** (no hooks, no `"use client"`), so it works in `loading.tsx` and Suspense fallbacks without a client boundary. Size it with a class (`size-6`); colour follows `currentColor`.
+
+## Decorative or announced
+
+A spinner inside a control that already says it is busy (such as `Button loading`) should be decorative: it is `aria-hidden` by default. A spinner on its own needs a `label`, which makes it a `role="status"` that screen readers announce.
+
+## Reduced motion
+
+Most motion in `@azmr/ui` stops under `prefers-reduced-motion`. A spinner does not: a frozen spinner reads as a hung page, which is worse than motion the user asked to avoid. It is marked `data-motion="essential"` to opt out of the reduced-motion rule.
+
+## Props
+
+| Prop | Type | Description |
+| --- | --- | --- |
+| `label` | `string` | Accessible name. Makes it a `role="status"`; omit it for a decorative spinner. |
+| `className` | `string` | Merged last: `size-8 text-primary`. |
+
+Any SVG attribute passes through, and `ref` is the `<svg>`.
+
+## Accessibility
+
+- Decorative by default, announced only when you give it a `label`.
+- No keyboard interaction; it is not focusable.

@@ -1,0 +1,31 @@
+---
+title: Components
+description: The @azmr/ui component library, built on Base UI primitives and the Azmara design tokens.
+---
+
+`@azmr/ui` is a component library for React 18 and 19, built on [Base UI](https://base-ui.com) primitives, styled with Tailwind v4 and a small set of design tokens. Every component page has live demos you can preview in light and dark and at each density, the source of each demo, a props table generated from the TypeScript types, and an accessibility section with the keyboard map.
+
+## Set up
+
+```css
+/* global.css */
+@import "tailwindcss";
+@import "@azmr/ui/styles.css";
+```
+
+Use `@azmr/ui/tokens.css` instead if the app already has global styles. See the [package page](/docs/packages/ui) for the tokens, theming and locale.
+
+## What every component guarantees
+
+- **Tokens only.** No raw colours; a test enforces it, so a theme change reaches every component.
+- **Accessible by default.** Each component is tested with axe, by keyboard, and under reduced motion.
+- **Server-safe where it can be.** Stateless components such as `Spinner` and `Icon` are Server Components; the rest carry `"use client"` on their own entry only.
+- **Tree-shakeable, with budgets.** Each entry has a size budget checked in CI.
+- **`className` merges last,** and `ref` is the real DOM element.
+
+## Components
+
+- [Button](/docs/components/button): variants, density-aware sizes, loading, icon-only
+- [Input](/docs/components/input): the real input element, works with react-hook-form
+- [Spinner](/docs/components/spinner): indeterminate progress, a Server Component
+- [Icon](/docs/components/icon): Lucide, Tabler or your own SVG

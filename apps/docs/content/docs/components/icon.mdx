@@ -1,0 +1,57 @@
+---
+title: Icon
+description: Renders Lucide, Tabler or your own SVG with consistent size, stroke, motion and accessibility. A Server Component.
+---
+
+## Usage
+
+```tsx
+import { Icon } from "@azmr/ui/icons";
+import { Search } from "lucide-react";
+
+<Icon icon={Search} />
+```
+
+<Demo name="icon/basic" />
+
+`Icon` takes the icon component you pass it, so only the icons you import are bundled (this is tested). Lucide is the default set; Tabler and your own SVG components work through the same `icon` prop with no adapter. Sizes `xs` to `xl` follow the size tokens, and a number is a pixel size.
+
+An icon is **decorative by default** (`aria-hidden`). Give it `aria-label` or `aria-labelledby` to make it a labelled image. `spin` is for loaders and, like `Spinner`, keeps moving under reduced motion.
+
+## By name
+
+<Demo name="icon/named" />
+
+The curated set at `@azmr/ui/icons/lucide` gives about 60 everyday icons by Lucide's own kebab-case names, with the names type-checked. For your own typed set use `createIconSet`, and for custom SVGs `registerIcons`:
+
+```tsx
+import { createIconSet, registerIcons } from "@azmr/ui/icons";
+
+export const { Icon } = createIconSet({ check: Check, "my-logo": MyLogo });
+
+registerIcons({ "my-logo": MyLogo }); // global, untyped names: <Icon name="my-logo" />
+```
+
+An unknown name renders nothing and warns once in development; it never crashes a page.
+
+## Props
+
+| Prop | Type | Description |
+| --- | --- | --- |
+| `icon` | component | The icon to render. Wins over `name`. |
+| `name` | `string` | A name from the registry (`registerIcons`). |
+| `size` | `"xs"` to `"xl"` or `number` | Default `md`. |
+| `strokeWidth` | `number` | Stroke width of line icons. |
+| `spin` | `boolean` | Continuous rotation for a loading indicator. |
+| `aria-label` / `aria-labelledby` | `string` | Makes the icon meaningful (`role="img"`). |
+| `className` | `string` | Merged last: `size-8` replaces the size token. |
+
+## Migrating from Material icons
+
+`@azmr/ui/icons/mui-map` maps over 300 `@mui/icons-material` names (including the `Outlined`, `Rounded`, `Sharp` and `TwoTone` variants) to Lucide and Tabler, and lists the common ones it deliberately does not map. The migration codemod uses it.
+
+## Accessibility
+
+- Decorative icons are hidden from assistive technology; meaningful ones are `role="img"` with a name.
+- An icon-only button is named by the labelled icon inside it, or by the button's own `aria-label`.
+- Licences: Lucide is ISC, Tabler is MIT. `react-icons` is deliberately not bundled.

@@ -1,0 +1,55 @@
+---
+title: Button
+description: Triggers an action. Six variants, density-aware sizes, a loading state that keeps keyboard focus, and an icon-only form the types force you to name.
+---
+
+## Usage
+
+```tsx
+import { Button } from "@azmr/ui/button";
+```
+
+<Demo name="button/variants" />
+
+Use `default` for the primary action on a screen, `secondary` and `outline` for supporting ones, `ghost` for toolbars, `destructive` for irreversible actions and `link` for navigation that should read as text. The `md` size follows the density token: switch the preview above to Compact or Spacious and it resizes, exactly as it will inside an app that sets `data-density`.
+
+A button is `type="button"` unless you say otherwise, so one inside a form never submits by accident. Pass `type="submit"` to opt in.
+
+## Loading
+
+<Demo name="button/loading" />
+
+`loading` shows a spinner, sets `aria-busy`, and ignores clicks **and** keyboard activation. It stays in the tab order, so a keyboard user who pressed Enter does not lose their place and a screen reader still finds the button. `loadingText` replaces the label while it is busy.
+
+## Icons and links
+
+<Demo name="button/icons" />
+
+`startIcon` and `endIcon` sit either side of the label; while `loading`, the spinner replaces the start icon. An icon-only button must be given an accessible name: with `size="icon"` TypeScript requires `aria-label` or `aria-labelledby`. To render a link with button styling, pass `render={<a href="..." />}` and `nativeButton={false}`.
+
+## Props
+
+<AutoTypeTable path="../../packages/ui/src/components/button/button.tsx" name="ButtonOwnProps" />
+
+Everything a native button accepts passes through (`onClick`, `type`, `disabled`, `aria-*`, `ref`, ...), plus these from the underlying primitive:
+
+| Prop | Type | Description |
+| --- | --- | --- |
+| `render` | `ReactElement` or function | Render a different element (such as `<a>`) with the button's behaviour and styles. |
+| `nativeButton` | `boolean` | Set to `false` when `render` is not a native `<button>`. |
+| `focusableWhenDisabled` | `boolean` | Keep a disabled button in the tab order. `loading` does this for you. |
+| `className` | `string` | Merged last, so it can override defaults: `className="h-12"` replaces the default height. |
+
+## Accessibility
+
+- It is a real `<button>` (or the element you `render`), so it has the right role, name from its content, and disabled semantics with no ARIA added.
+- Focus uses a full-strength ring that meets WCAG 2.2 focus appearance; the same ring is used on every control.
+- `loading` communicates busy state with `aria-busy` rather than changing the label silently.
+
+<KeyboardMap
+  rows={[
+    { keys: ["Enter", "Space"], action: "Activates the button. Ignored while loading." },
+    { keys: ["Tab"], action: "Moves focus to the button. A loading button stays in the tab order." },
+    { keys: ["Shift", "Tab"], action: "Moves focus to the previous control." },
+  ]}
+/>

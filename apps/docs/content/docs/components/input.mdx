@@ -1,0 +1,62 @@
+---
+title: Input
+description: A text input whose ref is the real input element, so react-hook-form works without a Controller.
+---
+
+## Usage
+
+```tsx
+import { Input } from "@azmr/ui/input";
+```
+
+<Demo name="input/basic" />
+
+Always pair an input with a visible `<label htmlFor>` (or `aria-label` when the design has no label). `Input` does not add one for you, because the label belongs to the form layout.
+
+## States
+
+<Demo name="input/states" />
+
+`aria-invalid="true"` styles the error state and is what assistive technology announces; point `aria-describedby` at the message so it is read with the field. A read-only input stays focusable and can be selected and copied, while a disabled one is skipped by Tab.
+
+## With react-hook-form
+
+The `ref` is the real `<input>`, so `register()` works directly:
+
+```tsx
+import { useForm } from "react-hook-form";
+import { Input } from "@azmr/ui/input";
+
+function EmailField() {
+  const { register } = useForm<{ email: string }>();
+  return <Input type="email" {...register("email")} />;
+}
+```
+
+Native `onChange` and a typed `onValueChange(value)` both fire.
+
+## Props
+
+All native `<input>` attributes pass through, plus:
+
+| Prop | Type | Description |
+| --- | --- | --- |
+| `onValueChange` | `(value: string, details) => void` | Called with the new value; use instead of reading `event.target.value`. |
+| `value` / `defaultValue` | `string` | Controlled or uncontrolled value. |
+| `className` | `string` | Merged last, so it can override defaults. |
+
+Height and horizontal padding follow the density tokens, so the input lines up with `Button` at every density.
+
+## Accessibility
+
+- A real `<input>`: name, role and value come from the platform.
+- The focus ring is full strength (WCAG 2.2 focus appearance), never faded.
+- Invalid state is exposed through `aria-invalid`, not colour alone: pair it with a text message.
+
+<KeyboardMap
+  rows={[
+    { keys: ["Tab"], action: "Moves focus into and out of the field. Disabled inputs are skipped." },
+    { keys: ["Shift", "Tab"], action: "Moves focus to the previous control." },
+    { keys: ["Esc"], action: "Not captured, so a parent dialog can use it to close." },
+  ]}
+/>
