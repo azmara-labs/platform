@@ -203,6 +203,36 @@ describe("WCAG contrast of token pairs (text >= 4.5:1)", () => {
   }
 });
 
+// Semantic colours used as TEXT on a page or card (Text tone="destructive", form errors, status
+// copy). `--warning` is a yellow surface colour and `--warning-foreground` is the dark text that
+// goes ON it, so neither reads as text on the page in both modes: `--warning-text` exists for that.
+describe("semantic tone colours as text on the page (>= 4.5:1)", () => {
+  const tones = ["destructive", "success", "warning-text", "info"];
+  const surfaces = ["background", "card"];
+  for (const mode of MODES) {
+    for (const tone of tones) {
+      for (const surface of surfaces) {
+        it(`${mode}: --${tone} on --${surface}`, () => {
+          const ratio = wcagContrast(colour(`--${tone}`, mode), colour(`--${surface}`, mode));
+          expect(ratio, `${tone} on ${surface} (${mode})`).toBeGreaterThanOrEqual(4.5);
+        });
+      }
+    }
+  }
+
+  it("warning text is readable where the surface-pair foreground is not (the reason the token exists)", () => {
+    // --warning-foreground is near-black in both modes: fine on a warning surface, unreadable as
+    // text on the dark page.
+    const darkPage = colour("--background", "dark");
+    expect(wcagContrast(colour("--warning-foreground", "dark"), darkPage)).toBeLessThan(4.5);
+    expect(wcagContrast(colour("--warning-text", "dark"), darkPage)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("is mapped into the Tailwind theme as text-warning-text", () => {
+    expect(css).toContain("--color-warning-text: var(--warning-text);");
+  });
+});
+
 describe("WCAG 2.2 non-text contrast (>= 3:1)", () => {
   for (const mode of MODES) {
     it(`${mode}: focus ring is visible on the page and on cards`, () => {

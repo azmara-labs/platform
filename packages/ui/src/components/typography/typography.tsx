@@ -103,7 +103,7 @@ const TONE_CLASSES = {
   muted: "text-muted-foreground",
   destructive: "text-destructive",
   success: "text-success",
-  warning: "text-warning-foreground",
+  warning: "text-warning-text",
   info: "text-info",
 } as const;
 
