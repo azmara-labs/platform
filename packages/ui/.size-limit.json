@@ -71,5 +71,15 @@
     "name": "@azmr/ui/icons/mui-map (codemod data)",
     "path": "dist/icons/mui-map.js",
     "limit": "5 kB"
+  },
+  {
+    "name": "@azmr/ui/typography",
+    "path": "dist/typography.js",
+    "limit": "11 kB"
+  },
+  {
+    "name": "@azmr/ui/typography/mui-map",
+    "path": "dist/typography/mui-map.js",
+    "limit": "1.5 kB"
   }
 ]

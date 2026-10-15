@@ -7,6 +7,8 @@ import IconNamed from "./icon/named.demo";
 import InputBasic from "./input/basic.demo";
 import InputStates from "./input/states.demo";
 import SpinnerBasic from "./spinner/basic.demo";
+import TypographyInline from "./typography/inline.demo";
+import TypographyScale from "./typography/scale.demo";
 
 /**
  * Every demo shown on the docs site, by `group/name`. A page embeds one with
@@ -23,6 +25,8 @@ export const demos = {
   "input/basic": InputBasic,
   "input/states": InputStates,
   "spinner/basic": SpinnerBasic,
+  "typography/inline": TypographyInline,
+  "typography/scale": TypographyScale,
 } as const satisfies Record<string, ComponentType>;
 
 export type DemoName = keyof typeof demos;
