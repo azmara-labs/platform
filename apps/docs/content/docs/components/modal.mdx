@@ -1,0 +1,88 @@
+---
+title: Modal
+description: Dialog, AlertDialog and Drawer. Surfaces that take over the screen, with a focus trap, an inert page, scroll lock and focus return. Built on Base UI.
+---
+
+## Usage
+
+```tsx
+import {
+  Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose,
+  AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction,
+  Drawer, DrawerTrigger, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter, DrawerClose,
+} from "@azmr/ui/modal";
+```
+
+These are interactive, so they are client components. Every modal surface does the same four things while it is open:
+
+- **Traps focus.** Tab and Shift+Tab stay inside. At the ends focus wraps.
+- **Makes the page inert.** The page behind is hidden from assistive technology and cannot be focused.
+- **Locks scroll.** The page does not scroll behind it.
+- **Returns focus.** Closing puts focus back on the control that opened it.
+
+They render in a portal above the page, with a scrim (`--scrim`) behind them on the `--z-overlay` layer and the surface on `--z-modal`.
+
+| You need | Use |
+| --- | --- |
+| A task or form that needs the person's full attention | `Dialog` |
+| A yes or no before something destructive or irreversible | `AlertDialog` |
+| A side panel or a bottom sheet (filters, details, a mobile menu) | `Drawer` |
+
+## Dialog
+
+<Demo name="modal/dialog" />
+
+Name every dialog with `DialogTitle` and describe it with `DialogDescription`; they become the dialog's accessible name and description. Escape, the corner close button (`showClose`, on by default) and a click on the scrim all close it. Set `disablePointerDismissal` on `Dialog` when an accidental click outside must not lose the person's work.
+
+`size` is `sm`, `md` (default), `lg`, `xl` or `full`. Every size stays inside the viewport, and a dialog taller than the screen scrolls inside the viewport instead of running off it.
+
+### Stacked dialogs
+
+<Demo name="modal/dialog-stacked" />
+
+A dialog can open another. Escape closes only the top one, focus is trapped in the top one, and closing it returns focus to the control that opened it, which sits inside the dialog underneath.
+
+## AlertDialog
+
+<Demo name="modal/alert-dialog" />
+
+An alert dialog interrupts to ask for a decision. It differs from a `Dialog` in three ways, all deliberate:
+
+1. It is announced as an **alert dialog**.
+2. A click outside does **not** close it. The person has to choose.
+3. Focus starts on `AlertDialogCancel`, the least destructive choice, **even when the destructive button comes first in the page order**. Pressing Enter by reflex cannot delete anything. If there is no `AlertDialogCancel`, focus starts on the first control.
+
+`AlertDialogAction` is destructive by default; pass `tone="default"` for a plain confirmation. It runs its `onClick` and then closes the dialog. Escape cancels.
+
+## Drawer
+
+<Demo name="modal/drawer" />
+
+A drawer slides in from `side` (`right` by default, `left`, `top` or `bottom`) and is a full modal. On touch it can be dismissed by swiping back toward the edge it came from; the panel follows the finger exactly and the scrim fades with the swipe. Gesture handling comes from Base UI's drawer, so there is no extra module to install.
+
+## Motion
+
+The scrim fades and a dialog fades and scales in from slightly smaller, using `--motion-duration-base`. A drawer slides on `--motion-duration-slow`. Under `prefers-reduced-motion` those tokens collapse to near zero, so everything appears and disappears instantly. While a finger is dragging a drawer there is no easing at all, so it tracks exactly.
+
+## Accessibility
+
+<KeyboardMap
+  rows={[
+    { keys: ["Tab", "Shift+Tab"], action: "Moves through the controls inside the surface and wraps at the ends." },
+    { keys: ["Escape"], action: "Closes the top surface. Focus returns to the control that opened it." },
+    { keys: ["Enter", "Space"], action: "Opens from a trigger, and activates the focused button inside." },
+  ]}
+/>
+
+- The surface is named by its title and described by its description. Always include a title.
+- The corner close button is labelled "Close"; its icon is decorative.
+- The scrim colour is a token, so it follows light and dark mode and scoped themes.
+
+## Props
+
+<AutoTypeTable path="../../packages/ui/src/components/modal/dialog.tsx" name="DialogContentProps" />
+
+<AutoTypeTable path="../../packages/ui/src/components/modal/drawer.tsx" name="DrawerProps" />
+
+The rest are Base UI's props, passed through (`open`, `defaultOpen`, `onOpenChange`, `modal`, `initialFocus`, `finalFocus`, and so on).

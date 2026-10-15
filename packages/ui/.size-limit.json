@@ -121,5 +121,10 @@
     "name": "@azmr/ui/floating",
     "path": "dist/floating.js",
     "limit": "46 kB"
+  },
+  {
+    "name": "@azmr/ui/modal",
+    "path": "dist/modal.js",
+    "limit": "42 kB"
   }
 ]
