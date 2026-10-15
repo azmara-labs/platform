@@ -7,6 +7,7 @@ export type Rule =
   | "no-raw-colour"
   | "no-dangerous-html"
   | "layer-boundary"
+  | "server-safe-no-react"
   | "base-ui-only-in-primitives";
 
 export interface Violation {
@@ -27,7 +28,9 @@ export interface Options {
 /** Lowest to highest. A layer may import itself and anything below it. */
 export const LAYERS = ["styles", "primitives", "components", "blocks", "dynamic"] as const;
 /** Shared modules every layer may use; they may not import any layer. */
-export const FOUNDATION = ["lib", "hooks", "icons", "motion"] as const;
+export const FOUNDATION = ["lib", "hooks", "icons", "motion", "theme", "react"] as const;
+/** Folders that ship in server-safe entries: they must not import React. */
+export const SERVER_SAFE = ["lib", "theme"] as const;
 
 const RAW_COLOUR =
   /#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch)\(/;
@@ -106,8 +109,26 @@ export function checkConventions(files: SourceFiles, options: Options = {}): Vio
         );
       }
 
+      const isServerSafe = (SERVER_SAFE as readonly string[]).includes(layer);
+      if (isServerSafe && /^react(?:-dom)?(?:\/|$)/.test(specifier)) {
+        report(
+          "server-safe-no-react",
+          file,
+          line,
+          `"${layer}" is a server-safe entry and must not import "${specifier}"`,
+        );
+      }
+
       if (!specifier.startsWith(".")) continue;
       const target = topSegment(posix.normalize(posix.join(posix.dirname(file), specifier)));
+      if (isServerSafe && target === "react") {
+        report(
+          "server-safe-no-react",
+          file,
+          line,
+          `"${layer}" is a server-safe entry and must not import the client "react" folder`,
+        );
+      }
       const targetIndex = (LAYERS as readonly string[]).indexOf(target);
       if (targetIndex === -1) continue;
       if (isFoundation) {

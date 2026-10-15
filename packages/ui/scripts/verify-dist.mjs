@@ -13,6 +13,28 @@ const problems = [];
 const stripLeadingComments = (code) =>
   code.replace(/^(?:\s*\/\/[^\n]*\n|\s*\/\*[\s\S]*?\*\/)*/, "").trimStart();
 const hasDirective = (code) => /^["']use client["'];?/.test(stripLeadingComments(code));
+// Everything a server-safe entry can reach through relative imports (shared chunks included)
+// must be free of React, or a Server Component importing it would drag a client runtime in.
+function reachableFiles(startName) {
+  const seen = new Set();
+  const queue = [`${startName}.js`];
+  while (queue.length > 0) {
+    const file = queue.pop();
+    if (seen.has(file)) continue;
+    seen.add(file);
+    const url = new URL(`../dist/${file}`, import.meta.url);
+    if (!existsSync(url)) continue;
+    const code = readFileSync(url, "utf8");
+    // `from "./x.js"`, `import "./x.js"` (side effect) and `import("./x.js")`
+    for (const match of code.matchAll(/(?:from|import)\s*\(?\s*["']\.\/([^"']+\.js)["']/g)) {
+      queue.push(match[1]);
+    }
+  }
+  return seen;
+}
+const importsReact = (code) =>
+  /(?:from|import)\s*\(?\s*["']react(?:-dom)?(?:\/[^"']*)?["']|require\(\s*["']react/.test(code);
+
 const subpath = (name) => (name === "index" ? "." : `./${name}`);
 
 for (const [kind, map] of Object.entries(entries)) {
@@ -28,6 +50,14 @@ for (const [kind, map] of Object.entries(entries)) {
       problems.push(`client entry "${name}" lacks "use client"`);
     if (kind === "server" && withDirective)
       problems.push(`server-safe entry "${name}" must not have "use client"`);
+    if (kind === "server") {
+      for (const file of reachableFiles(name)) {
+        const url = new URL(`../dist/${file}`, import.meta.url);
+        if (existsSync(url) && importsReact(readFileSync(url, "utf8"))) {
+          problems.push(`server-safe entry "${name}" reaches React through dist/${file}`);
+        }
+      }
+    }
   }
 }
 

@@ -1,9 +1,11 @@
 {
   "client": {
     "index": "src/index.ts",
-    "hooks": "src/hooks.ts"
+    "hooks": "src/hooks.ts",
+    "react": "src/react/index.ts"
   },
   "server": {
-    "lib": "src/lib/index.ts"
+    "lib": "src/lib/index.ts",
+    "theme": "src/theme/index.ts"
   }
 }

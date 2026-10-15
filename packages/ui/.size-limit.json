@@ -1,5 +1,27 @@
 [
-  { "name": "@azmr/ui (root)", "path": "dist/index.js", "limit": "10 kB" },
-  { "name": "@azmr/ui/hooks", "path": "dist/hooks.js", "limit": "500 B" },
-  { "name": "@azmr/ui/lib", "path": "dist/lib.js", "limit": "9 kB" }
+  {
+    "name": "@azmr/ui (root)",
+    "path": "dist/index.js",
+    "limit": "10 kB"
+  },
+  {
+    "name": "@azmr/ui/hooks",
+    "path": "dist/hooks.js",
+    "limit": "500 B"
+  },
+  {
+    "name": "@azmr/ui/lib",
+    "path": "dist/lib.js",
+    "limit": "9 kB"
+  },
+  {
+    "name": "@azmr/ui/theme",
+    "path": "dist/theme.js",
+    "limit": "4 kB"
+  },
+  {
+    "name": "@azmr/ui/react",
+    "path": "dist/react.js",
+    "limit": "2.5 kB"
+  }
 ]
