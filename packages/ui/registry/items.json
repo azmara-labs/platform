@@ -1,0 +1,42 @@
+{
+  "name": "azmr",
+  "homepage": "https://platform.azmara.io/docs/components",
+  "items": [
+    {
+      "name": "spinner",
+      "type": "registry:ui",
+      "title": "Spinner",
+      "description": "An indeterminate progress indicator. A Server Component; keeps spinning under reduced motion.",
+      "files": [
+        {
+          "from": "src/components/spinner/spinner.tsx",
+          "to": "ui/spinner.tsx",
+          "type": "registry:ui",
+          "imports": {
+            "../../lib/cn.js": "@/lib/utils"
+          }
+        }
+      ]
+    },
+    {
+      "name": "button",
+      "type": "registry:ui",
+      "title": "Button",
+      "description": "Six variants, density-aware sizes, a loading state that keeps keyboard focus, and a type-checked icon-only form. Built on Base UI.",
+      "dependencies": ["@base-ui/react", "class-variance-authority"],
+      "registryDependencies": ["@azmr/spinner", "@azmr/tokens"],
+      "files": [
+        {
+          "from": "src/components/button/button.tsx",
+          "to": "ui/button.tsx",
+          "type": "registry:ui",
+          "imports": {
+            "../../lib/cn.js": "@/lib/utils",
+            "../../primitives/button.js": "@base-ui/react/button",
+            "../spinner/spinner.js": "@/components/ui/spinner"
+          }
+        }
+      ]
+    }
+  ]
+}

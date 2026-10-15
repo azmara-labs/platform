@@ -43,6 +43,9 @@ jobs:
       - name: Consumer fixture (@azmr/ui packed into a fresh Next.js + Tailwind app)
         run: pnpm --filter @azmr/ui verify:consumer
 
+      - name: Registry fixture (shadcn add @azmr/button into a standard shadcn app)
+        run: pnpm --filter @azmr/ui verify:registry
+
       - name: Run tests with coverage
         run: pnpm test:coverage
 

@@ -1,6 +1,9 @@
 import { forwardRef } from "react";
 import { cn } from "../../lib/cn.js";
-import { InputPrimitive, type InputPrimitiveProps } from "../../primitives/input.js";
+import {
+  Input as InputPrimitive,
+  type InputProps as InputPrimitiveProps,
+} from "../../primitives/input.js";
 
 export interface InputProps extends Omit<InputPrimitiveProps, "className"> {
   className?: string;

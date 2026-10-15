@@ -15,6 +15,26 @@ description: The @azmr/ui component library, built on Base UI primitives and the
 
 Use `@azmr/ui/tokens.css` instead if the app already has global styles. See the [package page](/docs/packages/ui) for the tokens, theming and locale.
 
+## Or copy the source with the shadcn CLI
+
+If you would rather own the code than import a package, the same components are published to a shadcn-compatible registry. Add the namespace to your `components.json`:
+
+```json
+{
+  "registries": {
+    "@azmr": "https://platform.azmara.io/r/{name}.json"
+  }
+}
+```
+
+Then, in a project that has run `npx shadcn@latest init`:
+
+```bash
+npx shadcn@latest add @azmr/button
+```
+
+This copies `button.tsx` and the components it needs (`spinner.tsx`) into `components/ui`, installs `@base-ui/react` and `class-variance-authority`, and adds a small `tokens` item to your `globals.css`: density, motion and elevation tokens, plus colours a standard shadcn setup lacks (`--destructive-foreground`, `--success`, `--warning`, `--info`). It never changes the tokens you already have, so your palette stays yours. The copied source is generated from the package source with only the import paths rewritten, so it behaves identically. Available now: `button`, `spinner`, `tokens`; more arrive with each component.
+
 ## What every component guarantees
 
 - **Tokens only.** No raw colours; a test enforces it, so a theme change reaches every component.
