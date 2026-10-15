@@ -113,6 +113,10 @@
       "types": "./dist/floating.d.ts",
       "import": "./dist/floating.js"
     },
+    "./modal": {
+      "types": "./dist/modal.d.ts",
+      "import": "./dist/modal.js"
+    },
     "./styles.css": "./dist/styles.css",
     "./tokens.css": "./dist/tokens.css"
   },

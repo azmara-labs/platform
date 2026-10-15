@@ -108,6 +108,7 @@ describe("required tokens (shadcn-compatible names)", () => {
     "warning-foreground",
     "info",
     "info-foreground",
+    "scrim",
   ];
   it.each(required)("defines --%s", (name) => {
     expect(rootVars.has(`--${name}`), `--${name}`).toBe(true);
@@ -381,5 +382,32 @@ describe("Tailwind v4 integration", () => {
 
   it("tells Tailwind to scan the distributed classes with @source", () => {
     expect(css).toMatch(/@source\s+["'][^"']+["']/);
+  });
+});
+
+describe("--scrim (the dimming layer behind modal surfaces)", () => {
+  const alpha = (value: string | undefined) => Number(/\/\s*([\d.]+)\s*\)/.exec(value ?? "")?.[1]);
+
+  it("is translucent black, so it works over any page", () => {
+    expect(rootVars.get("--scrim")).toMatch(
+      /^light-dark\(oklch\(0 0 0 \/ [\d.]+\), oklch\(0 0 0 \/ [\d.]+\)\)$/,
+    );
+  });
+
+  it("dims enough to separate the dialog from the page, and a little more in dark mode", () => {
+    const [light, dark] =
+      (rootVars.get("--scrim") ?? "").match(/\/ ([\d.]+)\)/g)?.map((m) => alpha(m)) ?? [];
+    expect(light).toBeGreaterThanOrEqual(0.4);
+    expect(light).toBeLessThanOrEqual(0.7);
+    expect(dark).toBeGreaterThan(light as number);
+  });
+
+  it("is declared again inside the .light and .dark scopes, so scoped themes keep it", () => {
+    expect(css).toMatch(/\.light[^{]*\{[^}]*--scrim: oklch\(0 0 0 \/ 0\.5\)/s);
+    expect(css).toMatch(/\.dark[^{]*\{[^}]*--scrim: oklch\(0 0 0 \/ 0\.65\)/s);
+  });
+
+  it("is mapped into the Tailwind theme as bg-scrim", () => {
+    expect(css).toContain("--color-scrim: var(--scrim);");
   });
 });

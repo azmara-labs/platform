@@ -21,6 +21,10 @@ import InputStates from "./input/states.demo";
 import LayoutContainer from "./layout/container.demo";
 import LayoutGrid from "./layout/grid.demo";
 import LayoutStack from "./layout/stack.demo";
+import ModalAlertDialog from "./modal/alert-dialog.demo";
+import ModalDialog from "./modal/dialog.demo";
+import ModalDialogStacked from "./modal/dialog-stacked.demo";
+import ModalDrawer from "./modal/drawer.demo";
 import ProgressBasic from "./progress/basic.demo";
 import ProgressCircular from "./progress/circular.demo";
 import ScrollAreaBasic from "./scroll-area/basic.demo";
@@ -50,6 +54,10 @@ export const demos = {
   "floating/hover-card": FloatingHoverCard,
   "floating/popover": FloatingPopover,
   "floating/tooltip": FloatingTooltip,
+  "modal/alert-dialog": ModalAlertDialog,
+  "modal/dialog": ModalDialog,
+  "modal/dialog-stacked": ModalDialogStacked,
+  "modal/drawer": ModalDrawer,
   "icon/basic": IconBasic,
   "icon/named": IconNamed,
   "input/basic": InputBasic,
