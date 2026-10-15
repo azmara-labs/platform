@@ -1,0 +1,42 @@
+---
+title: ScrollArea
+description: A scrollable region with token-styled scrollbars that is keyboard-focusable and named. Built on Base UI.
+---
+
+## Usage
+
+```tsx
+import { ScrollArea } from "@azmr/ui/scroll-area";
+```
+
+<Demo name="scroll-area/basic" />
+
+Give the area a size (`h-48`, `max-h-96`, `w-64`) with `className` and put long content inside. The scrollbars are styled from tokens and fade in on hover and while scrolling (`scrollbar="always"` keeps them visible, `orientation` picks vertical, horizontal or both). They only mount when something overflows; `keepMounted` keeps them in the DOM so layout never jumps.
+
+## Why it needs a name
+
+A scrollable region has to be reachable with the keyboard, otherwise a keyboard user cannot scroll it at all. The viewport is therefore a focusable `role="region"`, and a focusable region needs an accessible name: pass `aria-label`, or `aria-labelledby` pointing at a heading. TypeScript requires one of them.
+
+Use a `ScrollArea` when you want consistent scrollbars. For simple overflow, plain CSS `overflow: auto` is fine, and modern browsers already make scrollable regions focusable.
+
+## Props
+
+<AutoTypeTable path="../../packages/ui/src/components/scroll-area/scroll-area.tsx" name="ScrollAreaOwnProps" />
+
+`className` styles the root; `viewportClassName` styles the scrollable element (padding, for example). `ref` is the root and `viewportRef` is the scrollable element, to read or set the scroll position.
+
+## Accessibility
+
+- The viewport is a focusable `role="region"` with the name you provide.
+- Scrollbars fade with the motion tokens, so they stop animating under `prefers-reduced-motion`.
+- The focus ring is full strength and inset, so it is never clipped by the area's edge.
+
+<KeyboardMap
+  rows={[
+    { keys: ["Tab"], action: "Moves focus to the scrollable region." },
+    { keys: ["ArrowDown", "ArrowUp"], action: "Scrolls the region vertically." },
+    { keys: ["ArrowRight", "ArrowLeft"], action: "Scrolls horizontally when it overflows that way." },
+    { keys: ["PageDown", "PageUp"], action: "Scrolls by a page." },
+    { keys: ["Home", "End"], action: "Scrolls to the start or end." },
+  ]}
+/>

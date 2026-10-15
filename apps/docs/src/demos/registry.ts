@@ -9,6 +9,7 @@ import InputStates from "./input/states.demo";
 import LayoutContainer from "./layout/container.demo";
 import LayoutGrid from "./layout/grid.demo";
 import LayoutStack from "./layout/stack.demo";
+import ScrollAreaBasic from "./scroll-area/basic.demo";
 import SpinnerBasic from "./spinner/basic.demo";
 import TypographyInline from "./typography/inline.demo";
 import TypographyScale from "./typography/scale.demo";
@@ -30,6 +31,7 @@ export const demos = {
   "layout/grid": LayoutGrid,
   "layout/stack": LayoutStack,
   "input/states": InputStates,
+  "scroll-area/basic": ScrollAreaBasic,
   "spinner/basic": SpinnerBasic,
   "typography/inline": TypographyInline,
   "typography/scale": TypographyScale,

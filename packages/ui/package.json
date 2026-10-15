@@ -89,6 +89,10 @@
       "types": "./dist/layout/mui-map.d.ts",
       "import": "./dist/layout/mui-map.js"
     },
+    "./scroll-area": {
+      "types": "./dist/scroll-area.d.ts",
+      "import": "./dist/scroll-area.js"
+    },
     "./styles.css": "./dist/styles.css",
     "./tokens.css": "./dist/tokens.css"
   },
