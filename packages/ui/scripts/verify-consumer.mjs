@@ -122,8 +122,65 @@ async function main() {
   if (!install.ok) throw new Error(`install failed\n${tail(install.output)}`);
   check("installed the fixture with the packed packages", true);
 
-  // Optional fault injection (proves the checks below can actually fail).
+  // Two copies of @azmr/core: Signal has private members, so types from two copies are nominally
+  // incompatible and a Signal from the app cannot be passed to useSignal. The peerDependency exists
+  // to prevent this; prove the failure is real (and detectable) with a positive control first.
   const installedUi = join(app, "node_modules", "@azmr", "ui");
+  const dupFile = join(app, "dup-check.ts");
+  writeFileSync(
+    dupFile,
+    [
+      'import { Signal } from "@azmr/core";',
+      'import { useSignal } from "@azmr/ui/hooks";',
+      "export const read = (s: Signal<number>) => useSignal(s);",
+      "",
+    ].join("\n"),
+  );
+  const tscArgs = [
+    "exec",
+    "tsc",
+    "--noEmit",
+    "--strict",
+    "--skipLibCheck",
+    "--module",
+    "esnext",
+    "--moduleResolution",
+    "bundler",
+    "--target",
+    "es2022",
+    "--jsx",
+    "react-jsx",
+    "dup-check.ts",
+  ];
+  const single = run("pnpm", tscArgs, app, "tsc-single");
+  check(
+    "one copy of @azmr/core: a Signal passes to useSignal (type-checks)",
+    single.ok,
+    single.ok ? "" : tail(single.output),
+  );
+  const nested = join(installedUi, "node_modules", "@azmr", "core");
+  cpSync(join(app, "node_modules", "@azmr", "core"), nested, {
+    recursive: true,
+    dereference: true,
+  });
+  // TypeScript treats copies with the same name@version as one package, so the duplicate must differ
+  // in version, which is how it happens in real apps (a range the peer does not unify).
+  const nestedPkgPath = join(nested, "package.json");
+  const nestedPkg = JSON.parse(readFileSync(nestedPkgPath, "utf8"));
+  writeFileSync(
+    nestedPkgPath,
+    JSON.stringify({ ...nestedPkg, version: `${nestedPkg.version}-dup` }),
+  );
+  const doubled = run("pnpm", tscArgs, app, "tsc-double");
+  check(
+    "two copies of @azmr/core are a type error (the failure the peerDependency prevents)",
+    !doubled.ok && /private propert/.test(doubled.output),
+    doubled.ok ? "tsc unexpectedly passed with two copies" : tail(doubled.output, 12),
+  );
+  rmSync(join(installedUi, "node_modules"), { recursive: true, force: true });
+  rmSync(dupFile, { force: true });
+
+  // Optional fault injection (proves the checks below can actually fail).
   if (sabotage === "no-source") {
     const css = join(installedUi, "dist", "styles.css");
     writeFileSync(css, readFileSync(css, "utf8").replace(/@source[^;]*;/, ""));
