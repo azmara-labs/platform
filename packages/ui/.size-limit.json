@@ -1,0 +1,5 @@
+[
+  { "name": "@azmr/ui (root)", "path": "dist/index.js", "limit": "10 kB" },
+  { "name": "@azmr/ui/hooks", "path": "dist/hooks.js", "limit": "500 B" },
+  { "name": "@azmr/ui/lib", "path": "dist/lib.js", "limit": "9 kB" }
+]
