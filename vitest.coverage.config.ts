@@ -27,6 +27,9 @@ export default defineConfig({
         "packages/*/src/**/*.test.ts",
         "packages/*/src/**/*.test.tsx",
         "packages/*/src/index.ts",
+        // Test-only code is not product code.
+        "packages/*/src/test-utils/**",
+        "packages/*/src/test-setup.ts",
         "**/dist/**",
         "**/node_modules/**",
       ],
