@@ -238,6 +238,22 @@ async function main() {
   check("loading button is busy in the server HTML", /aria-busy="true"/.test(html));
   check("server-safe theme entry formats NZ currency on the server", html.includes("$1,234.50"));
   check(
+    "Icon (a Server Component) renders a labelled Lucide icon on the server",
+    /<svg[^>]*role="img"[^>]*aria-label="Search"|<svg[^>]*aria-label="Search"[^>]*role="img"/.test(
+      html,
+    ) && html.includes("lucide-search"),
+  );
+  check(
+    "named icon from the curated set renders on the server",
+    html.includes("lucide-circle-alert"),
+  );
+  check(
+    "Spinner (a Server Component) renders as a status on the server",
+    /role="status"[^>]*aria-label="Loading customers"|aria-label="Loading customers"[^>]*role="status"/.test(
+      html,
+    ),
+  );
+  check(
     "no data-theme on <html> by default (system follows the OS with no JavaScript)",
     !/<html[^>]*data-theme=/.test(html),
   );

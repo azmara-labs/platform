@@ -20,10 +20,27 @@ function readTree(dir: string, out: SourceFiles = {}): SourceFiles {
 // needs a removal condition; new code never goes here.
 const LEGACY = ["Grid.tsx"]; // replaced by the Phase 4 DataGrid (PAZM-95)
 
+// Folders of entries that ship as Server Components, taken from the build's own entry list so
+// the rule can never drift from what is actually built.
+const entries = JSON.parse(
+  readFileSync(join(srcDir, "..", "build", "entries.json"), "utf8"),
+) as Record<string, Record<string, string>>;
+const SERVER_COMPONENT_DIRS = Object.values(entries.serverComponents ?? {}).map(
+  (path) => `${path.replace(/^src\//, "").replace(/[^/]+$/, "")}`,
+);
+
 describe("conventions hold for the real source tree", () => {
   it("has no violations", () => {
-    const violations = checkConventions(readTree(srcDir), { legacy: LEGACY });
+    const violations = checkConventions(readTree(srcDir), {
+      legacy: LEGACY,
+      serverComponentDirs: SERVER_COMPONENT_DIRS,
+    });
     expect(violations.map((v) => `${v.rule} ${v.file}:${v.line} ${v.message}`)).toEqual([]);
+  });
+
+  it("knows which folders ship as Server Components (guards against an empty list)", () => {
+    expect(SERVER_COMPONENT_DIRS).toContain("icons/");
+    expect(SERVER_COMPONENT_DIRS).toContain("components/spinner/");
   });
 
   it("scans a meaningful number of files (guards against scanning nothing)", () => {
@@ -212,6 +229,56 @@ describe("server-safe-no-react (lib and theme ship in server-safe entries)", () 
     expect(rules({ "lib/a.ts": 'import { useTheme } from "../react/index.js";' })).toContain(
       "server-safe-no-react",
     );
+  });
+});
+
+describe("server-component-stateless (folders that ship as Server Components)", () => {
+  const check = (files: SourceFiles) =>
+    checkConventions(files, { serverComponentDirs: ["icons/", "components/spinner/"] }).map(
+      (v) => v.rule,
+    );
+
+  it("allows stateless React", () => {
+    expect(
+      check({
+        "icons/a.tsx": 'import { forwardRef, type SVGProps } from "react";\nexport const A = 1;',
+        "components/spinner/s.tsx": 'import { forwardRef } from "react";',
+      }),
+    ).toEqual([]);
+  });
+
+  it.each([
+    'import { useState } from "react";',
+    'import { forwardRef, useContext } from "react";',
+    'import { createContext } from "react";',
+    'import { useId as id } from "react";',
+    'import { Component } from "react";',
+    'import { createPortal } from "react-dom";',
+  ])("flags %s", (line) => {
+    expect(check({ "icons/a.tsx": line })).toContain("server-component-stateless");
+  });
+
+  it("flags a use client directive", () => {
+    expect(check({ "icons/a.tsx": '"use client";\nexport const A = 1;' })).toContain(
+      "server-component-stateless",
+    );
+  });
+
+  it("flags hooks used through a namespace import", () => {
+    expect(
+      check({ "icons/a.tsx": 'import * as React from "react";\nconst x = React.useState(0);' }),
+    ).toContain("server-component-stateless");
+  });
+
+  it("does not apply outside the listed folders or to tests", () => {
+    expect(check({ "components/button/b.tsx": 'import { useState } from "react";' })).toEqual([]);
+    expect(check({ "icons/a.test.tsx": 'import { useState } from "react";' })).toEqual([]);
+  });
+
+  it("matches folders by prefix, not by substring", () => {
+    expect(
+      check({ "components/spinner-extra/a.tsx": 'import { useState } from "react";' }),
+    ).toEqual([]);
   });
 });
 

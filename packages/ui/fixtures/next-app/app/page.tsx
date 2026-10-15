@@ -1,8 +1,11 @@
 import { Button } from "@azmr/ui/button";
+import { Icon } from "@azmr/ui/icons";
+import { Icon as NamedIcon } from "@azmr/ui/icons/lucide";
 import { Input } from "@azmr/ui/input";
 import { cn } from "@azmr/ui/lib";
 import { Spinner } from "@azmr/ui/spinner";
 import { createLocale } from "@azmr/ui/theme";
+import { Search } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 
 // A Server Component: it imports the server-safe entries (lib, theme) directly and renders
@@ -25,6 +28,12 @@ export default function Page() {
         <Button size="icon" aria-label="Busy">
           <Spinner />
         </Button>
+      </div>
+      <div className="flex items-center gap-3" data-testid="icons">
+        {/* Server Components: stateless Icon and Spinner, with Lucide client-component icons */}
+        <Icon icon={Search} aria-label="Search" size="lg" />
+        <NamedIcon name="circle-alert" />
+        <Spinner label="Loading customers" />
       </div>
       <label htmlFor="name" className="text-sm font-medium">
         Name

@@ -11,12 +11,65 @@
     "import": "{ useSignal }",
     "limit": "500 B"
   },
-  { "name": "root: whole barrel (cap)", "path": "dist/index.js", "limit": "17 kB" },
-  { "name": "@azmr/ui/hooks", "path": "dist/hooks.js", "limit": "500 B" },
-  { "name": "@azmr/ui/lib", "path": "dist/lib.js", "limit": "9 kB" },
-  { "name": "@azmr/ui/theme", "path": "dist/theme.js", "limit": "4 kB" },
-  { "name": "@azmr/ui/react", "path": "dist/react.js", "limit": "2.5 kB" },
-  { "name": "@azmr/ui/spinner", "path": "dist/spinner.js", "limit": "9 kB" },
-  { "name": "@azmr/ui/button", "path": "dist/button.js", "limit": "14 kB" },
-  { "name": "@azmr/ui/input", "path": "dist/input.js", "limit": "14 kB" }
+  {
+    "name": "root: whole barrel (cap)",
+    "path": "dist/index.js",
+    "limit": "17 kB"
+  },
+  {
+    "name": "@azmr/ui/hooks",
+    "path": "dist/hooks.js",
+    "limit": "500 B"
+  },
+  {
+    "name": "@azmr/ui/lib",
+    "path": "dist/lib.js",
+    "limit": "9 kB"
+  },
+  {
+    "name": "@azmr/ui/theme",
+    "path": "dist/theme.js",
+    "limit": "4 kB"
+  },
+  {
+    "name": "@azmr/ui/react",
+    "path": "dist/react.js",
+    "limit": "2.5 kB"
+  },
+  {
+    "name": "@azmr/ui/spinner",
+    "path": "dist/spinner.js",
+    "limit": "9 kB"
+  },
+  {
+    "name": "@azmr/ui/button",
+    "path": "dist/button.js",
+    "limit": "14 kB"
+  },
+  {
+    "name": "@azmr/ui/input",
+    "path": "dist/input.js",
+    "limit": "14 kB"
+  },
+  {
+    "name": "@azmr/ui/icons (Icon core, no icon set)",
+    "path": "dist/icons.js",
+    "limit": "10 kB"
+  },
+  {
+    "name": "@azmr/ui/icons: only Icon",
+    "path": "dist/icons.js",
+    "import": "{ Icon }",
+    "limit": "10 kB"
+  },
+  {
+    "name": "@azmr/ui/icons/lucide (curated set)",
+    "path": "dist/icons/lucide.js",
+    "limit": "16 kB"
+  },
+  {
+    "name": "@azmr/ui/icons/mui-map (codemod data)",
+    "path": "dist/icons/mui-map.js",
+    "limit": "5 kB"
+  }
 ]

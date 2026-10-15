@@ -4,11 +4,16 @@
     "hooks": "src/hooks.ts",
     "react": "src/react/index.ts",
     "button": "src/components/button/index.ts",
-    "input": "src/components/input/index.ts",
-    "spinner": "src/components/spinner/index.ts"
+    "input": "src/components/input/index.ts"
+  },
+  "serverComponents": {
+    "spinner": "src/components/spinner/index.ts",
+    "icons": "src/icons/index.ts",
+    "icons/lucide": "src/icons/lucide.ts"
   },
   "server": {
     "lib": "src/lib/index.ts",
-    "theme": "src/theme/index.ts"
+    "theme": "src/theme/index.ts",
+    "icons/mui-map": "src/icons/mui-map.ts"
   }
 }
