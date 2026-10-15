@@ -46,7 +46,7 @@
   /* Status (destructive is shadcn's; success / warning / info are ours) */
   --destructive: light-dark(oklch(0.53 0.22 27), oklch(0.65 0.2 22));
   --destructive-foreground: light-dark(oklch(0.985 0 0), oklch(0.145 0 0));
-  --success: light-dark(oklch(0.5 0.14 150), oklch(0.72 0.17 150));
+  --success: light-dark(oklch(0.46 0.13 150), oklch(0.72 0.17 150));
   --success-foreground: light-dark(oklch(0.985 0 0), oklch(0.145 0 0));
   --warning: light-dark(oklch(0.78 0.16 80), oklch(0.82 0.16 82));
   --warning-foreground: light-dark(oklch(0.25 0.04 70), oklch(0.25 0.04 70));
@@ -143,7 +143,7 @@
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.53 0.22 27);
   --destructive-foreground: oklch(0.985 0 0);
-  --success: oklch(0.5 0.14 150);
+  --success: oklch(0.46 0.13 150);
   --success-foreground: oklch(0.985 0 0);
   --warning: oklch(0.78 0.16 80);
   --warning-foreground: oklch(0.25 0.04 70);

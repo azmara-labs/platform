@@ -11,6 +11,17 @@ export interface Oklch {
 export interface ThemeOptions {
   /** Brand colour as `#rgb`, `#rrggbb`, `oklch(L C H)` or `{ l, c, h }`. */
   primary?: string | Oklch;
+  /** Secondary surfaces (secondary Button, Badge). Same accepted formats as `primary`. */
+  secondary?: string | Oklch;
+  /**
+   * Status colours. Each is derived so its foreground is AA on it in both modes, and so it stays
+   * readable as text on the page and on cards (`Text tone`, form errors). `destructive` is the
+   * "danger" colour.
+   */
+  success?: string | Oklch;
+  warning?: string | Oklch;
+  info?: string | Oklch;
+  destructive?: string | Oklch;
   /** `rem` or `px`, e.g. `0.5rem`. */
   radius?: string;
   /** A CSS font-family list, e.g. `Inter, "Segoe UI", sans-serif`. */
@@ -95,12 +106,13 @@ function fromHex(hex: string): Oklch {
   return color.c < 0.004 ? { l: color.l, c: 0, h: 0 } : color;
 }
 
-function parsePrimary(input: string | Oklch): Oklch {
+/** Parses a colour option. `name` is the option, so an error says which one was wrong. */
+function parseColour(input: string | Oklch, name: string): Oklch {
   if (typeof input === "object" && input !== null) {
     const { l, c, h } = input;
     if (![l, c, h].every(Number.isFinite) || l < 0 || l > 1 || c < 0 || c > 0.5) {
       throw new Error(
-        "createTheme: primary { l, c, h } must be finite, with 0 <= l <= 1 and 0 <= c <= 0.5",
+        `createTheme: ${name} { l, c, h } must be finite, with 0 <= l <= 1 and 0 <= c <= 0.5`,
       );
     }
     return { l, c, h: ((h % 360) + 360) % 360 };
@@ -111,10 +123,10 @@ function parsePrimary(input: string | Oklch): Oklch {
   const ok = /^oklch\(\s*(\d*\.?\d+)(%?)\s+(\d*\.?\d+)\s+(\d*\.?\d+)(?:deg)?\s*\)$/i.exec(text);
   if (ok) {
     const l = Number(ok[1]) / (ok[2] ? 100 : 1);
-    return parsePrimary({ l, c: Number(ok[3]), h: Number(ok[4]) });
+    return parseColour({ l, c: Number(ok[3]), h: Number(ok[4]) }, name);
   }
   throw new Error(
-    `createTheme: primary must be #rgb, #rrggbb, oklch(L C H) or { l, c, h }; got ${JSON.stringify(text)}`, // conventions-ignore: the message names the accepted colour syntax
+    `createTheme: ${name} must be #rgb, #rrggbb, oklch(L C H) or { l, c, h }; got ${JSON.stringify(text)}`, // conventions-ignore: the message names the accepted colour syntax
   );
 }
 
@@ -122,9 +134,68 @@ function parsePrimary(input: string | Oklch): Oklch {
 
 const WHITE: Oklch = { l: 0.985, c: 0, h: 0 };
 const NEAR_BLACK: Oklch = { l: 0.145, c: 0, h: 0 };
+const DARK_CARD: Oklch = { l: 0.205, c: 0, h: 0 };
+const WARNING_FOREGROUND: Oklch = { l: 0.25, c: 0.04, h: 70 };
 const AA_TEXT = 4.5;
+const AA_SURFACE = 4.55; // a little over 4.5:1 so rounding in the output cannot dip below it
 const AA_NON_TEXT = 3.2; // a little over 3:1 so rounding in the output cannot dip below it
 const STEP = 0.005;
+
+/** The surfaces a button sits on: the page, and in dark mode also a card. */
+const SURFACES: Record<"light" | "dark", Oklch[]> = {
+  light: [WHITE],
+  dark: [NEAR_BLACK, DARK_CARD],
+};
+
+// A button's background blends with what is behind it on hover (`hover:bg-X/90`, secondary `/80`).
+// Browsers mix in gamma-encoded sRGB, so a mid-tone colour moves a lot toward white.
+const HOVER_ALPHA = 0.9;
+const SECONDARY_HOVER_ALPHA = 0.8;
+
+const encode = (v: number) => (v <= 0.0031308 ? 12.92 * v : 1.055 * v ** (1 / 2.4) - 0.055);
+const decode = (v: number) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+
+function encodedSrgb(color: Oklch): [number, number, number] {
+  return toLinearSrgb(color).map((v) => encode(Math.min(1, Math.max(0, v)))) as [
+    number,
+    number,
+    number,
+  ];
+}
+
+/** Luminance of `color` at `alpha` over `surface`, mixed in gamma-encoded sRGB like a browser. */
+function mixedLuminance(color: Oklch, surface: Oklch, alpha: number): number {
+  const top = encodedSrgb(color);
+  const base = encodedSrgb(surface);
+  const [r, g, b] = top.map((v, i) => decode(v * alpha + (base[i] as number) * (1 - alpha))) as [
+    number,
+    number,
+    number,
+  ];
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+function contrastOfLuminance(a: number, b: number): number {
+  const [hi, lo] = [a, b].sort((x, y) => y - x) as [number, number];
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+/**
+ * Whether `fg` is readable on `bg` at rest AND on `bg` blended at `alpha` over every surface in
+ * the mode. This is what keeps a solid button's label readable while the pointer is over it.
+ */
+function holdsOnHover(
+  bg: Oklch,
+  fg: Oklch,
+  mode: "light" | "dark",
+  alpha: number = HOVER_ALPHA,
+): boolean {
+  if (contrast(bg, fg) < AA_SURFACE) return false;
+  return SURFACES[mode].every(
+    (surface) =>
+      contrastOfLuminance(luminance(fg), mixedLuminance(bg, surface, alpha)) >= AA_SURFACE,
+  );
+}
 
 /** Move lightness in one direction until `ok` holds, or give up after `limit`. */
 function shiftUntil(
@@ -144,20 +215,60 @@ function shiftUntil(
 }
 
 /** Light mode: prefer white text (darkening the brand a little if needed), else dark text. */
-function lightPair(brand: Oklch): { bg: Oklch; fg: Oklch } {
-  const withWhite = shiftUntil(brand, -1, 0.12, (c) => contrast(c, WHITE) >= AA_TEXT);
+function lightPair(brand: Oklch, alpha: number = HOVER_ALPHA): { bg: Oklch; fg: Oklch } {
+  const withWhite = shiftUntil(brand, -1, 0.12, (c) => holdsOnHover(c, WHITE, "light", alpha));
   if (withWhite) return { bg: withWhite, fg: WHITE };
-  const withBlack = shiftUntil(brand, 1, 0.3, (c) => contrast(c, NEAR_BLACK) >= AA_TEXT);
+  const withBlack = shiftUntil(brand, 1, 0.3, (c) => holdsOnHover(c, NEAR_BLACK, "light", alpha));
   if (withBlack) return { bg: withBlack, fg: NEAR_BLACK };
-  const forced = shiftUntil(brand, -1, 1, (c) => contrast(c, WHITE) >= AA_TEXT);
+  const forced = shiftUntil(brand, -1, 1, (c) => holdsOnHover(c, WHITE, "light", alpha));
   return { bg: forced ?? clampToGamut({ ...brand, l: 0.2 }), fg: WHITE };
 }
 
 /** Dark mode: a lighter primary with dark text. */
-function darkPair(brand: Oklch): { bg: Oklch; fg: Oklch } {
+function darkPair(brand: Oklch, alpha: number = HOVER_ALPHA): { bg: Oklch; fg: Oklch } {
   const start = clampToGamut({ ...brand, l: Math.min(0.88, Math.max(0.7, brand.l)) });
-  const bg = shiftUntil(start, 1, 0.3, (c) => contrast(c, NEAR_BLACK) >= AA_TEXT) ?? start;
+  const bg = shiftUntil(start, 1, 0.3, (c) => holdsOnHover(c, NEAR_BLACK, "dark", alpha)) ?? start;
   return { bg, fg: NEAR_BLACK };
+}
+
+/**
+ * A status colour (success, info, destructive) is used twice: as a button or badge surface with
+ * its foreground on top, and as TEXT on the page and on cards. So it must satisfy both: in light
+ * mode dark enough for white text on it, including on hover (which also makes it readable on
+ * white); in dark mode light enough for near-black text on it, including on hover, and readable
+ * on the dark page and card.
+ */
+function statusPair(brand: Oklch, mode: "light" | "dark"): { bg: Oklch; fg: Oklch } {
+  if (mode === "light") {
+    const bg = shiftUntil(brand, -1, 1, (c) => holdsOnHover(c, WHITE, "light"));
+    return { bg: bg ?? clampToGamut({ ...brand, l: 0.2 }), fg: WHITE };
+  }
+  // Lightness starts at 0.7 or more, so a colour that clears near-black also clears the dark card.
+  const start = clampToGamut({ ...brand, l: Math.min(0.88, Math.max(0.7, brand.l)) });
+  const bg = shiftUntil(start, 1, 0.3, (c) => holdsOnHover(c, NEAR_BLACK, "dark"));
+  return { bg: bg ?? start, fg: NEAR_BLACK };
+}
+
+/**
+ * Warning is a bright surface with dark text on it, plus a separate darker colour that is
+ * readable as text on the page (a bright yellow is not, on white).
+ */
+function warningColours(
+  brand: Oklch,
+  mode: "light" | "dark",
+): { bg: Oklch; fg: Oklch; text: Oklch } {
+  const start = clampToGamut({ ...brand, l: Math.min(0.9, Math.max(0.7, brand.l)) });
+  if (mode === "light") {
+    const bg =
+      shiftUntil(start, 1, 0.3, (c) => holdsOnHover(c, WARNING_FOREGROUND, "light")) ?? start;
+    const text = shiftUntil(brand, -1, 1, (c) => contrast(c, WHITE) >= AA_TEXT);
+    return { bg, fg: WARNING_FOREGROUND, text: text ?? clampToGamut({ ...brand, l: 0.2 }) };
+  }
+  // In dark mode one light colour serves as the surface and as text. The warning foreground is
+  // lighter than the page and the card, so clearing it also clears them.
+  const both = shiftUntil(start, 1, 0.3, (c) => holdsOnHover(c, WARNING_FOREGROUND, "dark"));
+  const colour = both ?? start;
+  return { bg: colour, fg: WARNING_FOREGROUND, text: colour };
 }
 
 /** Focus ring: the brand hue, shifted until it is visible against every surface. */
@@ -205,8 +316,32 @@ function assertFont(font: string): string {
 export function createTheme(options: ThemeOptions = {}): Theme {
   const cssVariables: Record<string, string> = {};
 
+  if (options.secondary !== undefined) {
+    const brand = parseColour(options.secondary, "secondary");
+    const light = lightPair(brand, SECONDARY_HOVER_ALPHA);
+    const dark = darkPair(brand, SECONDARY_HOVER_ALPHA);
+    cssVariables["--secondary"] = lightDark(light.bg, dark.bg);
+    cssVariables["--secondary-foreground"] = lightDark(light.fg, dark.fg);
+  }
+  for (const name of ["success", "info", "destructive"] as const) {
+    const input = options[name];
+    if (input === undefined) continue;
+    const brand = parseColour(input, name);
+    const light = statusPair(brand, "light");
+    const dark = statusPair(brand, "dark");
+    cssVariables[`--${name}`] = lightDark(light.bg, dark.bg);
+    cssVariables[`--${name}-foreground`] = lightDark(light.fg, dark.fg);
+  }
+  if (options.warning !== undefined) {
+    const brand = parseColour(options.warning, "warning");
+    const light = warningColours(brand, "light");
+    const dark = warningColours(brand, "dark");
+    cssVariables["--warning"] = lightDark(light.bg, dark.bg);
+    cssVariables["--warning-foreground"] = lightDark(light.fg, dark.fg);
+    cssVariables["--warning-text"] = lightDark(light.text, dark.text);
+  }
   if (options.primary !== undefined) {
-    const brand = parsePrimary(options.primary);
+    const brand = parseColour(options.primary, "primary");
     const light = lightPair(brand);
     const dark = darkPair(brand);
     const ring = lightDark(ringFor(brand, "light"), ringFor(brand, "dark"));

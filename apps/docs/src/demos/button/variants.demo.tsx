@@ -9,6 +9,9 @@ export default function ButtonVariants() {
         <Button variant="outline">Outline</Button>
         <Button variant="ghost">Ghost</Button>
         <Button variant="destructive">Destructive</Button>
+        <Button variant="success">Success</Button>
+        <Button variant="warning">Warning</Button>
+        <Button variant="info">Info</Button>
         <Button variant="link">Link</Button>
       </div>
       <div className="flex flex-wrap items-center gap-3">
