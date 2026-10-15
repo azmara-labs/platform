@@ -1,5 +1,5 @@
 import type { Signal } from "@azmr/core";
-import { useSyncExternalStore } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 
 /**
  * React hook that subscribes to a Signal and triggers re-renders on change.
@@ -12,11 +12,16 @@ import { useSyncExternalStore } from "react";
  * firing immediately with the current value on subscribe (it deliberately
  * doesn't; read the value separately, as this hook does, rather than wait
  * for the first callback).
+ *
+ * `subscribe` and `getSnapshot` are memoised on `signal`, so an unrelated
+ * re-render does not tear down and re-create the subscription; passing a
+ * different signal resubscribes exactly once.
  */
 export function useSignal<T>(signal: Signal<T>): T {
-  return useSyncExternalStore(
-    (onStoreChange) => signal.subscribe(() => onStoreChange()),
-    () => signal.peek(),
-    () => signal.peek(),
+  const subscribe = useCallback(
+    (onStoreChange: () => void) => signal.subscribe(() => onStoreChange()),
+    [signal],
   );
+  const getSnapshot = useCallback(() => signal.peek(), [signal]);
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
