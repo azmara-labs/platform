@@ -10,7 +10,7 @@ const manifest = JSON.parse(
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
   peerDependencies?: Record<string, string>;
-  exports: Record<string, Record<string, string>>;
+  exports: Record<string, string | Record<string, string>>;
   sideEffects: boolean | string[];
 };
 
@@ -24,16 +24,21 @@ describe("package manifest (packaging rules)", () => {
     expect(manifest.devDependencies?.["@azmr/core"]).toMatch(/^workspace:/);
   });
 
-  it("lists the types condition first in every export", () => {
-    for (const [subpath, conditions] of Object.entries(manifest.exports)) {
-      const keys = Object.keys(conditions);
-      expect(keys[0], `exports["${subpath}"]`).toBe("types");
+  it("lists the types condition first in every JavaScript export", () => {
+    for (const [subpath, target] of Object.entries(manifest.exports)) {
+      if (typeof target === "string") continue; // plain file exports, e.g. the stylesheet
+      expect(Object.keys(target)[0], `exports["${subpath}"]`).toBe("types");
     }
   });
 
-  it("exposes the client and server-safe subpaths", () => {
+  it("exposes the client and server-safe subpaths and the stylesheet", () => {
     expect(Object.keys(manifest.exports)).toEqual(
-      expect.arrayContaining([".", "./hooks", "./lib"]),
+      expect.arrayContaining([".", "./hooks", "./lib", "./styles.css"]),
     );
+    expect(manifest.exports["./styles.css"]).toBe("./dist/styles.css");
+  });
+
+  it("marks only CSS as side-effectful so JavaScript stays tree-shakeable", () => {
+    expect(manifest.sideEffects).toEqual(["**/*.css"]);
   });
 });

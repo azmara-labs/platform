@@ -31,9 +31,18 @@ for (const [kind, map] of Object.entries(entries)) {
   }
 }
 
+// The stylesheet is copied, not bundled: it must exist, be exported, and carry the
+// @source rule that lets Tailwind v4 scan our classes from node_modules.
+const cssUrl = new URL("../dist/styles.css", import.meta.url);
+if (!existsSync(cssUrl)) problems.push("dist/styles.css is missing");
+else if (!/@source\s+["'][^"']+["']/.test(readFileSync(cssUrl, "utf8"))) {
+  problems.push('dist/styles.css has no @source rule (Tailwind would not scan "node_modules")');
+}
+
 const expected = new Set(
   [...Object.keys(entries.client), ...Object.keys(entries.server)].map(subpath),
 );
+expected.add("./styles.css");
 const actual = new Set(Object.keys(pkg.exports));
 for (const s of expected)
   if (!actual.has(s)) problems.push(`package.json exports is missing "${s}"`);
