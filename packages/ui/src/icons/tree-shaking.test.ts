@@ -23,7 +23,8 @@ async function bundle(code: string): Promise<string> {
   return result.outputFiles[0]?.text ?? "";
 }
 
-describe("tree-shaking", () => {
+// Every test here runs a real bundler, which is slow when the whole suite runs in parallel.
+describe("tree-shaking", { timeout: 30_000 }, () => {
   it("the Icon core bundles no icon at all", async () => {
     const out = await bundle(`import { Icon } from "./icons/index.ts"; console.log(Icon);`);
     expect(out).not.toContain('name:"cannabis"');

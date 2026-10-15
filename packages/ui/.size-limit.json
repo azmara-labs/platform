@@ -116,5 +116,10 @@
     "name": "@azmr/ui/disclosure",
     "path": "dist/disclosure.js",
     "limit": "23 kB"
+  },
+  {
+    "name": "@azmr/ui/floating",
+    "path": "dist/floating.js",
+    "limit": "46 kB"
   }
 ]
