@@ -1,0 +1,93 @@
+---
+title: Menu
+description: DropdownMenu and ContextMenu. Menus of actions with items, checkbox and radio items, groups and submenus. Built on Base UI.
+---
+
+## Usage
+
+```tsx
+import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLinkItem,
+  DropdownMenuCheckboxItem, DropdownMenuRadioGroup, DropdownMenuRadioItem,
+  DropdownMenuGroup, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut,
+  DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent,
+  ContextMenu, ContextMenuTrigger, ContextMenuContent, ContextMenuItem, // …and the same parts as above
+} from "@azmr/ui/menu";
+```
+
+These are interactive, so they are client components. A menu renders in a portal on the `--z-popover` layer, so one opened from inside a dialog appears above it. It flips when there is no room and scrolls inside the space available.
+
+Use a menu for **actions** (things that happen). For choosing a value in a form, use a select. For showing information, use a popover.
+
+## DropdownMenu
+
+<Demo name="menu/dropdown" />
+
+### Items
+
+| Part | What it is |
+| --- | --- |
+| `DropdownMenuItem` | An action. `variant="destructive"` for one that deletes or discards. `disabled` greys it out. |
+| `DropdownMenuLinkItem` | A real `<a>`, so middle click and "open in new tab" work. |
+| `DropdownMenuCheckboxItem` | Toggles on and off. It stays open when toggled; set `closeOnClick` to change that. |
+| `DropdownMenuRadioGroup` and `DropdownMenuRadioItem` | Exactly one selected. |
+| `DropdownMenuGroup` and `DropdownMenuLabel` | A named group. The label is not an item, so arrow keys skip it. |
+| `DropdownMenuSeparator` | A divider. |
+| `DropdownMenuSub`, `…SubTrigger`, `…SubContent` | A nested menu. |
+| `DropdownMenuShortcut` | A shortcut hint at the end of an item. It is text only: wire up the real shortcut yourself, and add `aria-keyshortcuts` to the item. |
+
+Items keep the menu open when `closeOnClick={false}`.
+
+### Disabled items stay focusable
+
+Following the WAI-ARIA menu pattern, a disabled item is announced as disabled and cannot be run, but arrow keys still land on it. That is deliberate: it lets people find out an action exists, and why it is unavailable if you say so in the label.
+
+## ContextMenu
+
+<Demo name="menu/context" />
+
+A context menu opens at the pointer on right click (and, on touch, a long press: Base UI provides that and it is not tested here). Once open it behaves exactly like a dropdown, and it takes the same item parts.
+
+**Use it as an enhancement only.** The trigger area is not focusable, the browser's keyboard route to a context menu needs a focused element, and a long press is easy to miss. So everything in it must be reachable another way, as in the demo, where the same actions are on a visible button.
+
+## Open a dialog from a menu
+
+<Demo name="menu/dialog" />
+
+Control the dialog and open it from the item's `onClick`. Keep the dialog **next to** the menu rather than inside it: it has to outlive the menu closing. Use this for any action that needs confirmation.
+
+## Keyboard
+
+<KeyboardMap
+  rows={[
+    { keys: ["Enter", "Space", "ArrowDown"], action: "On the trigger: opens the menu on the first item." },
+    { keys: ["ArrowUp"], action: "On the trigger: opens the menu on the last item." },
+    { keys: ["ArrowDown", "ArrowUp"], action: "Moves to the next or previous item and wraps at the ends." },
+    { keys: ["Home", "End"], action: "Jumps to the first or last item." },
+    { keys: ["A–Z"], action: "Typeahead: jumps to the item that starts with the letters you type. Letters typed together are one search." },
+    { keys: ["Enter", "Space"], action: "Runs the focused item and closes the menu. A checkbox or radio item toggles." },
+    { keys: ["ArrowRight"], action: "On a submenu trigger: opens the submenu and focuses its first item." },
+    { keys: ["ArrowLeft"], action: "In a submenu: closes it and returns to its trigger." },
+    { keys: ["Escape"], action: "Closes the open submenu, or the menu. Focus returns to the trigger." },
+    { keys: ["Tab"], action: "Closes the menu and moves on. Focus is never trapped." },
+  ]}
+/>
+
+## Accessibility
+
+- The popup is a `menu`; items are `menuitem`, `menuitemcheckbox` (with `aria-checked`) or `menuitemradio`. The trigger has `aria-haspopup="menu"` and `aria-expanded`.
+- A submenu trigger announces `aria-haspopup="menu"` and `aria-expanded`. Its chevron is decorative.
+- Check and radio marks are decorative; the state is `aria-checked`.
+- Destructive items use the destructive colour as text on the popover surface, which meets the contrast the tokens guarantee.
+
+## Motion
+
+Menus fade and scale from the trigger on `--motion-duration-fast`, and collapse to instant under `prefers-reduced-motion`.
+
+## Props
+
+<AutoTypeTable path="../../packages/ui/src/components/menu/parts.tsx" name="MenuItemProps" />
+
+<AutoTypeTable path="../../packages/ui/src/components/menu/dropdown-menu.tsx" name="DropdownMenuContentProps" />
+
+The rest are Base UI's props, passed through (`open`, `onOpenChange`, `loopFocus`, `modal`, and so on).

@@ -117,6 +117,10 @@
       "types": "./dist/modal.d.ts",
       "import": "./dist/modal.js"
     },
+    "./menu": {
+      "types": "./dist/menu.d.ts",
+      "import": "./dist/menu.js"
+    },
     "./styles.css": "./dist/styles.css",
     "./tokens.css": "./dist/tokens.css"
   },

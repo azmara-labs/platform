@@ -21,6 +21,9 @@ import InputStates from "./input/states.demo";
 import LayoutContainer from "./layout/container.demo";
 import LayoutGrid from "./layout/grid.demo";
 import LayoutStack from "./layout/stack.demo";
+import MenuContext from "./menu/context.demo";
+import MenuOpensDialog from "./menu/dialog.demo";
+import MenuDropdown from "./menu/dropdown.demo";
 import ModalAlertDialog from "./modal/alert-dialog.demo";
 import ModalDialog from "./modal/dialog.demo";
 import ModalDialogStacked from "./modal/dialog-stacked.demo";
@@ -54,6 +57,9 @@ export const demos = {
   "floating/hover-card": FloatingHoverCard,
   "floating/popover": FloatingPopover,
   "floating/tooltip": FloatingTooltip,
+  "menu/context": MenuContext,
+  "menu/dialog": MenuOpensDialog,
+  "menu/dropdown": MenuDropdown,
   "modal/alert-dialog": ModalAlertDialog,
   "modal/dialog": ModalDialog,
   "modal/dialog-stacked": ModalDialogStacked,
