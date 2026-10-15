@@ -9,11 +9,13 @@
   "serverComponents": {
     "spinner": "src/components/spinner/index.ts",
     "icons": "src/icons/index.ts",
-    "icons/lucide": "src/icons/lucide.ts"
+    "icons/lucide": "src/icons/lucide.ts",
+    "typography": "src/components/typography/index.ts"
   },
   "server": {
     "lib": "src/lib/index.ts",
     "theme": "src/theme/index.ts",
-    "icons/mui-map": "src/icons/mui-map.ts"
+    "icons/mui-map": "src/icons/mui-map.ts",
+    "typography/mui-map": "src/components/typography/mui-map.ts"
   }
 }

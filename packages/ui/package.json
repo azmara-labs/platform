@@ -73,6 +73,14 @@
       "types": "./dist/icons/mui-map.d.ts",
       "import": "./dist/icons/mui-map.js"
     },
+    "./typography": {
+      "types": "./dist/typography.d.ts",
+      "import": "./dist/typography.js"
+    },
+    "./typography/mui-map": {
+      "types": "./dist/typography/mui-map.d.ts",
+      "import": "./dist/typography/mui-map.js"
+    },
     "./styles.css": "./dist/styles.css",
     "./tokens.css": "./dist/tokens.css"
   },
