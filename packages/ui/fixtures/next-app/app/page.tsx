@@ -2,6 +2,7 @@ import { Button } from "@azmr/ui/button";
 import { Icon } from "@azmr/ui/icons";
 import { Icon as NamedIcon } from "@azmr/ui/icons/lucide";
 import { Input } from "@azmr/ui/input";
+import { Grid, GridItem, Stack } from "@azmr/ui/layout";
 import { cn } from "@azmr/ui/lib";
 import { Spinner } from "@azmr/ui/spinner";
 import { createLocale } from "@azmr/ui/theme";
@@ -35,6 +36,12 @@ export default function Page() {
         <NamedIcon name="circle-alert" />
         <Spinner label="Loading customers" />
       </div>
+      <Grid cols={{ base: 1, md: 3 }} gap={4} data-testid="grid">
+        <GridItem span={{ base: 1 }}>A</GridItem>
+        <Stack direction={{ base: "column", md: "row" }} gap="density">
+          B
+        </Stack>
+      </Grid>
       <label htmlFor="name" className="text-sm font-medium">
         Name
       </label>
