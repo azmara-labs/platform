@@ -10,7 +10,8 @@
     "avatar": "src/components/avatar/index.ts",
     "disclosure": "src/components/disclosure/index.ts",
     "floating": "src/components/floating/index.ts",
-    "modal": "src/components/modal/index.ts"
+    "modal": "src/components/modal/index.ts",
+    "menu": "src/components/menu/index.ts"
   },
   "serverComponents": {
     "spinner": "src/components/spinner/index.ts",
