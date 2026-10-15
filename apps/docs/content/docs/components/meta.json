@@ -1,4 +1,4 @@
 {
   "title": "Components",
-  "pages": ["index", "layout", "typography", "button", "input", "spinner", "icon"]
+  "pages": ["index", "layout", "scroll-area", "typography", "button", "input", "spinner", "icon"]
 }

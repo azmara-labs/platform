@@ -91,5 +91,10 @@
     "name": "@azmr/ui/layout/mui-map",
     "path": "dist/layout/mui-map.js",
     "limit": "1.5 kB"
+  },
+  {
+    "name": "@azmr/ui/scroll-area",
+    "path": "dist/scroll-area.js",
+    "limit": "18 kB"
   }
 ]

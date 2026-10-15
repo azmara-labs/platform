@@ -4,7 +4,8 @@
     "hooks": "src/hooks.ts",
     "react": "src/react/index.ts",
     "button": "src/components/button/index.ts",
-    "input": "src/components/input/index.ts"
+    "input": "src/components/input/index.ts",
+    "scroll-area": "src/components/scroll-area/index.ts"
   },
   "serverComponents": {
     "spinner": "src/components/spinner/index.ts",
