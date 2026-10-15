@@ -115,7 +115,7 @@ Each subpath is a separate build entry. Client entries (anything with state, eff
 
 ### 4.7 Primitive engine policy
 
-Base UI is the primitive layer: shadcn's default since July 2026, and the engine MUI is investing in. All Base UI imports live in L2. Per-component coverage (Combobox, Autocomplete, NumberField, Select, Dialog, Menu, Tooltip, Popover and so on) is verified in a Phase 0 spike, and any gap is filled by our own implementation behind the same L2 interface. Radix is not used; the pilot's Radix-based shadcn components migrate through the L2 wrappers.
+Base UI is the primitive layer: shadcn's default since July 2026, and the engine MUI is investing in. All Base UI imports live in L2. Per-component coverage was verified against `@base-ui/react` 1.9.0 (Appendix A); any gap is filled by our own implementation behind the same L2 interface. Radix is not used; the pilot's Radix-based shadcn components migrate through the L2 wrappers.
 
 ## 5. Tokens and theming (L1)
 
@@ -305,3 +305,60 @@ Team PAZM, project `@azmr/ui`: one **milestone per phase**; one issue per compon
 1. Package name for codemods: `@azmr/ui-codemods` (default) versus folding into `@azmr/cli`.
 2. Whether heavy blocks (grid, charts) should eventually ship as separate packages (`@azmr/ui-grid`, `@azmr/ui-charts`). Default: stay in one package with optional peers until bundle data says otherwise.
 3. Registry hosting path `https://platform.azmara.io/r/` (default) versus a dedicated subdomain.
+
+## Appendix A: Base UI coverage (verified 2026-10-15, `@base-ui/react` 1.9.0)
+
+Method: installed the package in a scratch project and read its `exports` map and sources. Facts about the package: MIT licence, `sideEffects: false`, ships ESM (`.mjs`) and CJS, components already carry `"use client"`, and `date-fns` / `@date-fns/tz` are *optional* peers (no install noise). Transition hooks (`data-starting-style` / `data-ending-style`, transition status) exist on every component that animates: Dialog, Popover, Tooltip, Preview Card, Menu, Select, Combobox, Accordion, Collapsible, Tabs, Toast, Drawer, Navigation Menu, Checkbox indicator and Avatar. AlertDialog, ContextMenu and Autocomplete reuse the Dialog, Menu and Combobox internals.
+
+### Planned component to Base UI primitive
+
+| Planned component | Base UI subpath | Status |
+|---|---|---|
+| Button | `button` | Provided |
+| Input | `input` | Provided |
+| Field (label, description, error, validity) | `field`, `fieldset`, `form` | Provided: build our `Field` on it for the aria wiring and validity state |
+| Checkbox, CheckboxGroup | `checkbox`, `checkbox-group` | Provided |
+| RadioGroup | `radio`, `radio-group` | Provided |
+| Switch | `switch` | Provided |
+| Slider | `slider` | Provided |
+| NumberField (base of MoneyField) | `number-field` | Provided (incl. scrub area); money formatting and debounce are ours |
+| PinInput | `otp-field` | Provided |
+| Select | `select` | Provided |
+| Combobox (single, multi, async) | `combobox` | Provided; async `loadOptions` wiring is ours |
+| Autocomplete | `autocomplete` | Provided |
+| Dialog | `dialog` | Provided |
+| AlertDialog | `alert-dialog` | Provided |
+| Drawer / Sheet | `drawer` | Provided |
+| Popover | `popover` | Provided |
+| Tooltip | `tooltip` | Provided |
+| HoverCard | `preview-card` | Provided (different name) |
+| Menu (dropdown) | `menu` | Provided |
+| ContextMenu | `context-menu` | Provided |
+| Menubar | `menubar` | Provided (not planned; usable for app menus) |
+| Tabs | `tabs` | Provided |
+| Accordion, Collapsible | `accordion`, `collapsible` | Provided |
+| Toast | `toast` | Provided |
+| Progress, Meter | `progress`, `meter` | Provided |
+| Avatar | `avatar` | Provided |
+| ScrollArea | `scroll-area` | Provided |
+| Separator | `separator` | Provided |
+| Toggle, ToggleGroup | `toggle`, `toggle-group` | Provided |
+| Toolbar | `toolbar` | Provided (useful for grid and editor toolbars) |
+| NavigationMenu | `navigation-menu` | Provided |
+
+### No Base UI primitive: our own implementation or another engine
+
+| Component | Plan |
+|---|---|
+| Calendar, DatePicker, TimePicker, DateTimePicker, DateRangePicker | `react-day-picker` 10 + `@date-fns/tz` (Section 8.2). Base UI has internal `temporal` adapters that suggest a future date module; re-check at Phase 2 start and prefer it if it ships stable. |
+| FileUpload, SignaturePad, RichTextEditor | Own implementation (rich text on a separate editor engine, chosen in its spike) |
+| Card, Badge/Chip, Alert, Skeleton, Spinner, EmptyState, Typography, Stack/Grid/Container | Plain styled elements, no behaviour needed |
+| Table (semantic), Breadcrumb, Pagination, Stepper | Plain semantic markup; Pagination logic reused by the grid |
+| Data grid | TanStack Table v9 + Virtual (Section 9) |
+| Charts | Recharts 3 (Section 11) |
+
+### Consequences for the plan
+
+- PinInput, HoverCard, Drawer and Menubar need **no** custom primitive work; the corresponding issues shrink to styling, tests and docs.
+- `Field` should wrap Base UI's `Field` rather than re-implement id and aria wiring.
+- Only date and time controls, file upload, signature and rich text need non-Base-UI engines in Phase 2.
