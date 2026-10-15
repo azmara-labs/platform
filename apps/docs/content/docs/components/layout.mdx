@@ -1,0 +1,61 @@
+---
+title: Layout
+description: Stack, Grid with a responsive column count, Container, Separator and AspectRatio. All Server Components.
+---
+
+## Usage
+
+```tsx
+import { Stack, Grid, GridItem, Container, Separator, AspectRatio } from "@azmr/ui/layout";
+```
+
+Everything here is a **Server Component**: no hooks, no `"use client"`, safe in layouts and `loading.tsx`. They replace MUI's `Box`, `Stack`, `Grid` and `Container`.
+
+## Stack
+
+<Demo name="layout/stack" />
+
+`Stack` lays children out in a column (default) or a row with a consistent `gap`. `direction` accepts a responsive object, so a column on phones becomes a row from `md`. `gap` is on the 4px scale (0 to 12), or `density` to follow the density token. `divider` places an element between children, never before the first or after the last, and skips empty children.
+
+## Grid
+
+<Demo name="layout/grid" />
+
+`Grid` is a CSS grid with a responsive `cols` prop (1 to 12). It is **not** MUI's 12-column item system: for that pattern use `cols={12}` and give children a `GridItem` with a `span` per breakpoint. For card layouts, `minItemWidth="16rem"` fills each row with as many columns as fit. `minItemWidth` is validated as a plain CSS length because it lands in a style attribute.
+
+Breakpoints are Tailwind's: `sm` 640, `md` 768, `lg` 1024, `xl` 1280, `2xl` 1536px.
+
+## Container, Separator and AspectRatio
+
+<Demo name="layout/container" />
+
+- **`Container`** centres content, limits the width (`sm` 42rem to `xl` 80rem, `2xl` 96rem, or `full`) and adds gutters that grow with the screen (`gutters={false}` removes them).
+- **`Separator`**: a horizontal one is a real `<hr>`; a vertical one is `role="separator"` with `aria-orientation`. `decorative` hides it from assistive technology.
+- **`AspectRatio`** keeps a ratio (`square`, `video`, `4/3`, `3/2`, `21/9`, `3/4`, or a number). Direct `img`, `video` and `iframe` children fill it.
+
+## Migrating from MUI
+
+`@azmr/ui/layout/mui-map` is plain data and helper functions for the codemod.
+
+| MUI | `@azmr/ui` |
+| --- | --- |
+| `<Grid container spacing={2}>` | `<Grid cols={12} gap={4}>` (MUI spacing is 8px, ours 4px: `muiSpacingToGap`) |
+| `<Grid item xs={12} md={6}>` | `<GridItem span={{ base: 12, md: 6 }}>` |
+| `alignItems`, `justifyContent` | `align`, `justify` |
+| `<Stack spacing={2} direction="row">` | `<Stack gap={4} direction="row">` |
+| `<Container maxWidth="md">` | `<Container size="md">` (`xs` is approximate; `false` is `full`) |
+| `disableGutters` | `gutters={false}` |
+
+A spacing with no matching step (such as 7), and item props that cannot be expressed (`xs="auto"`, `xs={true}`), are reported by the helpers as `undefined` or in `unsupported` so the codemod flags them rather than guessing. MUI's breakpoints are 0/600/900/1200/1536px and Tailwind's are 0/640/768/1024/1280px, so check layouts near the boundaries.
+
+## Props
+
+<AutoTypeTable path="../../packages/ui/src/components/layout/stack.tsx" name="StackProps" />
+
+<AutoTypeTable path="../../packages/ui/src/components/layout/grid.tsx" name="GridProps" />
+
+## Accessibility
+
+- Layout components render no roles of their own; pass `as` for a landmark (`main`, `nav`, `aside`, `header`, `footer`, `section`) so the page has a real structure.
+- Source order is the reading and tab order: do not rely on a grid to reorder content visually.
+- A horizontal `Separator` is announced as a separator; mark it `decorative` when the content either side already reads as separate.

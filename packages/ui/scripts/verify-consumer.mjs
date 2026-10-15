@@ -329,6 +329,17 @@ async function main() {
     /focus-visible\\:ring-ring/.test(css),
   );
 
+  // Responsive classes are generated tables in dist. Tailwind only emits CSS for class names it
+  // finds spelled out, so a regression to runtime-built names would ship layouts with no CSS.
+  check(
+    "responsive layout classes from the generated tables reach the CSS (md:grid-cols-3, md:flex-row)",
+    css.includes(".md\\:grid-cols-3") && css.includes(".md\\:flex-row"),
+  );
+  check(
+    "the server HTML carries the responsive classes the page asked for",
+    html.includes("md:grid-cols-3") && html.includes("md:flex-row"),
+  );
+
   const signal = await fetch(`${BASE}/signal`);
   const signalHtml = await signal.text();
   check(

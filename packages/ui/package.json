@@ -81,6 +81,14 @@
       "types": "./dist/typography/mui-map.d.ts",
       "import": "./dist/typography/mui-map.js"
     },
+    "./layout": {
+      "types": "./dist/layout.d.ts",
+      "import": "./dist/layout.js"
+    },
+    "./layout/mui-map": {
+      "types": "./dist/layout/mui-map.d.ts",
+      "import": "./dist/layout/mui-map.js"
+    },
     "./styles.css": "./dist/styles.css",
     "./tokens.css": "./dist/tokens.css"
   },

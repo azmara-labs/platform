@@ -10,12 +10,14 @@
     "spinner": "src/components/spinner/index.ts",
     "icons": "src/icons/index.ts",
     "icons/lucide": "src/icons/lucide.ts",
-    "typography": "src/components/typography/index.ts"
+    "typography": "src/components/typography/index.ts",
+    "layout": "src/components/layout/index.ts"
   },
   "server": {
     "lib": "src/lib/index.ts",
     "theme": "src/theme/index.ts",
     "icons/mui-map": "src/icons/mui-map.ts",
-    "typography/mui-map": "src/components/typography/mui-map.ts"
+    "typography/mui-map": "src/components/typography/mui-map.ts",
+    "layout/mui-map": "src/components/layout/mui-map.ts"
   }
 }

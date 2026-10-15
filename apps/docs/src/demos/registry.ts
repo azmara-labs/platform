@@ -6,6 +6,9 @@ import IconBasic from "./icon/basic.demo";
 import IconNamed from "./icon/named.demo";
 import InputBasic from "./input/basic.demo";
 import InputStates from "./input/states.demo";
+import LayoutContainer from "./layout/container.demo";
+import LayoutGrid from "./layout/grid.demo";
+import LayoutStack from "./layout/stack.demo";
 import SpinnerBasic from "./spinner/basic.demo";
 import TypographyInline from "./typography/inline.demo";
 import TypographyScale from "./typography/scale.demo";
@@ -23,6 +26,9 @@ export const demos = {
   "icon/basic": IconBasic,
   "icon/named": IconNamed,
   "input/basic": InputBasic,
+  "layout/container": LayoutContainer,
+  "layout/grid": LayoutGrid,
+  "layout/stack": LayoutStack,
   "input/states": InputStates,
   "spinner/basic": SpinnerBasic,
   "typography/inline": TypographyInline,
