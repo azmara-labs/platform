@@ -10,6 +10,18 @@ pnpm add @azmr/ui @azmr/core react react-dom
 npm install @azmr/ui @azmr/core react react-dom
 ```
 
+`@azmr/core` is a **peer dependency**: install it yourself so your app and `@azmr/ui` share one copy (two copies give incompatible `Signal` types).
+
+## Entry points
+
+| Import | Contents | Directive |
+|---|---|---|
+| `@azmr/ui` | everything (`Grid`, `useSignal`, `cn`) | `"use client"` |
+| `@azmr/ui/hooks` | React hooks (`useSignal`) | `"use client"` |
+| `@azmr/ui/lib` | `cn()` and other server-safe helpers | none, importable from Server Components |
+
+`cn(...classes)` merges class names and resolves conflicting Tailwind utilities, last one wins: `cn("p-2", "p-4")` → `"p-4"`.
+
 ## Grid
 
 ```tsx
