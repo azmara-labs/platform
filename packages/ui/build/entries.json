@@ -8,7 +8,8 @@
     "scroll-area": "src/components/scroll-area/index.ts",
     "progress": "src/components/progress/index.ts",
     "avatar": "src/components/avatar/index.ts",
-    "disclosure": "src/components/disclosure/index.ts"
+    "disclosure": "src/components/disclosure/index.ts",
+    "floating": "src/components/floating/index.ts"
   },
   "serverComponents": {
     "spinner": "src/components/spinner/index.ts",

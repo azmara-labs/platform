@@ -11,6 +11,9 @@ import DisplayAlerts from "./display/alerts.demo";
 import DisplayCards from "./display/cards.demo";
 import DisplayChips from "./display/chips.demo";
 import DisplayPlaceholders from "./display/placeholders.demo";
+import FloatingHoverCard from "./floating/hover-card.demo";
+import FloatingPopover from "./floating/popover.demo";
+import FloatingTooltip from "./floating/tooltip.demo";
 import IconBasic from "./icon/basic.demo";
 import IconNamed from "./icon/named.demo";
 import InputBasic from "./input/basic.demo";
@@ -44,6 +47,9 @@ export const demos = {
   "display/cards": DisplayCards,
   "display/chips": DisplayChips,
   "display/placeholders": DisplayPlaceholders,
+  "floating/hover-card": FloatingHoverCard,
+  "floating/popover": FloatingPopover,
+  "floating/tooltip": FloatingTooltip,
   "icon/basic": IconBasic,
   "icon/named": IconNamed,
   "input/basic": InputBasic,

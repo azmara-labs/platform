@@ -109,6 +109,10 @@
       "types": "./dist/disclosure.d.ts",
       "import": "./dist/disclosure.js"
     },
+    "./floating": {
+      "types": "./dist/floating.d.ts",
+      "import": "./dist/floating.js"
+    },
     "./styles.css": "./dist/styles.css",
     "./tokens.css": "./dist/tokens.css"
   },

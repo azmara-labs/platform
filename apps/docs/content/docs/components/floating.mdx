@@ -1,0 +1,74 @@
+---
+title: Floating
+description: Tooltip, Popover and HoverCard. Surfaces anchored to a trigger, collision-aware, portalled, and animated with the motion tokens. Built on Base UI.
+---
+
+## Usage
+
+```tsx
+import {
+  Tooltip, TooltipTrigger, TooltipContent, TooltipProvider,
+  Popover, PopoverTrigger, PopoverContent, PopoverTitle, PopoverDescription, PopoverClose,
+  HoverCard, HoverCardTrigger, HoverCardContent,
+} from "@azmr/ui/floating";
+```
+
+These are interactive, so they are client components. Each one renders its surface in a portal on `document.body`, above overlays (the `--z-tooltip` and `--z-popover` layers), and flips to the other side of the trigger when there is no room. The surface is also capped to the space available, so it never runs off the viewport.
+
+Which one to use:
+
+| You need | Use |
+| --- | --- |
+| A short label for a control | `Tooltip` |
+| Anything interactive (a form, a menu of actions, links) | `Popover` |
+| A preview of a link's target | `HoverCard` |
+
+## Tooltip
+
+<Demo name="floating/tooltip" />
+
+A tooltip shows on hover and on **keyboard focus**, closes on Escape, and never takes the pointer, so it cannot block what is under it. Put one `TooltipProvider` around a toolbar (or the app): the first tooltip waits `TOOLTIP_DELAY_MS` (500 ms), then its neighbours open at once while one is showing, and moving between them does not replay the animation.
+
+### Touch, and what a tooltip is not
+
+There is no hover on touch, so **a tooltip does not open on touch**. That makes it a convenience for people with a pointer or keyboard, and the rule follows:
+
+- Never put essential information in a tooltip. Use a `Popover` if touch users need it.
+- An icon-only button still needs its own accessible name (`aria-label`). The tooltip adds to it, it does not replace it.
+
+While open, the trigger points at the tooltip with `aria-describedby`, and the tooltip has `role="tooltip"`. Base UI 1.9 does neither, so a screen reader would never hear the text; `@azmr/ui` adds it. One consequence: if the tooltip repeats the button's `aria-label` word for word, a screen reader reads it twice. Prefer tooltip text that adds something, such as the shortcut, as in the demo.
+
+## Popover
+
+<Demo name="floating/popover" />
+
+Opens on click, Enter or Space. Focus moves into the panel, Tab moves through its content, and Escape or a click outside closes it and returns focus to the trigger. The panel is a `role="dialog"` named by `PopoverTitle` (or `aria-label`) and described by `PopoverDescription`. Use `PopoverClose` for a button that dismisses it.
+
+Inputs inside keep their own keys: arrow keys and typing are never taken by the popover.
+
+## HoverCard
+
+<Demo name="floating/hover-card" />
+
+The trigger is a real link (`<a>`), so the page works without the card. The card opens on hover and on keyboard focus of the link and closes on Escape. It is not announced as a dialog and does not open on touch, so nothing in it may be the only way to reach something.
+
+## Positioning
+
+Every content component takes `side`, `align`, `sideOffset` (default 6) and `collisionPadding` (default 8, the minimum distance kept from the viewport edge).
+
+<AutoTypeTable path="../../packages/ui/src/components/floating/shared.ts" name="PositionProps" />
+
+## Motion
+
+Surfaces fade and scale from the trigger (`transform-origin` follows the trigger through `--transform-origin`) using Base UI's `data-starting-style` and `data-ending-style` and `--motion-duration-fast`. Under `prefers-reduced-motion` the duration tokens collapse to near zero, so surfaces appear and disappear instantly.
+
+## Accessibility
+
+<KeyboardMap
+  rows={[
+    { keys: ["Tab"], action: "Focusing a tooltip trigger or hover-card link shows its surface; leaving hides it." },
+    { keys: ["Enter", "Space"], action: "Opens a popover from its trigger." },
+    { keys: ["Tab", "Shift+Tab"], action: "Moves through the content of an open popover." },
+    { keys: ["Escape"], action: "Closes the open tooltip, popover or hover card. Focus returns to the trigger." },
+  ]}
+/>
