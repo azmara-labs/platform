@@ -92,6 +92,31 @@ describe("Typography: composition", () => {
   });
 });
 
+describe("Typography: noWrap on inline variants", () => {
+  // `truncate` (overflow hidden + ellipsis) does nothing on an inline element, so the span
+  // variants (caption, overline, or any `as="span"`) must become block-level to truncate.
+  it.each([
+    ["caption", { variant: "caption" as const }],
+    ["overline", { variant: "overline" as const }],
+    ["body rendered as a span", { variant: "body" as const, as: "span" as const }],
+  ])("%s is block-level so the ellipsis works", (_name, props) => {
+    const { container } = renderUi(<Typography noWrap {...props} />);
+    const list = classes(first(container));
+    expect(list).toContain("truncate");
+    expect(list).toContain("block");
+  });
+
+  it("does not force block on elements that are already block-level", () => {
+    const { container } = renderUi(<Typography noWrap>p</Typography>);
+    expect(classes(first(container))).not.toContain("block");
+  });
+
+  it("does not add block when noWrap is off", () => {
+    const { container } = renderUi(<Typography variant="caption">c</Typography>);
+    expect(classes(first(container))).not.toContain("block");
+  });
+});
+
 describe("Heading", () => {
   it("renders the element for its level with that level's look", () => {
     const { container } = renderUi(<Heading level={3}>Title</Heading>);
@@ -189,6 +214,49 @@ describe("Link", () => {
     expect(a.getAttribute("rel")).toBe("noopener noreferrer");
     expect(a.textContent).toContain("Example");
     expect(a.querySelector(".sr-only")?.textContent).toBe("(opens in a new tab)");
+  });
+
+  it("never loses noopener noreferrer when the caller passes their own rel", () => {
+    const { container } = renderUi(
+      <Link href="https://example.com" external rel="nofollow">
+        x
+      </Link>,
+    );
+    const rel = (first(container).getAttribute("rel") ?? "").split(/\s+/).sort();
+    expect(rel).toEqual(["nofollow", "noopener", "noreferrer"]);
+  });
+
+  it("does not duplicate tokens the caller already passed", () => {
+    const { container } = renderUi(
+      <Link href="https://example.com" external rel="noopener nofollow">
+        x
+      </Link>,
+    );
+    const rel = (first(container).getAttribute("rel") ?? "").split(/\s+/).sort();
+    expect(rel).toEqual(["nofollow", "noopener", "noreferrer"]);
+  });
+
+  it("makes any target=_blank safe, even without `external`, and announces it", () => {
+    const { container } = renderUi(
+      <Link href="https://example.com" target="_blank">
+        x
+      </Link>,
+    );
+    const a = first(container);
+    expect(a.getAttribute("rel")).toBe("noopener noreferrer");
+    expect(a.querySelector(".sr-only")?.textContent).toBe("(opens in a new tab)");
+  });
+
+  it("lets a caller override the target; a non-blank target gets no rel and no hint", () => {
+    const { container } = renderUi(
+      <Link href="/x" external target="_self">
+        x
+      </Link>,
+    );
+    const a = first(container);
+    expect(a.getAttribute("target")).toBe("_self");
+    expect(a.hasAttribute("rel")).toBe(false);
+    expect(a.querySelector(".sr-only")).toBeNull();
   });
 
   it("non-external links have no target and no hint", () => {

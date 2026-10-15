@@ -50,7 +50,9 @@ function TypographyImpl(
       className={cn(
         definition.classes,
         align && ALIGN_CLASSES[align],
-        noWrap && "truncate",
+        // `truncate` needs a block-level box: on an inline span (caption, overline, or any
+        // `as="span"`) the ellipsis would never show and the text would overflow.
+        noWrap && cn("truncate", Component === "span" && "block"),
         gutterBottom && "mb-[0.35em]",
         className,
       )}
@@ -170,12 +172,20 @@ function LinkImpl(
     as: Component = "a",
     underline = "always",
     external,
+    target: targetProp,
+    rel: relProp,
     className,
     children,
     ...props
   }: LinkProps<ElementType>,
   ref: Ref<HTMLAnchorElement>,
 ) {
+  // Any link that opens a new tab is made safe and announced, whether it asked via `external` or
+  // by passing target="_blank" itself; a caller's own `rel` tokens are kept.
+  const target = targetProp ?? (external ? "_blank" : undefined);
+  const opensNewTab = target === "_blank";
+  const rel = opensNewTab ? safeRel(relProp) : relProp;
+
   return (
     <Component
       ref={ref}
@@ -185,13 +195,22 @@ function LinkImpl(
         UNDERLINE_CLASSES[underline],
         className,
       )}
-      {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+      target={target}
+      rel={rel}
       {...props}
     >
       {children}
-      {external && <span className="sr-only">(opens in a new tab)</span>}
+      {opensNewTab && <span className="sr-only">(opens in a new tab)</span>}
     </Component>
   );
+}
+
+/** The caller's `rel` tokens plus `noopener noreferrer`, without duplicates. */
+function safeRel(rel: string | undefined): string {
+  const tokens = new Set((rel ?? "").split(/\s+/).filter(Boolean));
+  tokens.add("noopener");
+  tokens.add("noreferrer");
+  return [...tokens].join(" ");
 }
 
 /** A link. Underlined by default, with a full-strength focus ring. Server-safe. */
