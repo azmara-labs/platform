@@ -146,7 +146,7 @@ export const Text = forwardRef<HTMLElement, TextProps>(function Text(
 
 const UNDERLINE_CLASSES = {
   always: "underline",
-  hover: "hover:underline",
+  hover: "hover:underline focus-visible:underline",
   none: "no-underline",
 } as const;
 

@@ -169,6 +169,15 @@ describe("Link", () => {
     expect(classes(first(container))).toContain(cls);
   });
 
+  it("underline=hover also underlines on keyboard focus, so the cue is not mouse-only", () => {
+    const { container } = renderUi(
+      <Link href="/x" underline="hover">
+        x
+      </Link>,
+    );
+    expect(classes(first(container))).toContain("focus-visible:underline");
+  });
+
   it("external links open safely and tell screen readers", () => {
     const { container } = renderUi(
       <Link href="https://example.com" external>
