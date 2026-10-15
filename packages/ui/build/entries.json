@@ -12,7 +12,8 @@
     "icons": "src/icons/index.ts",
     "icons/lucide": "src/icons/lucide.ts",
     "typography": "src/components/typography/index.ts",
-    "layout": "src/components/layout/index.ts"
+    "layout": "src/components/layout/index.ts",
+    "display": "src/components/display/index.ts"
   },
   "server": {
     "lib": "src/lib/index.ts",

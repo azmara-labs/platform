@@ -1,4 +1,14 @@
 {
   "title": "Components",
-  "pages": ["index", "layout", "scroll-area", "typography", "button", "input", "spinner", "icon"]
+  "pages": [
+    "index",
+    "layout",
+    "display",
+    "scroll-area",
+    "typography",
+    "button",
+    "input",
+    "spinner",
+    "icon"
+  ]
 }
