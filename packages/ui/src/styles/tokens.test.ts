@@ -141,6 +141,42 @@ describe("colour modes", () => {
   });
 });
 
+// `light-dark()` in :root is enough for the page-level theme, but a bundler that lowers it (Next's
+// CSS pipeline does, for older browser targets) turns every token into `var(--toggle-light, a)
+// var(--toggle-dark, b)`. A custom property that references var() is resolved where it is
+// declared (:root) and inherited as a fixed value, so a nested `data-theme="light"` inside a dark
+// page could not change it. Each scope therefore re-declares every colour token explicitly,
+// which works however the CSS is processed. These tests keep the copies in sync with :root.
+describe("scoped themes re-declare every colour token (nesting survives lowering)", () => {
+  const colourTokens = [...rootVars].filter(([, v]) => v.startsWith("light-dark(")).map(([n]) => n);
+  const scopes: [string, Mode][] = [
+    [".light", "light"],
+    ['[data-theme="light"]', "light"],
+    [".dark", "dark"],
+    ['[data-theme="dark"]', "dark"],
+  ];
+
+  it("finds the colour tokens (guards against checking nothing)", () => {
+    expect(colourTokens.length).toBeGreaterThanOrEqual(40);
+  });
+
+  it.each(scopes)("%s declares every colour token with its own mode's value", (selector, mode) => {
+    const decls = declsFor(selector);
+    const wrong = colourTokens.filter((name) => decls.get(name) !== resolve(name, mode));
+    expect(wrong).toEqual([]);
+  });
+
+  it("keeps the class and attribute selectors identical (one rule each)", () => {
+    expect([...declsFor(".dark")]).toEqual([...declsFor('[data-theme="dark"]')]);
+    expect([...declsFor(".light")]).toEqual([...declsFor('[data-theme="light"]')]);
+  });
+
+  it("still sets color-scheme, so native widgets and light-dark() follow the scope", () => {
+    expect(declsFor(".dark").get("color-scheme")).toBe("dark");
+    expect(declsFor(".light").get("color-scheme")).toBe("light");
+  });
+});
+
 describe("WCAG contrast of token pairs (text >= 4.5:1)", () => {
   const textPairs: [string, string][] = [
     ["foreground", "background"],

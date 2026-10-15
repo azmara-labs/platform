@@ -3,7 +3,7 @@
 import { readFileSync } from "node:fs";
 import { gzipSync } from "node:zlib";
 
-const budgetKb = Number(process.env.CSS_BUDGET_KB ?? 3.5);
+const budgetKb = Number(process.env.CSS_BUDGET_KB ?? 4);
 // styles.css imports tokens.css, so the cost of taking styles.css is both files.
 const css = Buffer.concat(
   ["tokens.css", "styles.css"].map((name) =>

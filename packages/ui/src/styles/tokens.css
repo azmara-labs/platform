@@ -117,14 +117,103 @@
   --density-row-height: 2.75rem;
 }
 
+/* Explicit per-scope colour tokens. :root uses light-dark() for the page-level theme (system by
+   default). A bundler that lowers light-dark() resolves each token where it is declared and
+   inherits the result, so a nested scope (a docs demo, a dark panel in a light page) could not
+   change it. Re-declaring the tokens inside each scope works however the CSS is processed.
+   tokens.test.ts keeps these copies identical to the :root values. */
 .light,
 [data-theme="light"] {
   color-scheme: light;
+
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.5 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.53 0.22 27);
+  --destructive-foreground: oklch(0.985 0 0);
+  --success: oklch(0.5 0.14 150);
+  --success-foreground: oklch(0.985 0 0);
+  --warning: oklch(0.78 0.16 80);
+  --warning-foreground: oklch(0.25 0.04 70);
+  --info: oklch(0.5 0.18 255);
+  --info-foreground: oklch(0.985 0 0);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.55 0.15 255);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.55 0.15 255);
+  --chart-1: oklch(0.52 0.19 266);
+  --chart-2: oklch(0.64 0.105 45);
+  --chart-3: oklch(0.58 0.062 173);
+  --chart-4: oklch(0.5 0.189 339);
+  --chart-5: oklch(0.64 0.124 231);
+  --chart-6: oklch(0.64 0.138 107);
+  --chart-7: oklch(0.5 0.19 22);
+  --chart-8: oklch(0.46 0 0);
 }
 
 .dark,
 [data-theme="dark"] {
   color-scheme: dark;
+
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.72 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.65 0.2 22);
+  --destructive-foreground: oklch(0.145 0 0);
+  --success: oklch(0.72 0.17 150);
+  --success-foreground: oklch(0.145 0 0);
+  --warning: oklch(0.82 0.16 82);
+  --warning-foreground: oklch(0.25 0.04 70);
+  --info: oklch(0.72 0.13 245);
+  --info-foreground: oklch(0.145 0 0);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.72 0.12 255);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.922 0 0);
+  --sidebar-primary-foreground: oklch(0.205 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 12%);
+  --sidebar-ring: oklch(0.72 0.12 255);
+  --chart-1: oklch(0.69 0.165 273);
+  --chart-2: oklch(0.8 0.17 73);
+  --chart-3: oklch(0.64 0.152 158);
+  --chart-4: oklch(0.63 0.16 336);
+  --chart-5: oklch(0.86 0.12 204);
+  --chart-6: oklch(0.86 0.104 114);
+  --chart-7: oklch(0.65 0.165 35);
+  --chart-8: oklch(0.7 0 0);
 }
 
 [data-density="compact"] {

@@ -291,6 +291,22 @@ async function main() {
     "colour tokens switch by scheme (light-dark() or its lowered equivalent)",
     css.includes("light-dark(") || css.includes("--lightningcss-light"),
   );
+  // A nested scope must work even when the bundler lowered light-dark(): the scope rule has to
+  // carry the token values itself instead of leaning on the lowered toggles at :root.
+  const scopeRule = (selector) => {
+    const start = css.indexOf(selector);
+    const end = css.indexOf("}", start);
+    return start < 0 || end < 0 ? "" : css.slice(start, end);
+  };
+  for (const mode of ["dark", "light"]) {
+    const rule = scopeRule(`[data-theme=${mode}]`) || scopeRule(`[data-theme="${mode}"]`);
+    check(
+      `[data-theme=${mode}] re-declares colour tokens itself (nested scopes work after lowering)`,
+      rule.includes("--background:") &&
+        !rule.slice(rule.indexOf("--background:") + "--background:".length).startsWith("var("),
+      rule.slice(0, 160),
+    );
+  }
   check(
     "explicit theme overrides survive ([data-theme=dark] and [data-theme=light])",
     /\[data-theme=["']?dark["']?\]/.test(css) && /\[data-theme=["']?light["']?\]/.test(css),
