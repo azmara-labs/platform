@@ -12,7 +12,7 @@ import {
 import postcss from "postcss";
 import { describe, expect, it } from "vitest";
 
-const cssPath = join(import.meta.dirname, "styles.css");
+const cssPath = join(import.meta.dirname, "tokens.css");
 const css = readFileSync(cssPath, "utf8");
 const root = postcss.parse(css);
 

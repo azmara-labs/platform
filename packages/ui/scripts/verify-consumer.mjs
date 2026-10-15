@@ -182,9 +182,9 @@ async function main() {
 
   // Optional fault injection (proves the checks below can actually fail).
   if (sabotage === "no-source") {
-    const css = join(installedUi, "dist", "styles.css");
+    const css = join(installedUi, "dist", "tokens.css");
     writeFileSync(css, readFileSync(css, "utf8").replace(/@source[^;]*;/, ""));
-    log("SABOTAGE: removed the @source rule from the installed styles.css");
+    log("SABOTAGE: removed the @source rule from the installed tokens.css");
   }
   if (sabotage === "no-client-directive") {
     const js = join(installedUi, "dist", "react.js");

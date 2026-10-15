@@ -1,0 +1,230 @@
+/*
+ * @azmr/ui design tokens and Tailwind v4 integration (no global rules).
+ *
+ * Usage in an app's global CSS, when the app already has its own base styles:
+ *   @import "tailwindcss";
+ *   @import "@azmr/ui/tokens.css";
+ * or, to also get our body colours and default border colour:
+ *   @import "@azmr/ui/styles.css";
+ *
+ * Token names follow shadcn/ui so components from any shadcn registry fit
+ * alongside ours. Colours are OKLCH and use light-dark(), so the page follows
+ * the system by default and can be forced with `.dark` / `.light` or
+ * `data-theme="dark|light"` on any ancestor, with no JavaScript and no flash.
+ *
+ * Components must read these tokens (bg-background, text-foreground, ...) and
+ * never contain raw colours; a test enforces it.
+ */
+
+/* Scan the distributed JS for Tailwind class names. Resolved relative to this
+   file, so it works from node_modules. */
+@source "./**/*.js";
+
+:root {
+  color-scheme: light dark;
+
+  --radius: 0.625rem;
+
+  /* Surfaces */
+  --background: light-dark(oklch(1 0 0), oklch(0.145 0 0));
+  --foreground: light-dark(oklch(0.145 0 0), oklch(0.985 0 0));
+  --card: light-dark(oklch(1 0 0), oklch(0.205 0 0));
+  --card-foreground: light-dark(oklch(0.145 0 0), oklch(0.985 0 0));
+  --popover: light-dark(oklch(1 0 0), oklch(0.205 0 0));
+  --popover-foreground: light-dark(oklch(0.145 0 0), oklch(0.985 0 0));
+
+  /* Brand and neutrals */
+  --primary: light-dark(oklch(0.205 0 0), oklch(0.922 0 0));
+  --primary-foreground: light-dark(oklch(0.985 0 0), oklch(0.205 0 0));
+  --secondary: light-dark(oklch(0.97 0 0), oklch(0.269 0 0));
+  --secondary-foreground: light-dark(oklch(0.205 0 0), oklch(0.985 0 0));
+  --muted: light-dark(oklch(0.97 0 0), oklch(0.269 0 0));
+  --muted-foreground: light-dark(oklch(0.5 0 0), oklch(0.72 0 0));
+  --accent: light-dark(oklch(0.97 0 0), oklch(0.269 0 0));
+  --accent-foreground: light-dark(oklch(0.205 0 0), oklch(0.985 0 0));
+
+  /* Status (destructive is shadcn's; success / warning / info are ours) */
+  --destructive: light-dark(oklch(0.53 0.22 27), oklch(0.65 0.2 22));
+  --destructive-foreground: light-dark(oklch(0.985 0 0), oklch(0.145 0 0));
+  --success: light-dark(oklch(0.5 0.14 150), oklch(0.72 0.17 150));
+  --success-foreground: light-dark(oklch(0.985 0 0), oklch(0.145 0 0));
+  --warning: light-dark(oklch(0.78 0.16 80), oklch(0.82 0.16 82));
+  --warning-foreground: light-dark(oklch(0.25 0.04 70), oklch(0.25 0.04 70));
+  --info: light-dark(oklch(0.5 0.18 255), oklch(0.72 0.13 245));
+  --info-foreground: light-dark(oklch(0.985 0 0), oklch(0.145 0 0));
+
+  /* Lines and focus. --ring keeps >= 3:1 against every surface (WCAG 2.2). */
+  --border: light-dark(oklch(0.922 0 0), oklch(1 0 0 / 12%));
+  --input: light-dark(oklch(0.922 0 0), oklch(1 0 0 / 16%));
+  --ring: light-dark(oklch(0.55 0.15 255), oklch(0.72 0.12 255));
+
+  /* Sidebar */
+  --sidebar: light-dark(oklch(0.985 0 0), oklch(0.205 0 0));
+  --sidebar-foreground: light-dark(oklch(0.145 0 0), oklch(0.985 0 0));
+  --sidebar-primary: light-dark(oklch(0.205 0 0), oklch(0.922 0 0));
+  --sidebar-primary-foreground: light-dark(oklch(0.985 0 0), oklch(0.205 0 0));
+  --sidebar-accent: light-dark(oklch(0.97 0 0), oklch(0.269 0 0));
+  --sidebar-accent-foreground: light-dark(oklch(0.205 0 0), oklch(0.985 0 0));
+  --sidebar-border: light-dark(oklch(0.922 0 0), oklch(1 0 0 / 12%));
+  --sidebar-ring: light-dark(oklch(0.55 0.15 255), oklch(0.72 0.12 255));
+
+  /* Categorical chart palette (8 series), tuned for contrast and colour-vision
+     deficiency. Found with a constrained search (>= 3.2:1 on surfaces, inside sRGB,
+     maximising the worst pairwise CIEDE2000 under normal, protan, deutan and
+     tritan vision); tokens.test.ts holds the thresholds. */
+  --chart-1: light-dark(oklch(0.52 0.19 266), oklch(0.69 0.165 273));
+  --chart-2: light-dark(oklch(0.64 0.105 45), oklch(0.8 0.17 73));
+  --chart-3: light-dark(oklch(0.58 0.062 173), oklch(0.64 0.152 158));
+  --chart-4: light-dark(oklch(0.5 0.189 339), oklch(0.63 0.16 336));
+  --chart-5: light-dark(oklch(0.64 0.124 231), oklch(0.86 0.12 204));
+  --chart-6: light-dark(oklch(0.64 0.138 107), oklch(0.86 0.104 114));
+  --chart-7: light-dark(oklch(0.5 0.19 22), oklch(0.65 0.165 35));
+  --chart-8: light-dark(oklch(0.46 0 0), oklch(0.7 0 0));
+
+  /* Motion */
+  --motion-duration-instant: 75ms;
+  --motion-duration-fast: 150ms;
+  --motion-duration-base: 200ms;
+  --motion-duration-slow: 300ms;
+  --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --motion-ease-emphasized: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --motion-ease-decelerate: cubic-bezier(0, 0, 0, 1);
+  --motion-ease-accelerate: cubic-bezier(0.3, 0, 1, 1);
+
+  /* Typography. createTheme({ font }) overrides --font-sans-stack. */
+  --font-sans-stack:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Elevation */
+  --elevation-1: 0 1px 2px 0 oklch(0 0 0 / 0.08);
+  --elevation-2: 0 2px 6px -1px oklch(0 0 0 / 0.12), 0 1px 3px 0 oklch(0 0 0 / 0.08);
+  --elevation-3: 0 8px 16px -4px oklch(0 0 0 / 0.16), 0 2px 6px -2px oklch(0 0 0 / 0.1);
+  --elevation-4: 0 20px 32px -8px oklch(0 0 0 / 0.24), 0 8px 12px -4px oklch(0 0 0 / 0.12);
+
+  /* Layering */
+  --z-dropdown: 1000;
+  --z-sticky: 1100;
+  --z-overlay: 1300;
+  --z-modal: 1400;
+  --z-popover: 1500;
+  --z-toast: 1700;
+  --z-tooltip: 1800;
+
+  /* Density (comfortable by default) */
+  --density-control-height: 2.25rem;
+  --density-control-padding-x: 0.75rem;
+  --density-gap: 0.5rem;
+  --density-row-height: 2.75rem;
+}
+
+.light,
+[data-theme="light"] {
+  color-scheme: light;
+}
+
+.dark,
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+[data-density="compact"] {
+  --density-control-height: 2rem;
+  --density-control-padding-x: 0.625rem;
+  --density-gap: 0.375rem;
+  --density-row-height: 2.25rem;
+}
+
+[data-density="spacious"] {
+  --density-control-height: 2.75rem;
+  --density-control-padding-x: 1rem;
+  --density-gap: 0.75rem;
+  --density-row-height: 3.25rem;
+}
+
+/* Reduced motion: token-level collapse, plus a safety net for third-party and
+   hand-written animations. Mark genuinely essential motion (e.g. a progress
+   spinner) with data-motion="essential" to keep it. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-duration-instant: 0.01ms;
+    --motion-duration-fast: 0.01ms;
+    --motion-duration-base: 0.01ms;
+    --motion-duration-slow: 0.01ms;
+  }
+
+  *:not([data-motion="essential"]),
+  *:not([data-motion="essential"])::before,
+  *:not([data-motion="essential"])::after {
+    /* biome-ignore lint/complexity/noImportantStyles: the reduced-motion safety net must beat arbitrary author animations and transitions */
+    animation-duration: 0.01ms !important;
+    /* biome-ignore lint/complexity/noImportantStyles: the reduced-motion safety net must beat arbitrary author animations and transitions */
+    animation-iteration-count: 1 !important;
+    /* biome-ignore lint/complexity/noImportantStyles: the reduced-motion safety net must beat arbitrary author animations and transitions */
+    transition-duration: 0.01ms !important;
+    /* biome-ignore lint/complexity/noImportantStyles: the reduced-motion safety net must beat arbitrary author animations and transitions */
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Map the tokens into Tailwind's theme so utilities like bg-background,
+   text-muted-foreground, rounded-lg and shadow-elevation-2 exist. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+  --color-chart-7: var(--chart-7);
+  --color-chart-8: var(--chart-8);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --font-sans: var(--font-sans-stack);
+
+  --shadow-elevation-1: var(--elevation-1);
+  --shadow-elevation-2: var(--elevation-2);
+  --shadow-elevation-3: var(--elevation-3);
+  --shadow-elevation-4: var(--elevation-4);
+
+  --ease-standard: var(--motion-ease-standard);
+  --ease-emphasized: var(--motion-ease-emphasized);
+  --ease-decelerate: var(--motion-ease-decelerate);
+  --ease-accelerate: var(--motion-ease-accelerate);
+}

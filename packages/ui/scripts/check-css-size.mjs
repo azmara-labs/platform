@@ -4,10 +4,17 @@ import { readFileSync } from "node:fs";
 import { gzipSync } from "node:zlib";
 
 const budgetKb = Number(process.env.CSS_BUDGET_KB ?? 3.5);
-const css = readFileSync(new URL("../dist/styles.css", import.meta.url));
+// styles.css imports tokens.css, so the cost of taking styles.css is both files.
+const css = Buffer.concat(
+  ["tokens.css", "styles.css"].map((name) =>
+    readFileSync(new URL(`../dist/${name}`, import.meta.url)),
+  ),
+);
 const sizeKb = gzipSync(css, { level: 9 }).length / 1000;
 
-console.log(`@azmr/ui/styles.css  ${sizeKb.toFixed(2)} kB gzip (budget ${budgetKb} kB)`);
+console.log(
+  `@azmr/ui styles.css + tokens.css  ${sizeKb.toFixed(2)} kB gzip (budget ${budgetKb} kB)`,
+);
 if (sizeKb > budgetKb) {
   console.error(`styles.css exceeds its budget by ${(sizeKb - budgetKb).toFixed(2)} kB`);
   process.exit(1);

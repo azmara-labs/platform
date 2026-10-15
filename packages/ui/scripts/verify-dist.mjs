@@ -68,16 +68,29 @@ for (const kind of KINDS) {
   }
 }
 
-// The stylesheet is copied, not bundled: it must exist, be exported, and carry the
-// @source rule that lets Tailwind v4 scan our classes from node_modules.
-const cssUrl = new URL("../dist/styles.css", import.meta.url);
-if (!existsSync(cssUrl)) problems.push("dist/styles.css is missing");
-else if (!/@source\s+["'][^"']+["']/.test(readFileSync(cssUrl, "utf8"))) {
-  problems.push('dist/styles.css has no @source rule (Tailwind would not scan "node_modules")');
+// The stylesheets are copied, not bundled. tokens.css must exist and carry the @source rule that
+// lets Tailwind v4 scan our classes from node_modules, and no global rules; styles.css must exist
+// and import it (so an app that takes styles.css still gets the @source rule).
+const tokensUrl = new URL("../dist/tokens.css", import.meta.url);
+const stylesUrl = new URL("../dist/styles.css", import.meta.url);
+if (!existsSync(tokensUrl)) problems.push("dist/tokens.css is missing");
+else {
+  const tokens = readFileSync(tokensUrl, "utf8");
+  if (!/@source\s+["'][^"']+["']/.test(tokens)) {
+    problems.push('dist/tokens.css has no @source rule (Tailwind would not scan "node_modules")');
+  }
+  if (tokens.includes("@layer base")) {
+    problems.push("dist/tokens.css must not contain global base rules (they belong in styles.css)");
+  }
+}
+if (!existsSync(stylesUrl)) problems.push("dist/styles.css is missing");
+else if (!/@import\s+["']\.\/tokens\.css["']/.test(readFileSync(stylesUrl, "utf8"))) {
+  problems.push('dist/styles.css does not import "./tokens.css"');
 }
 
 const expected = new Set(KINDS.flatMap((kind) => Object.keys(entries[kind] ?? {})).map(subpath));
 expected.add("./styles.css");
+expected.add("./tokens.css");
 const actual = new Set(Object.keys(pkg.exports));
 for (const s of expected)
   if (!actual.has(s)) problems.push(`package.json exports is missing "${s}"`);

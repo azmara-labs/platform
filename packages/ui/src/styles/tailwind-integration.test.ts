@@ -77,7 +77,9 @@ describe("styles.css compiled by Tailwind v4", () => {
     expect(output).toMatch(/prefers-reduced-motion:\s*reduce/);
   });
 
-  it("was read from disk (sanity: the source file is the one under test)", () => {
-    expect(readFileSync(stylesPath, "utf8")).toContain("@theme inline");
+  it("was read from disk (sanity: the tokens file is the one under test)", () => {
+    expect(readFileSync(join(import.meta.dirname, "tokens.css"), "utf8")).toContain(
+      "@theme inline",
+    );
   });
 });
