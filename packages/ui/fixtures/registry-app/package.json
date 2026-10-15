@@ -1,0 +1,27 @@
+{
+  "name": "azmr-ui-registry-fixture",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "A standard shadcn-style Next.js + Tailwind v4 app (no @azmr/ui dependency) that installs components from the azmr registry with the shadcn CLI. See ../../scripts/verify-registry.mjs.",
+  "scripts": {
+    "build": "next build"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "next": "^16.3.1",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "tailwind-merge": "^3.7.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^26.1.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "postcss": "^8.5.30",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.7.3"
+  },
+  "packageManager": "pnpm@11.15.0"
+}

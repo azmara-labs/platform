@@ -1,7 +1,10 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import { forwardRef, type ReactNode } from "react";
 import { cn } from "../../lib/cn.js";
-import { ButtonPrimitive, type ButtonPrimitiveProps } from "../../primitives/button.js";
+import {
+  Button as ButtonPrimitive,
+  type ButtonProps as ButtonPrimitiveProps,
+} from "../../primitives/button.js";
 import { Spinner } from "../spinner/spinner.js";
 
 export const buttonVariants = cva(
