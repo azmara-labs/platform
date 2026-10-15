@@ -1,0 +1,40 @@
+---
+title: Progress
+description: A linear or circular progress indicator with a required name, a determinate and an indeterminate state, and tones that stay visible against the track.
+---
+
+## Usage
+
+```tsx
+import { Progress } from "@azmr/ui/progress";
+```
+
+<Demo name="progress/basic" />
+
+`value` is the current amount in the range `min` to `max` (default 0 to 100), clamped to it. `value={null}` means the amount is **unknown**: the bar is partial and pulses, and carries no `aria-valuenow`. A value that is not a finite number is treated the same way rather than rendered as `NaN`.
+
+## Circular
+
+<Demo name="progress/circular" />
+
+## Why it needs a name
+
+A progress bar with no name is announced as just "progress bar". `aria-label` (or `aria-labelledby` pointing at a heading) is required by the types. The percentage is the default `aria-valuetext`; pass `valueText` for something better ("Step 3 of 10"). `showValue` prints the percentage as text, hidden from assistive technology because the bar already says it.
+
+## Reduced motion and indeterminate
+
+An indeterminate bar pulses. Under `prefers-reduced-motion` it **keeps pulsing**, because a frozen full-width bar would read as "done". It is also never full width, and the pulse is opacity, not movement.
+
+## Tones are checked
+
+`tone` is `default`, `success`, `warning`, `destructive` or `info`. The indicator colour must show up against both the track and the page (3:1 for non-text content), and the test suite checks it for every tone in light and dark. The `warning` tone uses the readable `--warning-text` colour, not the pale yellow surface colour, which would be far too faint on a light track.
+
+## Props
+
+<AutoTypeTable path="../../packages/ui/src/components/progress/progress.tsx" name="ProgressOwnProps" />
+
+## Accessibility
+
+- Native `role="progressbar"` with `aria-valuenow`, `aria-valuemin` and `aria-valuemax` (from Base UI), and a required accessible name.
+- The circular ring is decorative (`aria-hidden`); the progressbar carries the meaning.
+- No keyboard interaction: a progress bar is not focusable.

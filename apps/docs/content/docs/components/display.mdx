@@ -17,6 +17,12 @@ All of these are **Server Components**: no hooks, no `"use client"`.
 
 A `Card` is a bordered surface from tokens, with `CardHeader`, `CardTitle` (an `h3` by default; pass `as` to fit your outline), `CardDescription`, `CardContent` and `CardFooter`. A `Badge` is a small label for status or a count, with the semantic variants `info`, `success`, `warning` and `destructive`.
 
+## Chip
+
+<Demo name="display/chips" />
+
+A `Chip` is a Badge that can be removed: a selected filter, a tag. `onRemove` adds a button named `Remove <label>` (`removeLabel` for non-text content or another language), reachable and operable with Tab, Enter and Space. The Chip does not hide itself; you own the list.
+
 ## Alert
 
 <Demo name="display/alerts" />
