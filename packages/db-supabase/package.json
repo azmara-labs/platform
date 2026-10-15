@@ -51,7 +51,7 @@
     "@supabase/supabase-js": "^2.103.0",
     "tsup": "^8.5.1",
     "typescript": "^5.7.3",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   },
   "publishConfig": {
     "access": "public"
