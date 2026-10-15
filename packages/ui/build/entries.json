@@ -2,7 +2,10 @@
   "client": {
     "index": "src/index.ts",
     "hooks": "src/hooks.ts",
-    "react": "src/react/index.ts"
+    "react": "src/react/index.ts",
+    "button": "src/components/button/index.ts",
+    "input": "src/components/input/index.ts",
+    "spinner": "src/components/spinner/index.ts"
   },
   "server": {
     "lib": "src/lib/index.ts",

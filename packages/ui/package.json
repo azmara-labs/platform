@@ -49,6 +49,18 @@
       "types": "./dist/theme.d.ts",
       "import": "./dist/theme.js"
     },
+    "./button": {
+      "types": "./dist/button.d.ts",
+      "import": "./dist/button.js"
+    },
+    "./input": {
+      "types": "./dist/input.d.ts",
+      "import": "./dist/input.js"
+    },
+    "./spinner": {
+      "types": "./dist/spinner.d.ts",
+      "import": "./dist/spinner.js"
+    },
     "./styles.css": "./dist/styles.css"
   },
   "sideEffects": [
@@ -63,6 +75,8 @@
     "size": "size-limit && node scripts/check-css-size.mjs"
   },
   "dependencies": {
+    "@base-ui/react": "^1.9.0",
+    "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "tailwind-merge": "^3.7.0"
   },
@@ -88,6 +102,7 @@
     "postcss": "^8.5.30",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "react-hook-form": "^7.90.0",
     "size-limit": "^14.2.0",
     "tailwindcss": "^4.3.3",
     "tsup": "^8.5.1",

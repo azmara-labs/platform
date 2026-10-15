@@ -1,27 +1,22 @@
 [
   {
-    "name": "@azmr/ui (root)",
+    "name": "root: only cn() (tree-shaking)",
     "path": "dist/index.js",
-    "limit": "10 kB"
-  },
-  {
-    "name": "@azmr/ui/hooks",
-    "path": "dist/hooks.js",
-    "limit": "500 B"
-  },
-  {
-    "name": "@azmr/ui/lib",
-    "path": "dist/lib.js",
+    "import": "{ cn }",
     "limit": "9 kB"
   },
   {
-    "name": "@azmr/ui/theme",
-    "path": "dist/theme.js",
-    "limit": "4 kB"
+    "name": "root: only useSignal() (tree-shaking)",
+    "path": "dist/index.js",
+    "import": "{ useSignal }",
+    "limit": "500 B"
   },
-  {
-    "name": "@azmr/ui/react",
-    "path": "dist/react.js",
-    "limit": "2.5 kB"
-  }
+  { "name": "root: whole barrel (cap)", "path": "dist/index.js", "limit": "17 kB" },
+  { "name": "@azmr/ui/hooks", "path": "dist/hooks.js", "limit": "500 B" },
+  { "name": "@azmr/ui/lib", "path": "dist/lib.js", "limit": "9 kB" },
+  { "name": "@azmr/ui/theme", "path": "dist/theme.js", "limit": "4 kB" },
+  { "name": "@azmr/ui/react", "path": "dist/react.js", "limit": "2.5 kB" },
+  { "name": "@azmr/ui/spinner", "path": "dist/spinner.js", "limit": "9 kB" },
+  { "name": "@azmr/ui/button", "path": "dist/button.js", "limit": "14 kB" },
+  { "name": "@azmr/ui/input", "path": "dist/input.js", "limit": "14 kB" }
 ]

@@ -67,6 +67,44 @@ const theme = createTheme({ primary: "#1E88E5", radius: "0.5rem" });
 
 **Locale.** `LocaleProvider` defaults to `en-NZ`, `NZD` and a Monday week start. `useLocale()` gives cached `Intl` formatters (`formatNumber`, `formatCurrency`, `formatDate`, `formatDateTime`) and the strings components show (`messages`, overridable). Date-only strings such as `2026-10-15` print that calendar day in every time zone; missing or invalid values format to an empty string instead of throwing.
 
+## Components
+
+Components read the design tokens only (no raw colours), accept `className` (merged last, so it can override defaults), forward `ref` to the real DOM element, and follow the density tokens for height and padding. Import from the root or from a subpath; subpaths and the root are both tree-shakeable.
+
+### Button
+
+```tsx
+import { Button } from "@azmr/ui/button";
+
+<Button>Save</Button>
+<Button variant="destructive" loading loadingText="Deleting">Delete</Button>
+<Button variant="outline" startIcon={<PlusIcon />}>New customer</Button>
+<Button size="icon" aria-label="Close"><XIcon /></Button>            {/* icon-only needs a name */}
+<Button nativeButton={false} render={<a href="/docs" />}>Docs</Button>   {/* renders a link */}
+```
+
+- **Variants:** `default`, `secondary`, `outline`, `ghost`, `destructive`, `link`. **Sizes:** `sm`, `md` (follows the density token), `lg`, `icon`.
+- **`loading`:** shows a spinner, sets `aria-busy`, ignores clicks and keyboard activation, **stays focusable** (keyboard users keep their place). `loadingText` replaces the label while loading; `startIcon` is replaced by the spinner, `endIcon` stays.
+- **`type` is `"button"` by default**, so a button inside a form never submits by accident; pass `type="submit"` explicitly.
+- **Icon-only buttons are type-checked:** `size="icon"` requires `aria-label` or `aria-labelledby`.
+
+### Input
+
+```tsx
+import { Input } from "@azmr/ui/input";
+import { useForm } from "react-hook-form";
+
+const { register } = useForm();
+<label htmlFor="email">Email</label>
+<Input id="email" type="email" {...register("email")} />   {/* no Controller needed */}
+```
+
+`ref` is the real `<input>`, so `register()` works directly. Native `onChange` and the typed `onValueChange(value)` both fire. `aria-invalid="true"` styles the invalid state; focus uses a full-strength ring (WCAG 2.2 focus appearance).
+
+### Spinner
+
+`<Spinner />` is decorative; `<Spinner label="Loading customers" />` is announced as a status. It keeps spinning under `prefers-reduced-motion` because a frozen spinner reads as a hung page.
+
 ## Entry points
 
 | Import | Contents | Directive |
@@ -75,6 +113,9 @@ const theme = createTheme({ primary: "#1E88E5", radius: "0.5rem" });
 | `@azmr/ui/hooks` | React hooks (`useSignal`) | `"use client"` |
 | `@azmr/ui/theme` | server-safe theme helpers: `createTheme`, cookies, `htmlAttributes`, `createLocale` | none, importable from Server Components and middleware |
 | `@azmr/ui/react` | `ThemeProvider`, `useTheme`, `LocaleProvider`, `useLocale` | `"use client"` |
+| `@azmr/ui/button` | `Button`, `buttonVariants` | `"use client"` |
+| `@azmr/ui/input` | `Input` | `"use client"` |
+| `@azmr/ui/spinner` | `Spinner` | `"use client"` |
 | `@azmr/ui/lib` | `cn()` and other server-safe helpers | none, importable from Server Components |
 
 `cn(...classes)` merges class names and resolves conflicting Tailwind utilities, with the last one winning: `cn("p-2", "p-4")` returns `"p-4"`.
