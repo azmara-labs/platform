@@ -22,6 +22,13 @@ describe("IconButton", () => {
     expect(missing).toBeTruthy();
   });
 
+  it("a missing label in plain JavaScript gives a clear error, not a TypeError", () => {
+    // TypeScript users get a compile error; JavaScript users get this message.
+    expect(() =>
+      renderUi(<IconButton icon={<Icon icon={Plus} />} label={undefined as never} />),
+    ).toThrow(/IconButton: `label` must be a non-empty string/);
+  });
+
   it("an empty label is not a name", () => {
     expect(() => renderUi(<IconButton icon={<Icon icon={Plus} />} label="" />)).toThrow(/label/i);
   });

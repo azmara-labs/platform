@@ -33,8 +33,15 @@
           "imports": {
             "../../lib/cn.js": "@/lib/utils",
             "../../primitives/button.js": "@base-ui/react/button",
-            "../spinner/spinner.js": "@/components/ui/spinner"
+            "../spinner/spinner.js": "@/components/ui/spinner",
+            "./variants.js": "@/components/ui/button-variants"
           }
+        },
+        {
+          "from": "src/components/button/variants.ts",
+          "to": "ui/button-variants.ts",
+          "type": "registry:ui",
+          "imports": {}
         }
       ]
     }

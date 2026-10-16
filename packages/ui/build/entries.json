@@ -22,7 +22,11 @@
     "icons/lucide": "src/icons/lucide.ts",
     "typography": "src/components/typography/index.ts",
     "layout": "src/components/layout/index.ts",
-    "display": "src/components/display/index.ts"
+    "display": "src/components/display/index.ts",
+    "table": "src/components/table/index.ts",
+    "breadcrumb": "src/components/breadcrumb/index.ts",
+    "pagination": "src/components/pagination/index.ts",
+    "stepper": "src/components/stepper/index.ts"
   },
   "server": {
     "lib": "src/lib/index.ts",

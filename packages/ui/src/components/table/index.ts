@@ -1,0 +1,15 @@
+export {
+  Table,
+  TableBody,
+  TableCaption,
+  type TableCaptionProps,
+  TableCell,
+  type TableCellProps,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  type TableHeadProps,
+  type TableProps,
+  TableRow,
+  type TableRowProps,
+} from "./table.js";
