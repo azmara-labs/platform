@@ -1,5 +1,0 @@
-{
-  "framework": "nextjs",
-  "buildCommand": "cd ../.. && pnpm --filter \"@azmr/docs...\" build",
-  "installCommand": "pnpm install"
-}

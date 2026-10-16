@@ -1,5 +1,5 @@
 {
-  "name": "@azmr/docs",
+  "name": "@azmr/site",
   "version": "0.0.3",
   "private": true,
   "description": "Azmara Platform documentation site — Next.js, Fumadocs, and Tailwind CSS",

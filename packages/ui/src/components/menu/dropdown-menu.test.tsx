@@ -34,6 +34,15 @@ async function open(user: ReturnType<typeof setupUser>, container: HTMLElement) 
   await vi.waitFor(() => expect(menu()).not.toBeNull());
 }
 
+// Home, then down to the "Share" sub trigger, waiting for each move: rapid keys can outrun Base UI's
+// focus handling when the whole suite is running.
+async function focusShare(user: ReturnType<typeof setupUser>) {
+  await user.keyboard("{Home}");
+  await vi.waitFor(() => expect(focused()).toBe("New"));
+  await user.keyboard("{ArrowDown}");
+  await vi.waitFor(() => expect(focused()).toBe("Share"));
+}
+
 function Basic(props: { onSave?: () => void; onDelete?: () => void; closeOnClickKeep?: boolean }) {
   return (
     <DropdownMenu>
@@ -257,7 +266,11 @@ describe("DropdownMenu: items", () => {
     const onSave = vi.fn();
     const { container } = renderUi(<Basic onSave={onSave} />);
     await open(user, container);
-    await user.keyboard("{Home}{ArrowDown}{ArrowDown}");
+    await user.keyboard("{Home}");
+    await vi.waitFor(() => expect(focused()).toBe("Save ⌘S"));
+    await user.keyboard("{ArrowDown}");
+    await vi.waitFor(() => expect(focused()).toBe("Rename"));
+    await user.keyboard("{ArrowDown}");
     await vi.waitFor(() => expect(focused()).toBe("Archive"));
     await user.keyboard("{Enter}");
     await new Promise((r) => setTimeout(r, 50));
@@ -509,7 +522,7 @@ describe("DropdownMenu: submenus", () => {
     const user = setupUser();
     const { container } = renderUi(<WithSub />);
     await open(user, container);
-    await user.keyboard("{Home}{ArrowDown}");
+    await focusShare(user);
     await vi.waitFor(() => expect(focused()).toBe("Share"));
     await user.keyboard("{Enter}");
     await vi.waitFor(() => expect(menus()).toHaveLength(2));
@@ -519,7 +532,8 @@ describe("DropdownMenu: submenus", () => {
     const user = setupUser();
     const { container } = renderUi(<WithSub />);
     await open(user, container);
-    await user.keyboard("{Home}{ArrowDown}{ArrowRight}");
+    await focusShare(user);
+    await user.keyboard("{ArrowRight}");
     await vi.waitFor(() => expect(menus()).toHaveLength(2));
     await user.keyboard("{Escape}");
     await vi.waitFor(() => expect(menus().length).toBeLessThanOrEqual(1));
@@ -533,7 +547,8 @@ describe("DropdownMenu: submenus", () => {
     const user = setupUser();
     const { container } = renderUi(<WithSub />);
     await open(user, container);
-    await user.keyboard("{Home}{ArrowDown}{ArrowRight}");
+    await focusShare(user);
+    await user.keyboard("{ArrowRight}");
     await vi.waitFor(() => expect(focused()).toBe("Email"));
     await user.keyboard("{Enter}");
     await vi.waitFor(() => expect(menus()).toHaveLength(0));
@@ -543,7 +558,8 @@ describe("DropdownMenu: submenus", () => {
     const user = setupUser();
     const { container } = renderUi(<WithSub />);
     await open(user, container);
-    await user.keyboard("{Home}{ArrowDown}{ArrowRight}");
+    await focusShare(user);
+    await user.keyboard("{ArrowRight}");
     await vi.waitFor(() => expect(menus()).toHaveLength(2));
     const sub = menus().find((m) => m !== menus()[0]) ?? menus()[1];
     expect(["right", "inline-end"]).toContain(sub?.getAttribute("data-side"));
@@ -554,7 +570,8 @@ describe("DropdownMenu: submenus", () => {
     const user = setupUser();
     const { container } = renderUi(<WithSub />);
     await open(user, container);
-    await user.keyboard("{Home}{ArrowDown}{ArrowRight}");
+    await focusShare(user);
+    await user.keyboard("{ArrowRight}");
     await vi.waitFor(() => expect(menus()).toHaveLength(2));
     for (const m of menus()) expect(classes(m.parentElement)).toContain("z-(--z-popover)");
   });
