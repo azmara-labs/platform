@@ -113,6 +113,28 @@ describe("Pagination: as links (server-friendly)", () => {
     expect(next.getAttribute("aria-disabled")).toBe("true");
   });
 
+  it("a disabled end stays a non-link even with a router link (it must not navigate to page 0 or past the end)", () => {
+    const router = (href: string) => (
+      <a data-router="" href={href}>
+        Page
+      </a>
+    );
+    const first = renderUi(
+      <Pagination page={1} pageCount={3} hrefFor={(p) => `?${p}`} renderLink={router} />,
+    );
+    const prev = first.container.querySelector("[aria-label='Previous page']") as HTMLElement;
+    expect(prev.hasAttribute("href")).toBe(false);
+    expect(prev.getAttribute("aria-disabled")).toBe("true");
+    expect(prev.hasAttribute("data-router")).toBe(false);
+    first.unmount();
+    const last = renderUi(
+      <Pagination page={3} pageCount={3} hrefFor={(p) => `?${p}`} renderLink={router} />,
+    );
+    const next = last.container.querySelector("[aria-label='Next page']") as HTMLElement;
+    expect(next.hasAttribute("href")).toBe(false);
+    expect(next.getAttribute("aria-disabled")).toBe("true");
+  });
+
   it("can use your router's link", () => {
     const { container } = renderUi(
       <Pagination

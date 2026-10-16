@@ -69,7 +69,8 @@ export const PaginationLink = forwardRef<HTMLElement, PaginationLinkProps>(funct
   const common = { ref, "aria-current": isActive ? "page" : undefined, ...props, className: cls };
   if (href !== undefined || render) {
     return renderElement(
-      render,
+      // A disabled control must not be navigable, so it never takes the router element (whose own `href` would win).
+      disabled ? undefined : render,
       "a",
       disabled ? { ...common, "aria-disabled": "true" } : { ...common, href, onClick },
       children,
