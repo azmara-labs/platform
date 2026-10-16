@@ -1,4 +1,5 @@
 import "./globals.css";
+import { Toaster } from "@azmr/ui/toast";
 import { RootProvider } from "fumadocs-ui/provider/next";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
@@ -37,6 +38,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={inter.className} suppressHydrationWarning>
       <body>
         <RootProvider>{children}</RootProvider>
+        {/* One Toaster for the whole site: the toast demos raise toasts into it. */}
+        <Toaster />
       </body>
     </html>
   );

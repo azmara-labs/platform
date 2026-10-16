@@ -121,6 +121,10 @@
       "types": "./dist/menu.d.ts",
       "import": "./dist/menu.js"
     },
+    "./toast": {
+      "types": "./dist/toast.d.ts",
+      "import": "./dist/toast.js"
+    },
     "./styles.css": "./dist/styles.css",
     "./tokens.css": "./dist/tokens.css"
   },

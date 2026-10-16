@@ -32,6 +32,9 @@ import ProgressBasic from "./progress/basic.demo";
 import ProgressCircular from "./progress/circular.demo";
 import ScrollAreaBasic from "./scroll-area/basic.demo";
 import SpinnerBasic from "./spinner/basic.demo";
+import ToastActions from "./toast/actions.demo";
+import ToastPromise from "./toast/promise.demo";
+import ToastTypes from "./toast/types.demo";
 import TypographyInline from "./typography/inline.demo";
 import TypographyScale from "./typography/scale.demo";
 
@@ -64,6 +67,9 @@ export const demos = {
   "modal/dialog": ModalDialog,
   "modal/dialog-stacked": ModalDialogStacked,
   "modal/drawer": ModalDrawer,
+  "toast/actions": ToastActions,
+  "toast/promise": ToastPromise,
+  "toast/types": ToastTypes,
   "icon/basic": IconBasic,
   "icon/named": IconNamed,
   "input/basic": InputBasic,
