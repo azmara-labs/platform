@@ -36,11 +36,12 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          # The Release workflow opens the "Version Packages" PR as this
-          # GitHub App; without the allowlist the action refuses to run for
-          # a non-human actor and the check fails. Scoped to this one bot,
-          # not '*'.
-          allowed_bots: "azmara-cla-bot"
+          # The Release workflow opens the "Version Packages" PR as the
+          # azmara-cla-bot GitHub App (the PR author) and refreshes its branch
+          # with commits authored by github-actions[bot] (the actor on later
+          # pushes). Without the allowlist the action refuses to run for a
+          # non-human actor and the check fails. Named bots only, not '*'.
+          allowed_bots: "azmara-cla-bot,github-actions"
           # Custom prompt instead of the packaged code-review plugin. The
           # plugin's own skill spawns background sub-agents and waits for
           # async completion notifications, which never arrive in a
