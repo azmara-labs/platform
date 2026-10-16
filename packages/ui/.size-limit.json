@@ -146,5 +146,25 @@
     "name": "@azmr/ui/split-button",
     "path": "dist/split-button.js",
     "limit": "55 kB"
+  },
+  {
+    "name": "@azmr/ui/table",
+    "path": "dist/table.js",
+    "limit": "10 kB"
+  },
+  {
+    "name": "@azmr/ui/breadcrumb",
+    "path": "dist/breadcrumb.js",
+    "limit": "12 kB"
+  },
+  {
+    "name": "@azmr/ui/pagination",
+    "path": "dist/pagination.js",
+    "limit": "13 kB"
+  },
+  {
+    "name": "@azmr/ui/stepper",
+    "path": "dist/stepper.js",
+    "limit": "12 kB"
   }
 ]

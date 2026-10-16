@@ -1,0 +1,48 @@
+---
+title: Stepper
+description: Shows where someone is in a fixed sequence of steps. A status display with each state said in text, horizontal or vertical. Server-safe.
+---
+
+## Usage
+
+```tsx
+import { Stepper } from "@azmr/ui/stepper";
+```
+
+<Demo name="stepper/basic" />
+
+```tsx
+<Stepper
+  current={1}
+  steps={[{ label: "Account" }, { label: "Plan" }, { label: "Payment" }, { label: "Confirm" }]}
+/>
+```
+
+`current` is the index (from 0) of the step in progress. Steps before it are **complete**, the one at `current` is **current**, and the rest are **upcoming**. Below `0` nothing has started; past the last step everything is done. Mark a step as failed with `status: "error"`, which does not change the others.
+
+It is a **status display, not navigation**: steps are not links or buttons. If people can jump between steps, build the controls yourself (or use `Tabs`) and use the stepper to show progress.
+
+## Orientation
+
+`orientation` is `horizontal` (default) or `vertical`. Use vertical when steps carry descriptions or the space is narrow.
+
+## Say it in text, not only colour
+
+Each step's state is also written in text for screen readers ("Completed", "Current step", "Not started", "Error"), alongside the visible number or check mark. Translate those words with `statusLabels`. The current step is `aria-current="step"`. The check and error marks are decorative.
+
+## Props
+
+<AutoTypeTable path="../../packages/ui/src/components/stepper/stepper.tsx" name="StepperProps" />
+
+## Accessibility
+
+- An ordered list named "Progress" (rename it with `label`).
+- `aria-current="step"` on the current step only.
+- State is conveyed in text as well as colour and icon.
+- Connectors between steps are decorative and hidden from assistive technology.
+
+<KeyboardMap
+  rows={[
+    { keys: ["Tab"], action: "Nothing in a stepper is focusable: it only reports progress." },
+  ]}
+/>

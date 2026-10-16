@@ -31,7 +31,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
   { icon, label, variant = "ghost", size = "md", loading = false, className, ...props },
   ref,
 ) {
-  if (process.env.NODE_ENV !== "production" && !label.trim()) {
+  if (process.env.NODE_ENV !== "production" && (typeof label !== "string" || !label.trim())) {
     throw new Error(
       "IconButton: `label` must be a non-empty string; it is the button's accessible name.",
     );

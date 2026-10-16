@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 import AvatarBasic from "./avatar/basic.demo";
+import BreadcrumbBasic from "./breadcrumb/basic.demo";
 import ButtonGroupBasic from "./button/group.demo";
 import ButtonIconButton from "./button/icon-button.demo";
 import ButtonIcons from "./button/icons.demo";
@@ -30,11 +31,16 @@ import ModalAlertDialog from "./modal/alert-dialog.demo";
 import ModalDialog from "./modal/dialog.demo";
 import ModalDialogStacked from "./modal/dialog-stacked.demo";
 import ModalDrawer from "./modal/drawer.demo";
+import PaginationLinks from "./pagination/links.demo";
+import PaginationState from "./pagination/state.demo";
 import ProgressBasic from "./progress/basic.demo";
 import ProgressCircular from "./progress/circular.demo";
 import ScrollAreaBasic from "./scroll-area/basic.demo";
 import SpinnerBasic from "./spinner/basic.demo";
 import SplitButtonBasic from "./split-button/basic.demo";
+import StepperBasic from "./stepper/basic.demo";
+import TableBasic from "./table/basic.demo";
+import TableSticky from "./table/sticky.demo";
 import ToastActions from "./toast/actions.demo";
 import ToastPromise from "./toast/promise.demo";
 import ToastTypes from "./toast/types.demo";
@@ -51,6 +57,7 @@ import TypographyScale from "./typography/scale.demo";
  */
 export const demos = {
   "avatar/basic": AvatarBasic,
+  "breadcrumb/basic": BreadcrumbBasic,
   "button/group": ButtonGroupBasic,
   "button/icon-button": ButtonIconButton,
   "button/variants": ButtonVariants,
@@ -74,9 +81,14 @@ export const demos = {
   "modal/dialog": ModalDialog,
   "modal/dialog-stacked": ModalDialogStacked,
   "modal/drawer": ModalDrawer,
+  "stepper/basic": StepperBasic,
+  "table/basic": TableBasic,
+  "table/sticky": TableSticky,
   "toast/actions": ToastActions,
   "toast/promise": ToastPromise,
   "toast/types": ToastTypes,
+  "pagination/links": PaginationLinks,
+  "pagination/state": PaginationState,
   "split-button/basic": SplitButtonBasic,
   "toggle/group": ToggleGroupBasic,
   "toggle/toggle": ToggleBasic,

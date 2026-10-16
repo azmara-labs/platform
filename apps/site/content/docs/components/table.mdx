@@ -1,0 +1,63 @@
+---
+title: Table
+description: A semantic, non-interactive table with a caption, sticky header, striping and a named scroll region. Server-safe.
+---
+
+## Usage
+
+```tsx
+import {
+  Table, TableCaption, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell,
+} from "@azmr/ui/table";
+```
+
+<Demo name="table/basic" />
+
+`Table` is a native `<table>`, so it already has the table, row and column roles with no ARIA added. It is a Server Component: no hooks, no `"use client"`. It replaces hand-built `Table*` markup (for example MUI's `TableCell`) with the same structure and sensible styling from tokens.
+
+Name every table with a `TableCaption`. Use `srOnly` to keep it for assistive technology and hide it visually.
+
+## Header cells
+
+`TableHead` is a `<th>`. It defaults to `scope="col"`. For the first cell of a row (a row header), pass `scope="row"`, as in the demo, so a screen reader announces the row's name with each value. Put `aria-sort` on a header cell when the column is sorted.
+
+## Numbers and alignment
+
+`TableCell numeric` right-aligns and uses tabular figures, so a column of amounts lines up. `align` (`left`, `center`, `right`) works on both `TableHead` and `TableCell`: align a numeric column's header the same way as its cells.
+
+## Scrolling and the sticky header
+
+<Demo name="table/sticky" />
+
+A table wider than its space scrolls **inside its own container**, so it never breaks the page. Give the table a `label` and the container becomes a named, focusable region, so a keyboard user can scroll it with the arrow keys. Do this for any table that may overflow.
+
+`stickyHeader` keeps the header row in view while the body scrolls; give the container a height with `containerClassName` (such as `max-h-64`). The header cells sit on an opaque background, so rows slide cleanly beneath them.
+
+## Striped, hoverable, selected
+
+`striped` tints every other body row and `hoverable` tints the row under the pointer. `TableRow selected` marks a row with `data-selected` and tints it. These are styling only: a hover tint is not interactive, and a selected row is not announced as selected unless you also make it a control (for example with a checkbox in the row).
+
+Rows follow the density token (`--density-row-height`), so a table grows or shrinks with `data-density`.
+
+## Not a data grid
+
+This is a presentational table. Sorting, filtering, selection, virtualised rows and editing belong to the data grid (Phase 4), which builds on this.
+
+## Props
+
+<AutoTypeTable path="../../packages/ui/src/components/table/table.tsx" name="TableProps" />
+
+## Accessibility
+
+- Native table semantics: `table`, `rowgroup`, `row`, `columnheader`, `rowheader`, `cell`. Nothing is overridden.
+- A caption names the table; row headers use `scope="row"`.
+- The scroll container, when labelled, is a `region` with a tab stop and a full-strength focus ring.
+- Striping and hover tints are never the only way information is conveyed.
+
+<KeyboardMap
+  rows={[
+    { keys: ["Tab"], action: "Moves to the scroll region when the table has a label. Nothing else in a static table is focusable." },
+    { keys: ["ArrowDown", "ArrowUp", "ArrowRight", "ArrowLeft"], action: "Scrolls a focused, labelled region." },
+    { keys: ["PageDown", "PageUp", "Home", "End"], action: "Scrolls by a page, or to the start or end." },
+  ]}
+/>
