@@ -24,7 +24,7 @@ export default async function Page({ params }: PageProps) {
         owner: "azmara-labs",
         repo: "platform",
         sha: "main",
-        path: `apps/docs/content/docs/${slug && slug.length > 0 ? slug.join("/") : "index"}.mdx`,
+        path: `apps/site/content/docs/${slug && slug.length > 0 ? slug.join("/") : "index"}.mdx`,
       }}
     >
       <DocsTitle>{page.data.title}</DocsTitle>

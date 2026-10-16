@@ -38,7 +38,7 @@ the version bump:
 pnpm changeset add
 ```
 
-- `@azmr/ai`, `@azmr/cli`, and `@azmr/docs` are excluded from changesets
+- `@azmr/ai`, `@azmr/cli`, and `@azmr/site` are excluded from changesets
   versioning (internal app, or versioned manually) - don't add a changeset
   for changes scoped only to those.
 - Bump type: `patch` for fixes/internal changes, `minor` for new
@@ -55,7 +55,7 @@ pnpm changeset add
 |---|---|
 | `@azmr/core`, `@azmr/db`, `@azmr/db-supabase`, `@azmr/query`, `@azmr/security`, `@azmr/ui`, `@azmr/policycore` | Yes - versioned via changesets |
 | `@azmr/ai`, `@azmr/cli` | Yes - versioned manually (changesets-ignored, since `@azmr/cli` depends on `@azmr/ai`) |
-| `apps/docs` | No - `private: true` |
+| `apps/site` | No - `private: true` |
 
 ## Review
 

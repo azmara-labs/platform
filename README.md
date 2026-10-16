@@ -114,7 +114,7 @@ The interactive playground is served from the docs site at `/playground` (see be
 ### Run docs locally
 
 ```bash
-pnpm --filter @azmr/docs dev
+pnpm --filter @azmr/site dev
 ```
 
 ### Commands
