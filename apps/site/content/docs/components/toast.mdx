@@ -1,0 +1,87 @@
+---
+title: Toast
+description: Short notifications raised from anywhere with toast.success(), toast.error() and toast.promise(). Stacked, pausable, swipeable and announced to screen readers. Built on Base UI.
+---
+
+## Usage
+
+Mount one `Toaster` near the root of your app, then raise toasts from anywhere, including outside React.
+
+```tsx
+import { Toaster, toast } from "@azmr/ui/toast";
+
+// Once, in the root layout:
+<Toaster />
+
+// Anywhere:
+toast.success("Invoice sent");
+```
+
+`Toaster` is a client component. A toast raised before it has mounted has nowhere to render, so put it in the layout rather than in a page.
+
+This site has a `Toaster` in its layout, so the demos below raise real toasts in the corner of the screen.
+
+## Types
+
+<Demo name="toast/types" />
+
+| Call | Icon | Announced |
+| --- | --- | --- |
+| `toast(title)` | none | politely |
+| `toast.success` | check | politely |
+| `toast.info` | info | politely |
+| `toast.warning` | triangle | politely |
+| `toast.error` | alert | **urgently** (`role="alert"`) |
+| `toast.loading` | spinner | politely |
+
+Each takes `(title, options)`. Options: `description`, `duration`, `id`, `priority`, `action` and `onClose`. Every call returns the toast's id.
+
+Icons are decorative; the type is also in the text you write. Do not rely on colour alone.
+
+## Actions and updating a toast
+
+<Demo name="toast/actions" />
+
+`action: { label, onClick }` adds a button, and the toast dismisses itself after it runs. Undo is the classic use.
+
+Giving a toast an `id` that is already showing **updates it instead of stacking another**, so repeating an action does not flood the screen. `toast.update(id, { title, type, … })` changes a toast in place, and `toast.dismiss(id)` removes one (`toast.dismiss()` removes them all).
+
+## Promises
+
+<Demo name="toast/promise" />
+
+`toast.promise(promise, { loading, success, error })` shows a loading toast, then replaces it with the result. `success` and `error` can be functions of the value or the error. It returns the same promise, so it still rejects for you to handle; a failure is announced urgently.
+
+## Timing
+
+A toast dismisses itself after `duration` (5000 ms by default; set it on the `Toaster` or per toast). `duration: 0` keeps it until dismissed, and `toast.loading` never times out. The timer **pauses while the pointer is over the stack or focus is inside it**, so nobody loses a toast they are reading.
+
+Do not use a toast for anything the person must act on. Auto-dismissing messages are easy to miss, so keep errors that need a decision in the page (or an `AlertDialog`).
+
+## Stacking and position
+
+The `Toaster` shows `limit` toasts (3 by default); older ones wait behind and the stack fans out on hover or focus. `position` is `top-left`, `top-center`, `top-right`, `bottom-left`, `bottom-center` or `bottom-right` (default), and new toasts come in from that edge. The stack sits on the `--z-toast` layer, above dialogs and menus.
+
+## Motion
+
+Toasts slide in from their edge, fade out, and the stack reflows on `--motion-duration-slow`. Under `prefers-reduced-motion` those collapse to near zero. While a finger is dragging a toast there is no easing, so it tracks exactly.
+
+## Accessibility
+
+<KeyboardMap
+  rows={[
+    { keys: ["F6"], action: "Moves focus into the notifications region. Tab then moves between the actions and close buttons." },
+    { keys: ["Tab", "Shift+Tab"], action: "Moves between the toasts' buttons. The timers pause while focus is inside." },
+    { keys: ["Enter", "Space"], action: "Activates the focused action or close button." },
+  ]}
+/>
+
+- The region is named "Notifications" (change it with `label`) and is a polite live region. Errors are also written to a separate alert, so they are spoken at once.
+- The close button is labelled "Dismiss notification"; its icon is decorative.
+- A toast can be swiped away toward the edge it came from on touch.
+
+## Props
+
+<AutoTypeTable path="../../packages/ui/src/components/toast/toaster.tsx" name="ToasterProps" />
+
+<AutoTypeTable path="../../packages/ui/src/components/toast/toast.ts" name="ToastOptions" />
