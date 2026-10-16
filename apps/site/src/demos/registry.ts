@@ -36,6 +36,7 @@ import MotionCollapse from "./motion/collapse.demo";
 import MotionCountUp from "./motion/count-up.demo";
 import MotionGallery from "./motion/gallery.demo";
 import MotionReduced from "./motion/reduced.demo";
+import MotionReorder from "./motion/reorder.demo";
 import MotionStagger from "./motion/stagger.demo";
 import PaginationLinks from "./pagination/links.demo";
 import PaginationState from "./pagination/state.demo";
@@ -98,6 +99,7 @@ export const demos = {
   "motion/count-up": MotionCountUp,
   "motion/gallery": MotionGallery,
   "motion/reduced": MotionReduced,
+  "motion/reorder": MotionReorder,
   "motion/stagger": MotionStagger,
   "pagination/links": PaginationLinks,
   "pagination/state": PaginationState,
