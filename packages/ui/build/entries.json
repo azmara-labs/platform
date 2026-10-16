@@ -14,7 +14,8 @@
     "menu": "src/components/menu/index.ts",
     "toast": "src/components/toast/index.ts",
     "toggle": "src/components/toggle/index.ts",
-    "split-button": "src/components/split-button/index.ts"
+    "split-button": "src/components/split-button/index.ts",
+    "transition": "src/motion/transition/index.ts"
   },
   "serverComponents": {
     "spinner": "src/components/spinner/index.ts",
@@ -26,7 +27,8 @@
     "table": "src/components/table/index.ts",
     "breadcrumb": "src/components/breadcrumb/index.ts",
     "pagination": "src/components/pagination/index.ts",
-    "stepper": "src/components/stepper/index.ts"
+    "stepper": "src/components/stepper/index.ts",
+    "presets": "src/motion/presets/index.ts"
   },
   "server": {
     "lib": "src/lib/index.ts",

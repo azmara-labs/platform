@@ -1,0 +1,295 @@
+/*
+ * Motion presets. CSS-first: every preset is a class, driven by the motion tokens (duration and easing
+ * come from tokens.css, so a theme or reduced motion changes them everywhere).
+ *
+ * Rules (checked by tests):
+ *  - Keyframes animate only transform, scale, opacity, clip-path and (for the SVG tick) stroke-dashoffset;
+ *    collapse animates grid-template-rows. Nothing here animates width, height, margin or position.
+ *  - Under prefers-reduced-motion every slide and scale becomes a plain fade, and the rest stop.
+ *
+ * Use the classes directly (`motion-fade-in`) or through `motionPresets` from `@azmr/ui/presets`.
+ */
+
+@keyframes azmr-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes azmr-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes azmr-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes azmr-scale-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+@keyframes azmr-slide-up-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes azmr-slide-up-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+}
+
+@keyframes azmr-slide-down-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes azmr-slide-down-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}
+
+@keyframes azmr-slide-left-in {
+  from {
+    opacity: 0;
+    transform: translateX(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes azmr-slide-left-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-0.5rem);
+  }
+}
+
+@keyframes azmr-slide-right-in {
+  from {
+    opacity: 0;
+    transform: translateX(-0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes azmr-slide-right-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(0.5rem);
+  }
+}
+
+@keyframes azmr-shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes azmr-check-draw {
+  from {
+    stroke-dashoffset: 24;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Enter eases out (arrives fast, settles); exit is shorter and eases in. */
+.motion-fade-in {
+  animation: azmr-fade-in var(--motion-duration-base) var(--motion-ease-decelerate) both;
+}
+.motion-fade-out {
+  animation: azmr-fade-out var(--motion-duration-fast) var(--motion-ease-accelerate) both;
+}
+.motion-scale-in {
+  animation: azmr-scale-in var(--motion-duration-base) var(--motion-ease-decelerate) both;
+}
+.motion-scale-out {
+  animation: azmr-scale-out var(--motion-duration-fast) var(--motion-ease-accelerate) both;
+}
+.motion-slide-up-in {
+  animation: azmr-slide-up-in var(--motion-duration-base) var(--motion-ease-decelerate) both;
+}
+.motion-slide-up-out {
+  animation: azmr-slide-up-out var(--motion-duration-fast) var(--motion-ease-accelerate) both;
+}
+.motion-slide-down-in {
+  animation: azmr-slide-down-in var(--motion-duration-base) var(--motion-ease-decelerate) both;
+}
+.motion-slide-down-out {
+  animation: azmr-slide-down-out var(--motion-duration-fast) var(--motion-ease-accelerate) both;
+}
+.motion-slide-left-in {
+  animation: azmr-slide-left-in var(--motion-duration-base) var(--motion-ease-decelerate) both;
+}
+.motion-slide-left-out {
+  animation: azmr-slide-left-out var(--motion-duration-fast) var(--motion-ease-accelerate) both;
+}
+.motion-slide-right-in {
+  animation: azmr-slide-right-in var(--motion-duration-base) var(--motion-ease-decelerate) both;
+}
+.motion-slide-right-out {
+  animation: azmr-slide-right-out var(--motion-duration-fast) var(--motion-ease-accelerate) both;
+}
+
+/*
+ * Collapse: animates grid-template-rows between 0fr and 1fr, so the height is never measured in
+ * JavaScript. The inner element must be able to shrink to nothing.
+ */
+.motion-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--motion-duration-base) var(--motion-ease-standard);
+}
+.motion-collapse[data-state="open"] {
+  grid-template-rows: 1fr;
+}
+.motion-collapse-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Stagger: each item enters a step after the one before it. `--stagger-index` is set by <Stagger>. */
+.motion-stagger > .motion-stagger-item {
+  animation: azmr-slide-up-in var(--motion-duration-base) var(--motion-ease-decelerate) both;
+  animation-delay: calc(var(--stagger-index, 0) * var(--motion-stagger-step));
+}
+
+/* Skeleton shimmer: a soft highlight sweeps across, moved with transform only. */
+.motion-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.motion-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--foreground) 8%, transparent),
+    transparent
+  );
+  animation: azmr-shimmer var(--motion-duration-ambient) var(--motion-ease-standard) infinite;
+}
+
+/* Success tick: the stroke draws itself. The path has pathLength 24. */
+.motion-check path {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 0;
+  animation: azmr-check-draw var(--motion-duration-slow) var(--motion-ease-decelerate) both;
+}
+
+/* Page transitions (React <ViewTransition>, the View Transitions API): a cross-fade, opacity only. */
+::view-transition-old(root) {
+  animation: azmr-fade-out var(--motion-duration-fast) var(--motion-ease-accelerate) both;
+}
+::view-transition-new(root) {
+  animation: azmr-fade-in var(--motion-duration-base) var(--motion-ease-decelerate) both;
+}
+
+/* Reduced motion: no movement. Slides and scales become a fade; the rest stop or finish at once. */
+@media (prefers-reduced-motion: reduce) {
+  .motion-slide-up-in,
+  .motion-slide-down-in,
+  .motion-slide-left-in,
+  .motion-slide-right-in,
+  .motion-scale-in {
+    animation-name: azmr-fade-in;
+  }
+
+  .motion-slide-up-out,
+  .motion-slide-down-out,
+  .motion-slide-left-out,
+  .motion-slide-right-out,
+  .motion-scale-out {
+    animation-name: azmr-fade-out;
+  }
+
+  .motion-stagger > .motion-stagger-item {
+    animation-name: azmr-fade-in;
+    animation-delay: 0s;
+  }
+
+  .motion-shimmer::after {
+    animation: none;
+  }
+
+  .motion-check path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
+  .motion-collapse {
+    transition: none;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: var(--motion-duration-instant);
+  }
+}

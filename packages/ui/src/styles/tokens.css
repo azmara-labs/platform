@@ -16,6 +16,10 @@
  * never contain raw colours; a test enforces it.
  */
 
+/* The motion presets (keyframes and .motion-* classes). Only our own classes, so it is safe in an app with
+   its own global styles. */
+@import "./motion.css";
+
 /* Scan the distributed JS for Tailwind class names. Resolved relative to this
    file, so it works from node_modules. */
 @source "./**/*.js";
@@ -93,6 +97,9 @@
   --motion-ease-emphasized: cubic-bezier(0.05, 0.7, 0.1, 1);
   --motion-ease-decelerate: cubic-bezier(0, 0, 0, 1);
   --motion-ease-accelerate: cubic-bezier(0.3, 0, 1, 1);
+  /* Delay between items of a staggered list, and the loop length of ambient effects (shimmer). */
+  --motion-stagger-step: 40ms;
+  --motion-duration-ambient: 1500ms;
 
   /* Typography. createTheme({ font }) overrides --font-sans-stack. */
   --font-sans-stack:
@@ -246,6 +253,8 @@
     --motion-duration-fast: 0.01ms;
     --motion-duration-base: 0.01ms;
     --motion-duration-slow: 0.01ms;
+    --motion-stagger-step: 0ms;
+    --motion-duration-ambient: 0.01ms;
   }
 
   *:not([data-motion="essential"]),

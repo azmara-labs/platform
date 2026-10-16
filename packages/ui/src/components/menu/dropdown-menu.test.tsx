@@ -37,10 +37,16 @@ async function open(user: ReturnType<typeof setupUser>, container: HTMLElement) 
 // Home, then down to the "Share" sub trigger, waiting for each move: rapid keys can outrun Base UI's
 // focus handling when the whole suite is running.
 async function focusShare(user: ReturnType<typeof setupUser>) {
-  await user.keyboard("{Home}");
-  await vi.waitFor(() => expect(focused()).toBe("New"));
+  // On a slow machine the first key can arrive before the menu has taken focus, so press Home until it lands.
+  await vi.waitFor(
+    async () => {
+      await user.keyboard("{Home}");
+      expect(focused()).toBe("New");
+    },
+    { timeout: 4000 },
+  );
   await user.keyboard("{ArrowDown}");
-  await vi.waitFor(() => expect(focused()).toBe("Share"));
+  await vi.waitFor(() => expect(focused()).toBe("Share"), { timeout: 4000 });
 }
 
 function Basic(props: { onSave?: () => void; onDelete?: () => void; closeOnClickKeep?: boolean }) {

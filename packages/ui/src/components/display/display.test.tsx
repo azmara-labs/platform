@@ -175,6 +175,17 @@ describe("Skeleton", () => {
     const { container } = renderUi(<Skeleton animate={false} />);
     expect(classes(first(container))).not.toContain("animate-pulse");
   });
+
+  it("can sweep a highlight across instead of pulsing (the shimmer preset)", () => {
+    const { container } = renderUi(<Skeleton shimmer className="h-4 w-32" />);
+    expect(classes(first(container))).toContain("motion-shimmer");
+    expect(classes(first(container))).not.toContain("animate-pulse");
+  });
+
+  it("a still shimmer skeleton does not shimmer", () => {
+    const { container } = renderUi(<Skeleton shimmer animate={false} />);
+    expect(classes(first(container))).not.toContain("motion-shimmer");
+  });
 });
 
 describe("EmptyState", () => {

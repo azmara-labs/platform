@@ -31,6 +31,12 @@ import ModalAlertDialog from "./modal/alert-dialog.demo";
 import ModalDialog from "./modal/dialog.demo";
 import ModalDialogStacked from "./modal/dialog-stacked.demo";
 import ModalDrawer from "./modal/drawer.demo";
+import MotionCheck from "./motion/check.demo";
+import MotionCollapse from "./motion/collapse.demo";
+import MotionCountUp from "./motion/count-up.demo";
+import MotionGallery from "./motion/gallery.demo";
+import MotionReduced from "./motion/reduced.demo";
+import MotionStagger from "./motion/stagger.demo";
 import PaginationLinks from "./pagination/links.demo";
 import PaginationState from "./pagination/state.demo";
 import ProgressBasic from "./progress/basic.demo";
@@ -87,6 +93,12 @@ export const demos = {
   "toast/actions": ToastActions,
   "toast/promise": ToastPromise,
   "toast/types": ToastTypes,
+  "motion/check": MotionCheck,
+  "motion/collapse": MotionCollapse,
+  "motion/count-up": MotionCountUp,
+  "motion/gallery": MotionGallery,
+  "motion/reduced": MotionReduced,
+  "motion/stagger": MotionStagger,
   "pagination/links": PaginationLinks,
   "pagination/state": PaginationState,
   "split-button/basic": SplitButtonBasic,
