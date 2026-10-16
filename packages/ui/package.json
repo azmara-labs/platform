@@ -125,6 +125,14 @@
       "types": "./dist/toast.d.ts",
       "import": "./dist/toast.js"
     },
+    "./toggle": {
+      "types": "./dist/toggle.d.ts",
+      "import": "./dist/toggle.js"
+    },
+    "./split-button": {
+      "types": "./dist/split-button.d.ts",
+      "import": "./dist/split-button.js"
+    },
     "./styles.css": "./dist/styles.css",
     "./tokens.css": "./dist/tokens.css"
   },

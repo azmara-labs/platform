@@ -12,7 +12,9 @@
     "floating": "src/components/floating/index.ts",
     "modal": "src/components/modal/index.ts",
     "menu": "src/components/menu/index.ts",
-    "toast": "src/components/toast/index.ts"
+    "toast": "src/components/toast/index.ts",
+    "toggle": "src/components/toggle/index.ts",
+    "split-button": "src/components/split-button/index.ts"
   },
   "serverComponents": {
     "spinner": "src/components/spinner/index.ts",

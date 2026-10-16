@@ -1,0 +1,58 @@
+---
+title: SplitButton
+description: A primary action with a menu of related actions attached. Button plus DropdownMenu.
+---
+
+## Usage
+
+```tsx
+import { SplitButton } from "@azmr/ui/split-button";
+import { DropdownMenuItem } from "@azmr/ui/menu";
+```
+
+<Demo name="split-button/basic" />
+
+```tsx
+<SplitButton
+  menuLabel="More save options"
+  onClick={save}
+  menu={
+    <>
+      <DropdownMenuItem onClick={saveAs}>Save as…</DropdownMenuItem>
+      <DropdownMenuItem onClick={saveCopy}>Save a copy</DropdownMenuItem>
+    </>
+  }
+>
+  Save
+</SplitButton>
+```
+
+The main button runs the common action. The arrow opens a menu of alternatives, so the common case stays one click. `menu` takes any `DropdownMenu` parts: items, separators, groups, even checkbox items.
+
+`menuLabel` is required. The arrow button has no text, so it needs a name ("More save options"), and the types enforce it. The arrow also announces that it opens a menu (`aria-haspopup`, `aria-expanded`).
+
+## Props
+
+`variant` and `size` apply to both halves, so the pair stays level; filled variants get a divider between them and `outline` shares one border.
+
+- `loading` shows a spinner on the **main button** and ignores it, while the menu stays usable: a slow "Save" should not stop someone choosing "Save as…". `loadingText` and `startIcon` work as on `Button`.
+- `disabled` disables **both** halves.
+
+Everything else a `Button` accepts (`onClick`, `type`, `aria-*`) goes to the main button.
+
+## Keyboard
+
+<KeyboardMap
+  rows={[
+    { keys: ["Tab"], action: "Moves to the main button, then to the arrow button." },
+    { keys: ["Enter", "Space"], action: "On the main button: runs the primary action. On the arrow: opens the menu." },
+    { keys: ["ArrowDown"], action: "On the arrow button: opens the menu on its first item." },
+    { keys: ["Escape"], action: "Closes the menu and returns focus to the arrow button." },
+  ]}
+/>
+
+Once the menu is open it follows the [DropdownMenu keys](/docs/components/menu#keyboard).
+
+## Size
+
+The menu is loaded with the split button, so this entry carries the menu's cost (about the same as `@azmr/ui/menu`). If a page only needs a plain `Button`, import that instead.

@@ -136,5 +136,15 @@
     "name": "@azmr/ui/toast",
     "path": "dist/toast.js",
     "limit": "26 kB"
+  },
+  {
+    "name": "@azmr/ui/toggle",
+    "path": "dist/toggle.js",
+    "limit": "17 kB"
+  },
+  {
+    "name": "@azmr/ui/split-button",
+    "path": "dist/split-button.js",
+    "limit": "55 kB"
   }
 ]
