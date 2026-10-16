@@ -1,11 +1,29 @@
+import * as React from "react";
 import { describe, expect, it } from "vitest";
 import { expectNoA11yViolations, renderUi } from "../../test-utils/index.js";
 import { AnimatedCheck } from "./animated-check.js";
-import { Collapse } from "./collapse.js";
+import { Collapse, inertProps } from "./collapse.js";
 import { motionPresets } from "./presets.js";
 import { Stagger } from "./stagger.js";
 
 const classes = (el: Element | null) => (el?.getAttribute("class") ?? "").split(/\s+/);
+
+describe("inertProps: React 18 and React 19 want different values", () => {
+  it("React 19 takes a boolean", () => {
+    expect(inertProps("19.2.0")).toEqual({ inert: true });
+    expect(inertProps("19.0.0-rc.1")).toEqual({ inert: true });
+  });
+
+  it("React 18 only renders the attribute from the empty string (a boolean is dropped with a warning)", () => {
+    expect(inertProps("18.3.1")).toEqual({ inert: "" });
+    expect(inertProps("18.0.0")).toEqual({ inert: "" });
+  });
+
+  it("uses the installed React by default, and an unreadable version counts as modern", () => {
+    expect(inertProps()).toEqual(inertProps(React.version));
+    expect(inertProps("not-a-version")).toEqual({ inert: true });
+  });
+});
 
 describe("Collapse", () => {
   it("is open or closed, shown in data-state", () => {

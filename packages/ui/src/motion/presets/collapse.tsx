@@ -1,6 +1,17 @@
-import { forwardRef, type HTMLAttributes, type ReactNode } from "react";
+import { forwardRef, type HTMLAttributes, type ReactNode, version } from "react";
 import { cn } from "../../lib/cn.js";
 import { motionPresets } from "./presets.js";
+
+/**
+ * The `inert` attribute for the installed React. React 19 takes a boolean (and reads `""` as false);
+ * React 18 does not know the attribute as a boolean, drops `true` with a warning, and renders only
+ * the empty string. The package supports both, so pick by version.
+ */
+export function inertProps(reactVersion: string = version): { inert: boolean } {
+  const major = Number.parseInt(reactVersion, 10);
+  // React 19's types call it a boolean; React 18 needs the string, so the 18 branch is cast.
+  return (major < 19 ? { inert: "" } : { inert: true }) as { inert: boolean };
+}
 
 export interface CollapseProps extends Omit<HTMLAttributes<HTMLDivElement>, "children"> {
   /** Whether the content is showing. */
@@ -26,7 +37,7 @@ export const Collapse = forwardRef<HTMLDivElement, CollapseProps>(function Colla
     <div
       ref={ref}
       data-state={open ? "open" : "closed"}
-      {...(open ? {} : { inert: true, "aria-hidden": true })}
+      {...(open ? {} : { ...inertProps(), "aria-hidden": true })}
       className={cn(motionPresets.collapse.root, className)}
       {...props}
     >
