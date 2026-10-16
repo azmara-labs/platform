@@ -176,5 +176,11 @@
     "name": "@azmr/ui/transition",
     "path": "dist/transition.js",
     "limit": "10 kB"
+  },
+  {
+    "name": "@azmr/ui/motion (wrapper only, `motion` itself is an optional peer)",
+    "path": "dist/motion.js",
+    "limit": "1 kB",
+    "ignore": ["motion", "react", "react-dom"]
   }
 ]

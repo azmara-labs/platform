@@ -1,6 +1,6 @@
 ---
 title: Motion
-description: CSS-first motion presets driven by tokens, a Collapse that never measures height, a count-up, a ViewTransition wrapper and useReducedMotion. Reduced motion is built in.
+description: CSS-first motion presets driven by tokens, a Collapse that never measures height, a count-up, a ViewTransition wrapper, useReducedMotion and an optional module for the motion library. Reduced motion is built in.
 ---
 
 ## Principles
@@ -94,6 +94,41 @@ Whether the person has asked their system for reduced motion, kept up to date wh
 | `--motion-duration-ambient` | 1500 ms | Loop length of ambient effects (shimmer) |
 
 Under reduced motion the durations become 0.01 ms (the stagger step, 0).
+
+## The motion library (optional)
+
+CSS covers enters, exits and state changes. For movement that follows a gesture (dragging a row, a dropped item settling, layout changes) use the [`motion`](https://motion.dev) library through `@azmr/ui/motion`. It is optional: nothing else in `@azmr/ui` imports it, and installing `@azmr/ui` does not install it.
+
+```bash
+pnpm add motion
+```
+
+`motion` is an optional peer dependency (`^14.0.0`, tested against 14.2.0). If you import `@azmr/ui/motion` without it installed, the build fails with the usual "cannot find module" error naming `motion`.
+
+<Demo name="motion/reorder" />
+
+Wrap the part of the app that animates in `MotionProvider`, then use `m` elements (or `Reorder`, `AnimatePresence`, `useAnimate` and the other re-exports):
+
+```tsx
+import { MotionProvider, m, springs } from "@azmr/ui/motion";
+
+<MotionProvider>
+  <m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={springs.gentle} />
+</MotionProvider>
+```
+
+`MotionProvider` sets up two things so you do not have to:
+
+- **Lazy features.** It uses `LazyMotion`, so the animation code loads after first render instead of sitting in your main bundle. `features="dom"` (the default) covers animation, variants, hover, tap and exit. `features="max"` adds layout animation, drag and reorder, and downloads more. Either loads on demand; the wrapper itself is about 0.5 kB.
+- **Reduced motion.** It sets `reducedMotion="user"`, so every animation inside follows the system setting: movement is skipped and fades still play.
+
+By default it is **strict**: using the full `motion.div` inside it throws, so the whole library is never pulled into your bundle by accident. Use `m.div`. Pass `strict={false}` only if you accept that.
+
+`springs` has three presets for the `transition` prop: `gentle` (a panel gliding into place), `snappy` (a control responding) and `bouncy` (a visible overshoot, used sparingly). For plain enters and exits prefer the CSS presets above, which are cheaper and follow the motion tokens.
+
+### Drag needs a keyboard alternative
+
+Dragging is not available to everyone. The demo gives every row up and down buttons with names such as "Move Design the tokens up", and disables them at the ends of the list. Do the same for anything you make draggable.
 
 ## Writing your own animation
 
