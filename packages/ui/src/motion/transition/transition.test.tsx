@@ -189,6 +189,32 @@ describe("CountUp", () => {
     expect(shown(b.container)).toBe("25.6%");
   });
 
+  it("does not crash when the caller sets only a minimum number of decimals on a whole number", () => {
+    // Intl throws a RangeError if the maximum is below the minimum; our whole-number default must yield.
+    setup();
+    const a = renderUi(<CountUp value={5} format={{ minimumFractionDigits: 2 }} />);
+    expect(shown(a.container)).toBe("5.00");
+    expect(spoken(a.container)).toBe("5.00");
+    a.unmount();
+    const b = renderUi(<CountUp value={5} format={{ minimumFractionDigits: 1 }} />);
+    expect(shown(b.container)).toBe("5.0");
+    b.unmount();
+    const c = renderUi(<CountUp value={1234} format={{ maximumSignificantDigits: 2 }} />);
+    expect(shown(c.container)).toBe("1,200");
+  });
+
+  it("keeps the decimals the caller asked for while counting between whole numbers", () => {
+    setup();
+    const { container, rerender } = renderUi(
+      <CountUp value={0} duration={500} format={{ minimumFractionDigits: 2 }} />,
+    );
+    rerender(<CountUp value={10} duration={500} format={{ minimumFractionDigits: 2 }} />);
+    act(() => {
+      vi.advanceTimersByTime(250);
+    });
+    expect(shown(container)).toMatch(/^\d+\.\d{2}$/);
+  });
+
   it("uses tabular figures so the width does not jitter while counting", () => {
     setup();
     const { container } = renderUi(<CountUp value={5} className="text-xl" />);

@@ -59,9 +59,14 @@ export function CountUp({
     return () => cancelAnimationFrame(frame);
   }, [value, reduced, duration]);
 
-  // Whole numbers count in whole numbers; the caller's options win.
+  // Whole numbers count in whole numbers. A caller who asks for a minimum of N decimals means exactly
+  // N (Intl would allow up to three while the number is between values, and would throw if our
+  // maximum of 0 sat below their minimum). Anything else they set wins.
   const options: Intl.NumberFormatOptions = {
     ...(Number.isInteger(value) && { maximumFractionDigits: 0 }),
+    ...(format?.minimumFractionDigits !== undefined && {
+      maximumFractionDigits: format.minimumFractionDigits,
+    }),
     ...format,
   };
   const text = (n: number) => new Intl.NumberFormat(locale, options).format(n);
