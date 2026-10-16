@@ -1,0 +1,107 @@
+---
+title: Motion
+description: CSS-first motion presets driven by tokens, a Collapse that never measures height, a count-up, a ViewTransition wrapper and useReducedMotion. Reduced motion is built in.
+---
+
+## Principles
+
+- **CSS first.** Motion is a class or a `data-*` state, with its duration and easing from tokens (`--motion-duration-*`, `--motion-ease-*`). Changing a token or turning on reduced motion changes it everywhere.
+- **Cheap properties only.** Animations change `transform`, `scale`, `opacity` and `clip-path`; collapse animates `grid-template-rows`; the tick draws with `stroke-dashoffset`. Nothing animates `width`, `height`, `margin` or position, because those make the browser re-layout every frame. A test scans the CSS and every component and fails on a layout animation that is not on a documented exception list.
+- **Reduced motion is the default behaviour, not an extra.** Under `prefers-reduced-motion: reduce` the durations collapse to near zero, every slide and scale becomes a plain fade, staggers lose their delays, the shimmer stops and the tick appears at once.
+
+The presets ship in `@azmr/ui/styles.css`. If you import only `tokens.css`, they are not included.
+
+## Presets
+
+<Demo name="motion/gallery" />
+
+Each preset is a pair of classes, `enter` and `exit`. `enter` eases out and runs on `--motion-duration-base` (200 ms); `exit` is shorter (`--motion-duration-fast`, 150 ms) and eases in, because people wait for things to appear but not to disappear.
+
+| Preset | Classes |
+| --- | --- |
+| Fade | `motion-fade-in`, `motion-fade-out` |
+| Scale | `motion-scale-in`, `motion-scale-out` |
+| Slide up, down, left, right | `motion-slide-up-in`, `motion-slide-up-out`, and the same for `down`, `left`, `right` |
+| Shimmer | `motion-shimmer` |
+
+Use the classes directly, or take them from `motionPresets` (typed, so a typo is a compile error):
+
+```tsx
+import { motionPresets } from "@azmr/ui/presets";
+
+<div className={motionPresets.slideUp.enter}>…</div>
+```
+
+For Base UI parts (dialogs, menus, popovers) the library already animates with `data-starting-style` and `data-ending-style` on the same tokens; these presets are for your own elements.
+
+## Collapse
+
+<Demo name="motion/collapse" />
+
+`Collapse` shows and hides content by animating `grid-template-rows` between `0fr` and `1fr`, so **no height is measured in JavaScript**. It is a Server Component. The content stays mounted while closed (so it keeps its state) and is `inert` and `aria-hidden`, so it cannot be focused or read.
+
+You own the trigger: give it `aria-expanded` and `aria-controls` pointing at the collapse's `id`, as in the demo. For a ready-made disclosure with all of that wired, use `Collapsible` or `Accordion`; they measure the panel through Base UI instead (a documented exception to the cheap-properties rule).
+
+## Stagger
+
+<Demo name="motion/stagger" />
+
+`Stagger` makes the children of a list enter one after another. Each child gets a `--stagger-index`, and the delay is the index times `--motion-stagger-step` (40 ms), capped at `max` (12) so a long list does not take seconds to appear. Under reduced motion the step is zero and they fade in together. It is a Server Component; only element children are staggered.
+
+## Success check and shimmer
+
+<Demo name="motion/check" />
+
+`AnimatedCheck` is an SVG tick that draws itself in the current text colour (`className="text-success"`); pass `label` to make it an image with a name, otherwise it is decorative. `Skeleton shimmer` sweeps a highlight across a placeholder using `transform` only, instead of pulsing.
+
+## CountUp
+
+<Demo name="motion/count-up" />
+
+`CountUp` counts to its new value whenever `value` changes (set `animateOnMount` to count up on first show). Format with `Intl` options (`format`, `locale`): currency, percent, decimals. Whole numbers count in whole numbers. If the value changes again mid-count, it carries on from where it is.
+
+**Screen readers get the final value at once.** The counting itself is hidden from them, so nobody hears a stream of numbers. The digits are tabular so the width does not jitter, and under reduced motion it jumps to the value.
+
+## Transition (page and shared-element transitions)
+
+```tsx
+import { Transition } from "@azmr/ui/transition";
+
+<Transition name="hero">…</Transition>
+```
+
+`Transition` wraps React's `<ViewTransition>` for route changes, list changes and shared-element morphs. **That component is not in a stable React yet** (the spec expects React 19.3; React 19.2 does not have it). So `Transition` looks it up when it renders, under both its stable and experimental names, and where it is missing it renders its children and nothing else. It is safe to add today, and starts working the day you upgrade React, with no code change. It also renders nothing extra when the person prefers reduced motion. The cross-fade (opacity only) is in `styles.css`.
+
+## useReducedMotion
+
+<Demo name="motion/reduced" />
+
+```tsx
+import { useReducedMotion } from "@azmr/ui/hooks";
+
+const reduced = useReducedMotion();
+```
+
+Whether the person has asked their system for reduced motion, kept up to date while the app is open. On the server and during hydration it is `false`, so there is no mismatch. The global CSS already handles CSS animations; use the hook for motion that JavaScript drives (a count-up, a canvas, a video) that CSS cannot reach.
+
+## Tokens
+
+| Token | Value | Use |
+| --- | --- | --- |
+| `--motion-duration-instant` / `fast` / `base` / `slow` | 75 / 150 / 200 / 300 ms | Press feedback, exits, enters, larger movements |
+| `--motion-ease-standard` / `emphasized` / `decelerate` / `accelerate` | | Moves, expressive moves, entering, leaving |
+| `--motion-stagger-step` | 40 ms | Delay between staggered items |
+| `--motion-duration-ambient` | 1500 ms | Loop length of ambient effects (shimmer) |
+
+Under reduced motion the durations become 0.01 ms (the stagger step, 0).
+
+## Writing your own animation
+
+Use a token for every time and easing, animate only `transform`, `opacity`, `clip-path` (or `grid-template-rows`), and the global reduced-motion rule handles the rest. If something genuinely must keep moving under reduced motion (a progress spinner, which says "still working"), mark it `data-motion="essential"`.
+
+## Accessibility
+
+- Nothing is announced because it animates; motion never carries meaning on its own.
+- `Collapse` content is inert while closed.
+- `CountUp` exposes the final value to assistive technology immediately.
+- Every preset has a reduced-motion rule, checked by tests.

@@ -19,7 +19,7 @@
   {
     "name": "@azmr/ui/hooks",
     "path": "dist/hooks.js",
-    "limit": "500 B"
+    "limit": "700 B"
   },
   {
     "name": "@azmr/ui/lib",
@@ -166,5 +166,15 @@
     "name": "@azmr/ui/stepper",
     "path": "dist/stepper.js",
     "limit": "12 kB"
+  },
+  {
+    "name": "@azmr/ui/presets",
+    "path": "dist/presets.js",
+    "limit": "10 kB"
+  },
+  {
+    "name": "@azmr/ui/transition",
+    "path": "dist/transition.js",
+    "limit": "10 kB"
   }
 ]

@@ -149,6 +149,14 @@
       "types": "./dist/stepper.d.ts",
       "import": "./dist/stepper.js"
     },
+    "./transition": {
+      "types": "./dist/transition.d.ts",
+      "import": "./dist/transition.js"
+    },
+    "./presets": {
+      "types": "./dist/presets.d.ts",
+      "import": "./dist/presets.js"
+    },
     "./styles.css": "./dist/styles.css",
     "./tokens.css": "./dist/tokens.css"
   },
