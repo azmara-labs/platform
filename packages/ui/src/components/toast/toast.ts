@@ -43,16 +43,22 @@ function toBaseOptions(
     ...(title !== undefined && { title }),
     ...(description !== undefined && { description }),
     ...(type && { type }),
-    priority: priority ?? (type === "error" ? "high" : "low"),
+    ...(priority && { priority }),
     ...(duration !== undefined && { timeout: duration }),
     ...(onClose && { onClose }),
     ...(action && { actionProps: { children: action.label, onClick: action.onClick } }),
   } as const;
 }
 
+/** How urgently a type is announced when the caller does not say: only errors interrupt. */
+const defaultPriority = (type: ToastType | undefined) => (type === "error" ? "high" : "low");
+
 function show(type: ToastType | undefined) {
   return (title: ReactNode, options?: ToastOptions) =>
-    toastManager.add(toBaseOptions(title, type, options));
+    toastManager.add({
+      priority: defaultPriority(type),
+      ...toBaseOptions(title, type, options),
+    });
 }
 
 /**
@@ -95,6 +101,8 @@ export const toast = Object.assign(show(undefined), {
   update(id: string, changes: ToastUpdate) {
     const { title, type, ...rest } = changes;
     toastManager.update(id, {
+      // Only re-derive urgency when the type changes; a text-only update must not downgrade an error.
+      ...(type && { priority: defaultPriority(type === "default" ? undefined : type) }),
       ...toBaseOptions(title, type === "default" ? undefined : type, rest),
       ...(type === "default" && { type: undefined }),
     });

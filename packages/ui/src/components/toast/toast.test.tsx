@@ -280,6 +280,39 @@ describe("toast: dedupe, update, dismiss", () => {
     expect(toasts()[0]?.getAttribute("data-type")).toBe("success");
   });
 
+  it("updating the text of an error keeps it urgent", async () => {
+    renderUi(<Toaster />);
+    let id = "";
+    act(() => {
+      id = toast.error("Upload failed", { duration: 0 });
+    });
+    await vi.waitFor(() =>
+      expect(document.querySelector("[role=alert]")?.textContent).toContain("Upload failed"),
+    );
+    act(() => {
+      toast.update(id, { description: "Retrying in a moment" });
+    });
+    await vi.waitFor(() =>
+      expect(document.querySelector("[role=alert]")?.textContent).toContain("Retrying in a moment"),
+    );
+  });
+
+  it("changing the type of an update re-derives how urgent it is", async () => {
+    renderUi(<Toaster />);
+    let id = "";
+    act(() => {
+      id = toast.loading("Working");
+    });
+    await shown("Working");
+    expect(document.querySelector("[role=alert]")).toBeNull();
+    act(() => {
+      toast.update(id, { title: "It failed", type: "error" });
+    });
+    await vi.waitFor(() =>
+      expect(document.querySelector("[role=alert]")?.textContent).toContain("It failed"),
+    );
+  });
+
   it("dismiss(id) removes one toast", async () => {
     renderUi(<Toaster />);
     let keep = "";
