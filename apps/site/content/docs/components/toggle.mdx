@@ -1,0 +1,56 @@
+---
+title: Toggle
+description: Toggle and ToggleGroup. A button that stays pressed, and a group of them that acts as one control with arrow-key navigation. Built on Base UI.
+---
+
+## Usage
+
+```tsx
+import { Toggle, ToggleGroup, ToggleGroupItem } from "@azmr/ui/toggle";
+```
+
+These are interactive, so they are client components.
+
+## Toggle
+
+<Demo name="toggle/toggle" />
+
+A button that is either pressed or not, exposed as `aria-pressed`. Use `pressed` and `onPressedChange` to control it, or `defaultPressed` to start on. `variant` is `default` or `outline`, `size` is `sm`, `md` or `lg`.
+
+An icon-only toggle (`size="icon"`) has no text, so it needs an accessible name: the types require `aria-label` or `aria-labelledby`.
+
+Use a toggle for a state that is **on or off right now** (bold, mute, show grid). For a setting that is saved with a form, use a switch or checkbox instead.
+
+## ToggleGroup
+
+<Demo name="toggle/group" />
+
+A named group (`aria-label` or `aria-labelledby` is required) of toggles that behaves as **one control**:
+
+- By default **one item can be pressed at a time**. Pressing the pressed one releases it, so nothing selected is allowed. With `multiple`, any number can be pressed.
+- The value is **always an array** of the pressed items' `value`s, even in single mode. Use `value` and `onValueChange` (or `defaultValue`) to control it.
+- `variant` and `size` on the group apply to every item unless an item sets its own.
+- The items are joined into one control; `attached={false}` keeps them apart, and `orientation="vertical"` stacks them.
+
+## Keyboard
+
+<KeyboardMap
+  rows={[
+    { keys: ["Tab"], action: "Enters the group at a single tab stop, then moves on. Only one item is in the tab order at a time (roving tabindex)." },
+    { keys: ["ArrowRight", "ArrowLeft"], action: "Moves focus to the next or previous item and wraps (ArrowDown and ArrowUp when vertical). It never changes the selection." },
+    { keys: ["Home", "End"], action: "Moves focus to the first or last item." },
+    { keys: ["Space", "Enter"], action: "Presses or releases the focused item." },
+  ]}
+/>
+
+Disabled items are skipped by the arrow keys, which differs from menus (where disabled items stay focusable).
+
+## Accessibility
+
+- Each item is a real button with `aria-pressed`; the group is `role="group"` with the name you give it.
+- The pressed state is shown by background and text colour from tokens, not by colour alone: it is also in `aria-pressed`, so screen readers announce "pressed".
+- Focus uses the standard full-strength ring.
+
+## Props
+
+<AutoTypeTable path="../../packages/ui/src/components/toggle/toggle.tsx" name="ToggleGroupProps" />

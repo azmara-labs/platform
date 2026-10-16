@@ -27,6 +27,30 @@ A button is `type="button"` unless you say otherwise, so one inside a form never
 
 `startIcon` and `endIcon` sit either side of the label; while `loading`, the spinner replaces the start icon. An icon-only button must be given an accessible name: with `size="icon"` TypeScript requires `aria-label` or `aria-labelledby`. To render a link with button styling, pass `render={<a href="..." />}` and `nativeButton={false}`.
 
+## IconButton
+
+<Demo name="button/icon-button" />
+
+```tsx
+import { IconButton } from "@azmr/ui/button";
+```
+
+A square button with only an icon, passed as an element: `<IconButton icon={<Icon icon={Plus} />} label="Add item" />`. (An element rather than a component, so it also works from a Server Component.) `label` is **required** and becomes the accessible name: an icon alone cannot be announced, so the types do not let you leave it out (and an empty string throws in development). It is `ghost` by default so a row of them stays quiet, takes the same variants as `Button`, and `loading` swaps the icon for a spinner while keeping the button focusable. `size` is `sm`, `md` (follows the density token) or `lg`.
+
+For a tooltip on an icon button, wrap it in a `Tooltip`, and keep the `label` too: a tooltip is not an accessible name on touch devices.
+
+## ButtonGroup
+
+<Demo name="button/group" />
+
+```tsx
+import { ButtonGroup } from "@azmr/ui/button";
+```
+
+A named group (`role="group"`, with `aria-label` or `aria-labelledby` required) of related buttons, joined into one control: inner corners squared, one shared border, and the hovered or focused button raised so its focus ring is never hidden by a neighbour. `orientation="vertical"` stacks them, and `attached={false}` keeps them apart with a gap.
+
+It is **only a grouping**: Tab still visits every button. If the buttons should act as one control with arrow keys and a pressed state, use [ToggleGroup](/docs/components/toggle). If one of them opens a menu, use [SplitButton](/docs/components/split-button).
+
 ## Props
 
 <AutoTypeTable path="../../packages/ui/src/components/button/button.tsx" name="ButtonOwnProps" />

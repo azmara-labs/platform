@@ -1,5 +1,7 @@
 import type { ComponentType } from "react";
 import AvatarBasic from "./avatar/basic.demo";
+import ButtonGroupBasic from "./button/group.demo";
+import ButtonIconButton from "./button/icon-button.demo";
 import ButtonIcons from "./button/icons.demo";
 import ButtonLoading from "./button/loading.demo";
 import ButtonVariants from "./button/variants.demo";
@@ -32,9 +34,12 @@ import ProgressBasic from "./progress/basic.demo";
 import ProgressCircular from "./progress/circular.demo";
 import ScrollAreaBasic from "./scroll-area/basic.demo";
 import SpinnerBasic from "./spinner/basic.demo";
+import SplitButtonBasic from "./split-button/basic.demo";
 import ToastActions from "./toast/actions.demo";
 import ToastPromise from "./toast/promise.demo";
 import ToastTypes from "./toast/types.demo";
+import ToggleGroupBasic from "./toggle/group.demo";
+import ToggleBasic from "./toggle/toggle.demo";
 import TypographyInline from "./typography/inline.demo";
 import TypographyScale from "./typography/scale.demo";
 
@@ -46,6 +51,8 @@ import TypographyScale from "./typography/scale.demo";
  */
 export const demos = {
   "avatar/basic": AvatarBasic,
+  "button/group": ButtonGroupBasic,
+  "button/icon-button": ButtonIconButton,
   "button/variants": ButtonVariants,
   "button/loading": ButtonLoading,
   "button/icons": ButtonIcons,
@@ -70,6 +77,9 @@ export const demos = {
   "toast/actions": ToastActions,
   "toast/promise": ToastPromise,
   "toast/types": ToastTypes,
+  "split-button/basic": SplitButtonBasic,
+  "toggle/group": ToggleGroupBasic,
+  "toggle/toggle": ToggleBasic,
   "icon/basic": IconBasic,
   "icon/named": IconNamed,
   "input/basic": InputBasic,

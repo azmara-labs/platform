@@ -14,6 +14,8 @@
     "scroll-area",
     "typography",
     "button",
+    "toggle",
+    "split-button",
     "input",
     "spinner",
     "icon"
