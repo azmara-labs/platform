@@ -1,5 +1,55 @@
 # @azmr/security
 
+## 0.3.1
+
+### Patch Changes
+
+- a5a2134: Fix `exports` condition order (`types` before `import`) and declare
+  `"sideEffects": false` on `@azmr/core`, `@azmr/ui`, and `@azmr/security`
+  (both the `.` and `./browser` conditions on `security`).
+
+  The `types`-first order previously worked only because TypeScript falls
+  back to the sibling `index.d.ts` when the condition order doesn't matter to
+  it — bundlers with stricter `exports` resolution (e.g. Next.js's
+  Turbopack/webpack) are not guaranteed to be as forgiving. `sideEffects:
+false` lets bundlers tree-shake unused named exports out of consuming
+  bundles; verified with an esbuild bundle of a single named import from
+  `@azmr/security/browser` — no unrelated exports leak in.
+
+  No public API change.
+
+- c8712c6: `createAuditLogger()` no longer reports false "chain broken" errors on
+  legitimate logs. Previously every call started a fresh in-memory chain at
+  `prevHash: ""`, which desynced from the on-disk chain whenever: two loggers
+  in one process shared a log path (e.g. `@azmr/db` and `@azmr/ai`, both
+  defaulting to `.azmara/audit.log`), or a process restarted and created a new
+  logger against an existing log.
+
+  Loggers targeting the same resolved path now share one hash chain via a
+  module-level registry, seeded from the last valid entry already on disk
+  (tolerating a missing file, an empty file, or a trailing partial line from
+  an interrupted write). Cross-process concurrent writers are still not
+  guarded against — this module assumes a single writer process per log
+  file, documented in the file header and the audit-logging docs page.
+
+  No public API change.
+
+- 7e2bf0e: `createRateLimiter()`'s internal store no longer grows without bound.
+  Timestamps were pruned per key on `check()`, but the map entry itself was
+  never deleted, and keys that stopped being checked were never revisited —
+  in a long-running server keyed by IP, the store retained one entry per IP
+  ever seen, contradicting the doc comment's claim that memory stayed
+  "bounded to active keys × maxRequests."
+
+  Each `check()` call now opportunistically sweeps the whole store (dropping
+  any key whose timestamps have all aged out) if at least `windowMs` has
+  passed since the last sweep — no `setInterval`, since `rateLimit.ts` is
+  shared into the browser build via `browser.ts`, and a Node-style
+  `Timeout.unref()` isn't available there. `resetAll()` also resets the sweep
+  clock. Doc comment corrected to describe the actual eviction behaviour.
+
+  No public API change (`check`/`reset`/`resetAll` unchanged).
+
 ## 0.3.0
 
 ### Minor Changes
