@@ -212,7 +212,7 @@ importers:
   packages/db:
     dependencies:
       '@azmr/db-core-interface':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../db-core-interface
       '@azmr/security':
         specifier: workspace:*
@@ -255,7 +255,7 @@ importers:
   packages/db-supabase:
     dependencies:
       '@azmr/db-core-interface':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../db-core-interface
       '@azmr/security':
         specifier: workspace:*

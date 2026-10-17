@@ -41,7 +41,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@azmr/db-core-interface": "workspace:*",
+    "@azmr/db-core-interface": "workspace:^",
     "@azmr/security": "workspace:*"
   },
   "peerDependencies": {
