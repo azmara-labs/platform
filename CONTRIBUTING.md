@@ -53,7 +53,7 @@ pnpm changeset add
 
 | Package | Published? |
 |---|---|
-| `@azmr/core`, `@azmr/db`, `@azmr/db-supabase`, `@azmr/query`, `@azmr/security`, `@azmr/ui`, `@azmr/policycore` | Yes - versioned via changesets |
+| `@azmr/core`, `@azmr/db`, `@azmr/db-core-interface`, `@azmr/db-supabase`, `@azmr/query`, `@azmr/security`, `@azmr/ui`, `@azmr/policycore` | Yes - versioned via changesets |
 | `@azmr/ai`, `@azmr/cli` | Yes - versioned manually (changesets-ignored, since `@azmr/cli` depends on `@azmr/ai`) |
 | `apps/site` | No - `private: true` |
 

@@ -1,4 +1,4 @@
-import type { Filter } from "@azmr/db/interface";
+import type { Filter } from "@azmr/db-core-interface";
 import { assertSafeIdentifier } from "@azmr/security";
 
 /**

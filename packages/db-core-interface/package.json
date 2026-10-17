@@ -1,0 +1,52 @@
+{
+  "name": "@azmr/db-core-interface",
+  "version": "0.0.0",
+  "description": "The DbAdapter contract shared by @azmr/db and @azmr/db-supabase — types and DbAdapterError, no dependencies",
+  "type": "module",
+  "license": "MIT",
+  "author": "Alshafaraz Gazi <alshafaraz.gazi@gmail.com>",
+  "homepage": "https://docs.azmara.io",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/azmara-labs/platform.git",
+    "directory": "packages/db-core-interface"
+  },
+  "keywords": [
+    "database",
+    "adapter",
+    "interface",
+    "contract",
+    "azmara"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "dev": "tsup src/index.ts --format esm --dts --watch",
+    "check-types": "tsc --noEmit",
+    "test": "vitest run",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "tsup": "^8.5.1",
+    "typescript": "^5.7.3",
+    "vitest": "^4.1.11"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

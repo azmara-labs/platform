@@ -54,30 +54,33 @@ const removed = await db.deleteWhere("customers", [
 // removed: number of rows deleted
 ```
 
-<AutoTypeTable path="../../packages/db/src/adapter-interface.ts" name="FilterCondition" />
+<AutoTypeTable path="../../packages/db-core-interface/src/adapter-interface.ts" name="FilterCondition" />
 
 ## The `DbAdapter` interface
 
 `SQLiteAdapter` and `@azmr/db-supabase`'s `SupabaseAdapter` both implement this shared, storage-agnostic interface — code written against `DbAdapter` works unchanged against either backend.
 
-<AutoTypeTable path="../../packages/db/src/adapter-interface.ts" name="DbAdapter" />
+<AutoTypeTable path="../../packages/db-core-interface/src/adapter-interface.ts" name="DbAdapter" />
 
-### Interface-only import: `@azmr/db/interface`
+### Interface-only import: `@azmr/db-core-interface`
 
 <Callout type="info">
-  `@azmr/db`'s root export includes `SQLiteAdapter`, which pulls in `better-sqlite3` — a native,
-  node-gyp-built module. If you only need the `DbAdapter`/`DbAdapterError`/`Filter` types (for
-  example, building a new adapter, or consuming `@azmr/db-supabase`), import from
-  `@azmr/db/interface` instead. It never touches `SQLiteAdapter` or `better-sqlite3`, so it's
-  safe to bundle into serverless/edge runtimes.
+  The `DbAdapter` contract lives in its own package, `@azmr/db-core-interface`, with no
+  dependencies. `@azmr/db`'s root export includes `SQLiteAdapter`, which pulls in
+  `better-sqlite3` — a native, node-gyp-built module. If you only need the
+  `DbAdapter`/`DbAdapterError`/`Filter` types (for example, building a new adapter, or consuming
+  `@azmr/db-supabase`), depend on `@azmr/db-core-interface` and nothing else is installed.
 </Callout>
 
 ```typescript
-import type { DbAdapter, Filter } from "@azmr/db/interface";
-import { DbAdapterError } from "@azmr/db/interface";
+import type { DbAdapter, Filter } from "@azmr/db-core-interface";
+import { DbAdapterError } from "@azmr/db-core-interface";
 ```
 
-`@azmr/db-supabase` uses this subpath internally for exactly this reason.
+`@azmr/db/interface` still works and re-exports exactly the same things (the same
+`DbAdapterError` class, so `instanceof` checks hold across both imports), but it installs
+`better-sqlite3` with `@azmr/db`. `@azmr/db-supabase` depends on `@azmr/db-core-interface`, not on
+`@azmr/db`, for exactly this reason. See [`@azmr/db-core-interface`](/docs/packages/db-core-interface).
 
 ## Security features
 
