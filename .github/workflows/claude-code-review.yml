@@ -98,5 +98,5 @@ jobs:
             --jq ".[] | select(.user.login == \"claude[bot]\" and .created_at >= \"$STARTED\") | .id" | wc -l)
           if [ "$posted" -eq 0 ]; then
             echo "::warning::claude-review finished without posting a comment"
-            gh pr comment "$PR" --body "claude-review finished without posting a review, so this PR has not been reviewed by it. Re-run the check or close and reopen the PR."
+            gh pr comment "$PR" --body "claude-review finished without posting a review, so this PR has not been reviewed by it. This is expected when the PR changes a workflow file (the action skips those). Otherwise re-run the check or close and reopen the PR."
           fi
