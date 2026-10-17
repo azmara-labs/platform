@@ -6,8 +6,8 @@ import { describe, expect, it } from "vitest";
 // Runs the real props-table generator over every <AutoTypeTable> on the component pages, the same
 // way the docs build does. Pointing a table at a props interface that extends a DOM element's
 // attributes lists hundreds of inherited properties (the whole HTML, SVG and ARIA set), so a table
-// must name an own-props type or narrow the type with `Pick`. This fails on a table that is empty,
-// floods the page, or names a property that no longer exists.
+// narrows the type with `Pick`. This fails on a table that is empty, floods the page, names a
+// property the type does not have, or leaves out a prop the component declares itself.
 
 const siteDir = join(import.meta.dirname, "..");
 const componentsDir = join(siteDir, "content", "docs", "components");
@@ -49,27 +49,6 @@ function picked(type: string | undefined): { source: string; keys: string[] } | 
   };
 }
 
-/**
- * Tables that still list every inherited DOM attribute (about 280 rows each), found when this test
- * was added. Each should be narrowed to the component's own props with `Pick` (or an own-props type),
- * then removed from this list. The test fails if a listed table is fixed and still listed.
- */
-const flooded = new Set([
-  "avatar.mdx: AvatarGroupProps",
-  "breadcrumb.mdx: BreadcrumbsProps",
-  "disclosure.mdx: AccordionTriggerProps",
-  "display.mdx: AlertProps",
-  "layout.mdx: StackProps",
-  "layout.mdx: GridProps",
-  "menu.mdx: MenuItemProps",
-  "menu.mdx: DropdownMenuContentProps",
-  "modal.mdx: DialogContentProps",
-  "pagination.mdx: PaginationProps",
-  "stepper.mdx: StepperProps",
-  "table.mdx: TableProps",
-  "toggle.mdx: ToggleGroupProps",
-]);
-
 const all = tables();
 
 describe("props tables on the component pages", () => {
@@ -78,7 +57,7 @@ describe("props tables on the component pages", () => {
     expect(all.every((t) => t.path)).toBe(true);
   });
 
-  it("each lists a sensible number of properties, and picks only properties that exist", async () => {
+  it("each lists a sensible number of properties, picks only properties that exist, and omits none the component declares", async () => {
     // The tests run from the repo root in CI, where there is no tsconfig.json, so name the site's.
     const generator = createGenerator({ tsconfigPath: join(siteDir, "tsconfig.json") });
     const problems: string[] = [];
@@ -90,19 +69,18 @@ describe("props tables on the component pages", () => {
       );
       const names = docs.flatMap((doc) => doc.entries.map((entry) => entry.name));
       if (names.length === 0) problems.push(`${label} lists no properties`);
-      const isFlooded = names.length > MAX_PROPS;
-      if (isFlooded && !flooded.has(label)) {
+      if (names.length > MAX_PROPS) {
         problems.push(
-          `${label} lists ${names.length} properties (more than ${MAX_PROPS}): point it at an own-props type or narrow it with Pick`,
+          `${label} lists ${names.length} properties (more than ${MAX_PROPS}): narrow it with Pick, or point it at an own-props type`,
         );
       }
-      if (!isFlooded && flooded.has(label)) {
-        problems.push(`${label} is fixed now: remove it from the flooded list`);
-      }
+
       // A misspelled key does not fail the generator: it lists a property of that name anyway. So
-      // check the keys against the properties of the full type the table narrows.
+      // check the keys against the properties of the full type the table narrows, and check that
+      // every property the component declares in our own source is among them.
       const narrowed = picked(table.type);
       if (narrowed && table.type) {
+        const own: string[] = [];
         const full = await generator.generateTypeTable(
           {
             path: table.path,
@@ -112,7 +90,16 @@ describe("props tables on the component pages", () => {
               `export type FullDocProps = ${narrowed.source}`,
             ),
           },
-          { basePath: siteDir },
+          {
+            basePath: siteDir,
+            transform(entry, _type, symbol) {
+              const declaredHere = symbol.getDeclarations().some((declaration) => {
+                const file = declaration.getSourceFile().getFilePath().replaceAll("\\", "/");
+                return file.includes("/packages/ui/src/") && !file.includes("node_modules");
+              });
+              if (declaredHere) own.push(entry.name);
+            },
+          },
         );
         const fullNames = new Set(full.flatMap((doc) => doc.entries.map((entry) => entry.name)));
         for (const key of narrowed.keys) {
@@ -120,13 +107,15 @@ describe("props tables on the component pages", () => {
             problems.push(`${label} asks for "${key}", which ${narrowed.source} does not have`);
           }
         }
+        for (const name of own) {
+          if (!narrowed.keys.includes(name)) {
+            problems.push(
+              `${label} leaves out "${name}", which ${narrowed.source} declares: add it to the Pick`,
+            );
+          }
+        }
       }
     }
     expect(problems).toEqual([]);
-  }, 120_000);
-
-  it("keeps the flooded list honest: every name in it is a real table", () => {
-    const labels = new Set(all.map((t) => `${t.page}: ${t.name ?? "?"}`));
-    for (const label of flooded) expect(labels, `"${label}" is not a table`).toContain(label);
-  });
+  }, 180_000);
 });

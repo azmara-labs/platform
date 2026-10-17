@@ -68,7 +68,12 @@ The original plan was a `grid-template-rows` trick with no JavaScript measuring.
 
 ## Props
 
-<AutoTypeTable path="../../packages/ui/src/components/disclosure/accordion.tsx" name="AccordionTriggerProps" />
+<AutoTypeTable
+  path="../../packages/ui/src/components/disclosure/index.ts"
+  name="AccordionTriggerDocProps"
+  type={`import type { AccordionTriggerProps } from "./accordion.js"
+export type AccordionTriggerDocProps = Pick<AccordionTriggerProps, "headingLevel" | "className">`}
+/>
 
 The rest are Base UI's props, passed through. `className` on `AccordionContent` and `CollapsibleContent` styles an inner wrapper, so padding never fights the height animation.
 

@@ -46,7 +46,12 @@ Alerts and badges paint a tint of a status colour over the page and put text on 
 
 ## Props
 
-<AutoTypeTable path="../../packages/ui/src/components/display/alert.tsx" name="AlertProps" />
+<AutoTypeTable
+  path="../../packages/ui/src/components/display/index.ts"
+  name="AlertDocProps"
+  type={`import type { AlertProps } from "./alert.js"
+export type AlertDocProps = Pick<AlertProps, "variant" | "icon" | "onDismiss" | "dismissLabel">`}
+/>
 
 ## Accessibility
 

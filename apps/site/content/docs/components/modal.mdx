@@ -85,7 +85,12 @@ The scrim fades and a dialog fades and scales in from slightly smaller, using `-
 
 ## Props
 
-<AutoTypeTable path="../../packages/ui/src/components/modal/dialog.tsx" name="DialogContentProps" />
+<AutoTypeTable
+  path="../../packages/ui/src/components/modal/index.ts"
+  name="DialogContentDocProps"
+  type={`import type { DialogContentProps } from "./dialog.js"
+export type DialogContentDocProps = Pick<DialogContentProps, "className" | "size" | "showClose">`}
+/>
 
 <AutoTypeTable path="../../packages/ui/src/components/modal/drawer.tsx" name="DrawerProps" />
 

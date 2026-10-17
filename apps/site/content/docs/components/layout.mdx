@@ -54,9 +54,19 @@ A spacing with no matching step (such as 7), and item props that cannot be expre
 
 ## Props
 
-<AutoTypeTable path="../../packages/ui/src/components/layout/stack.tsx" name="StackProps" />
+<AutoTypeTable
+  path="../../packages/ui/src/components/layout/index.ts"
+  name="StackDocProps"
+  type={`import type { StackProps } from "./stack.js"
+export type StackDocProps = Pick<StackProps, "direction" | "gap" | "align" | "justify" | "wrap" | "divider" | "as" | "children">`}
+/>
 
-<AutoTypeTable path="../../packages/ui/src/components/layout/grid.tsx" name="GridProps" />
+<AutoTypeTable
+  path="../../packages/ui/src/components/layout/index.ts"
+  name="GridDocProps"
+  type={`import type { GridProps } from "./grid.js"
+export type GridDocProps = Pick<GridProps, "cols" | "minItemWidth" | "gap" | "align" | "justify" | "as" | "children">`}
+/>
 
 ## Accessibility
 
