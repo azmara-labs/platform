@@ -23,18 +23,10 @@ const firstSection: Record<string, string> = {
 };
 
 /** Pages with no generated props table yet (an AutoTypeTable on the real type). */
-const noGeneratedTable: Record<string, string> = {
-  icon: "props are described in prose; add AutoTypeTable for the icon props",
-  input: "hand-written props table; replace with AutoTypeTable on the input props",
-  motion: "documents hooks and presets, not one props type; decide which types to surface",
-  spinner: "no props table yet",
-  "split-button": "no props table yet",
-};
+const noGeneratedTable: Record<string, string> = {};
 
 /** Pages with no Accessibility section yet. */
-const noAccessibility: Record<string, string> = {
-  "split-button": "section missing",
-};
+const noAccessibility: Record<string, string> = {};
 
 function read(slug: string) {
   const text = readFileSync(join(componentsDir, `${slug}.mdx`), "utf8");

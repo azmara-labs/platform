@@ -37,6 +37,13 @@ The main button runs the common action. The arrow opens a menu of alternatives, 
 
 ## Props
 
+<AutoTypeTable
+  path="../../packages/ui/src/components/split-button/index.ts"
+  name="SplitButtonDocProps"
+  type={`import type { SplitButtonProps } from "./split-button.js"
+export type SplitButtonDocProps = Pick<SplitButtonProps, "children" | "menu" | "menuLabel" | "variant" | "size" | "loading" | "loadingText" | "startIcon" | "disabled" | "className">`}
+/>
+
 `variant` and `size` apply to both halves, so the pair stays level; filled variants get a divider between them and `outline` shares one border.
 
 - `loading` shows a spinner on the **main button** and ignores it, while the menu stays usable: a slow "Save" should not stop someone choosing "Save as…". `loadingText` and `startIcon` work as on `Button`.
@@ -60,3 +67,11 @@ Once the menu is open it follows the [DropdownMenu keys](/docs/components/menu#k
 ## Size
 
 The menu is loaded with the split button, so this entry carries the menu's cost (about the same as `@azmr/ui/menu`). If a page only needs a plain `Button`, import that instead.
+
+## Accessibility
+
+- Two real buttons: the primary action, and the arrow that opens the menu. Tab visits both, in that order.
+- The arrow has no text, so `menuLabel` is required and the types enforce it. It becomes the arrow's accessible name ("More save options").
+- The arrow carries `aria-haspopup="menu"` and `aria-expanded`, which changes from `false` to `true` while the menu is open.
+- `disabled` disables both halves, and `loading` leaves the menu usable. The menu follows the [DropdownMenu](/docs/components/menu#accessibility) semantics.
+- The component's tests run axe with the menu closed and open.
