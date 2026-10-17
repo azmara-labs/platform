@@ -40,15 +40,14 @@ An unknown name renders nothing and warns once in development; it never crashes 
 
 ## Props
 
-| Prop | Type | Description |
-| --- | --- | --- |
-| `icon` | component | The icon to render. Wins over `name`. |
-| `name` | `string` | A name from the registry (`registerIcons`). |
-| `size` | `"xs"` to `"xl"` or `number` | Default `md`. |
-| `strokeWidth` | `number` | Stroke width of line icons. |
-| `spin` | `boolean` | Continuous rotation for a loading indicator. |
-| `aria-label` / `aria-labelledby` | `string` | Makes the icon meaningful (`role="img"`). |
-| `className` | `string` | Merged last: `size-8` replaces the size token. |
+<AutoTypeTable
+  path="../../packages/ui/src/icons/index.ts"
+  name="IconDocProps"
+  type={`import type { IconProps } from "./types.js"
+export type IconDocProps = Pick<IconProps, "icon" | "name" | "size" | "spin" | "strokeWidth" | "aria-label" | "aria-labelledby" | "className">`}
+/>
+
+Any other SVG attribute passes through. `className` is merged last, so `size-8` replaces the size token.
 
 ## Migrating from Material icons
 

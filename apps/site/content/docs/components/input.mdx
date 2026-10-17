@@ -41,13 +41,14 @@ Native `onChange` and a typed `onValueChange(value)` both fire.
 
 ## Props
 
-All native `<input>` attributes pass through, plus:
+<AutoTypeTable
+  path="../../packages/ui/src/components/input/index.ts"
+  name="InputDocProps"
+  type={`import type { InputProps } from "./input.js"
+export type InputDocProps = Pick<InputProps, "className" | "value" | "defaultValue" | "onValueChange">`}
+/>
 
-| Prop | Type | Description |
-| --- | --- | --- |
-| `onValueChange` | `(value: string, details) => void` | Called with the new value; use instead of reading `event.target.value`. |
-| `value` / `defaultValue` | `string` | Controlled or uncontrolled value. |
-| `className` | `string` | Merged last, so it can override defaults. |
+All native `<input>` attributes pass through. `className` is merged last, so it can override the defaults, and `onValueChange` gives you the new value directly instead of `event.target.value`.
 
 Height and horizontal padding follow the density tokens, so the input lines up with `Button` at every density.
 

@@ -46,11 +46,27 @@ For Base UI parts (dialogs, menus, popovers) the library already animates with `
 
 You own the trigger: give it `aria-expanded` and `aria-controls` pointing at the collapse's `id`, as in the demo. For a ready-made disclosure with all of that wired, use `Collapsible` or `Accordion`; they measure the panel through Base UI instead (a documented exception to the cheap-properties rule).
 
+<AutoTypeTable
+  path="../../packages/ui/src/motion/presets/index.ts"
+  name="CollapseDocProps"
+  type={`import type { CollapseProps } from "./collapse.js"
+export type CollapseDocProps = Pick<CollapseProps, "open" | "children">`}
+/>
+
+
 ## Stagger
 
 <Demo name="motion/stagger" />
 
 `Stagger` makes the children of a list enter one after another. Each child gets a `--stagger-index`, and the delay is the index times `--motion-stagger-step` (40 ms), capped at `max` (12) so a long list does not take seconds to appear. Under reduced motion the step is zero and they fade in together. It is a Server Component; only element children are staggered.
+
+<AutoTypeTable
+  path="../../packages/ui/src/motion/presets/index.ts"
+  name="StaggerDocProps"
+  type={`import type { StaggerProps } from "./stagger.js"
+export type StaggerDocProps = Pick<StaggerProps, "as" | "max" | "children">`}
+/>
+
 
 ## Success check and shimmer
 
@@ -66,6 +82,14 @@ You own the trigger: give it `aria-expanded` and `aria-controls` pointing at the
 
 **Screen readers get the final value at once.** The counting itself is hidden from them, so nobody hears a stream of numbers. The digits are tabular so the width does not jitter, and under reduced motion it jumps to the value.
 
+<AutoTypeTable
+  path="../../packages/ui/src/motion/transition/index.ts"
+  name="CountUpDocProps"
+  type={`import type { CountUpProps } from "./count-up.js"
+export type CountUpDocProps = Pick<CountUpProps, "value" | "from" | "animateOnMount" | "duration" | "format" | "locale">`}
+/>
+
+
 ## Transition (page and shared-element transitions)
 
 ```tsx
@@ -75,6 +99,9 @@ import { Transition } from "@azmr/ui/transition";
 ```
 
 `Transition` wraps React's `<ViewTransition>` for route changes, list changes and shared-element morphs. **That component is not in a stable React yet** (the spec expects React 19.3; React 19.2 does not have it). So `Transition` looks it up when it renders, under both its stable and experimental names, and where it is missing it renders its children and nothing else. It is safe to add today, and starts working the day you upgrade React, with no code change. It also renders nothing extra when the person prefers reduced motion. The cross-fade (opacity only) is in `styles.css`.
+
+<AutoTypeTable path="../../packages/ui/src/motion/transition/transition.tsx" name="TransitionProps" />
+
 
 ## useReducedMotion
 
@@ -129,6 +156,8 @@ import { MotionProvider, m, springs } from "@azmr/ui/motion";
 By default it is **strict**: using the full `motion.div` inside it throws, so the whole library is never pulled into your bundle by accident. Use `m.div`. Pass `strict={false}` only if you accept that.
 
 `springs` has three presets for the `transition` prop: `gentle` (a panel gliding into place), `snappy` (a control responding) and `bouncy` (a visible overshoot, used sparingly). For plain enters and exits prefer the CSS presets above, which are cheaper and follow the motion tokens.
+
+<AutoTypeTable path="../../packages/ui/src/motion/library/provider.tsx" name="MotionProviderProps" />
 
 ### Drag needs a keyboard alternative
 

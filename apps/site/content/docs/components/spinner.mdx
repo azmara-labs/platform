@@ -27,12 +27,14 @@ Most motion in `@azmr/ui` stops under `prefers-reduced-motion`. A spinner does n
 
 ## Props
 
-| Prop | Type | Description |
-| --- | --- | --- |
-| `label` | `string` | Accessible name. Makes it a `role="status"`; omit it for a decorative spinner. |
-| `className` | `string` | Merged last: `size-8 text-primary`. |
+<AutoTypeTable
+  path="../../packages/ui/src/components/spinner/index.ts"
+  name="SpinnerDocProps"
+  type={`import type { SpinnerProps } from "./spinner.js"
+export type SpinnerDocProps = Pick<SpinnerProps, "label" | "className">`}
+/>
 
-Any SVG attribute passes through, and `ref` is the `<svg>`.
+Any SVG attribute passes through, and `ref` is the `<svg>`. `className` is merged last: `size-8 text-primary`.
 
 ## Accessibility
 
