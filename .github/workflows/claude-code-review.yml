@@ -35,6 +35,15 @@ jobs:
         id: started
         run: echo "at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
 
+      # The review's shell access is limited to `gh pr comment`. On a large diff the model
+      # otherwise tries to pipe or redirect `gh pr diff` to filter it, those calls are denied,
+      # and the review can end without a comment. Hand it the diff as a file to Read and Grep.
+      - name: Save the PR diff
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: gh pr diff "$PR" > pr.diff
+
       - name: Run Claude Code Review
         id: claude-review
         uses: anthropics/claude-code-action@v1
@@ -66,7 +75,7 @@ jobs:
             turns.
 
             Steps:
-            1. Run `gh pr diff ${{ github.event.pull_request.number }}` to see the exact changes.
+            1. The full diff of this PR is already saved in `pr.diff` in the working directory. Read it with the Read tool (use offset and limit for a large file) and search it with Grep. Do not run `gh pr diff`, and do not pipe, redirect or chain shell commands (`|`, `>`, `;`, `&&`, `cat`, `sed`, `awk`): the only shell command allowed is `gh pr comment`, and anything else is rejected, which wastes turns.
             2. If a file's surrounding context would help you judge whether something is a real bug (not just the diff hunk in isolation), use Read/Grep/Glob to look at it directly.
             3. Review for genuine, confirmable issues: correctness bugs, security issues, resource leaks, broken error handling, obviously wrong logic. Do not flag style preferences, and do not invent hypothetical edge cases you cannot confirm from the code itself.
             4. Post exactly one review comment summarizing what you found. If you found genuine issues, list each as `**file:line** — description`. If you found nothing worth flagging, post a short comment saying so explicitly - do not skip posting.
@@ -80,7 +89,7 @@ jobs:
 
 
             Keep the comment concise and specific - evidence-based findings, not hedged commentary.
-          claude_args: '--allowedTools "Read,Grep,Glob,Bash(gh pr diff:*),Bash(gh pr comment:*)"'
+          claude_args: '--allowedTools "Read,Grep,Glob,Bash(gh pr comment:*)"'
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
 
