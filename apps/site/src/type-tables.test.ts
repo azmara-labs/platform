@@ -24,8 +24,14 @@ interface Table {
 
 function tables(): Table[] {
   const out: Table[] = [];
-  for (const file of readdirSync(componentsDir).filter((f) => f.endsWith(".mdx"))) {
-    const text = readFileSync(join(componentsDir, file), "utf8");
+  const dirs = [componentsDir, join(siteDir, "content", "docs", "guide")];
+  const files = dirs.flatMap((dir) =>
+    readdirSync(dir)
+      .filter((f) => f.endsWith(".mdx"))
+      .map((f) => ({ file: f, dir })),
+  );
+  for (const { file, dir } of files) {
+    const text = readFileSync(join(dir, file), "utf8");
     for (const match of text.matchAll(/<AutoTypeTable\s+([\s\S]*?)\/>/g)) {
       const attrs = match[1] as string;
       out.push({
