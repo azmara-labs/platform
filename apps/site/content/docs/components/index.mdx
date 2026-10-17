@@ -5,6 +5,15 @@ description: The @azmr/ui component library, built on Base UI primitives and the
 
 `@azmr/ui` is a component library for React 18 and 19, built on [Base UI](https://base-ui.com) primitives, styled with Tailwind v4 and a small set of design tokens. Every component page has live demos you can preview in light and dark and at each density, the source of each demo, a props table generated from the TypeScript types, and an accessibility section with the keyboard map.
 
+<Callout type="info" title="Using Vue, Svelte or another framework?">
+  The components are React-only today. These parts have no React dependency:
+  [`@azmr/core`](/docs/packages/core) (signals), [`@azmr/query`](/docs/packages/query),
+  [`@azmr/security`](/docs/packages/security), the database packages
+  ([`@azmr/db`](/docs/packages/db) and
+  [`@azmr/db-core-interface`](/docs/packages/db-core-interface)), and the design tokens in
+  `@azmr/ui/tokens.css`, which are plain CSS for any Tailwind v4 project.
+</Callout>
+
 ## Set up
 
 ```css
