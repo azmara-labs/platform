@@ -79,7 +79,8 @@ describe("props tables on the component pages", () => {
   });
 
   it("each lists a sensible number of properties, and picks only properties that exist", async () => {
-    const generator = createGenerator();
+    // The tests run from the repo root in CI, where there is no tsconfig.json, so name the site's.
+    const generator = createGenerator({ tsconfigPath: join(siteDir, "tsconfig.json") });
     const problems: string[] = [];
     for (const table of all) {
       const label = `${table.page}: ${table.name ?? "?"}`;
