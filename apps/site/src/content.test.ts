@@ -33,6 +33,10 @@ const changelogRoutes = [
     .map((name) => `/docs/changelog/${name}`),
 ];
 
+// Pages generated at build time (scripts/build-*.ts) and not committed, so they may be absent
+// locally. Other pages may link to them; the generators have their own tests.
+const generatedRoutes = ["/docs/guide/tokens"];
+
 function routeOf(file: string): string {
   const parts = posix(relative(contentDir, file))
     .replace(/\.mdx$/, "")
@@ -49,7 +53,7 @@ const appRoutes = walk(join(srcDir, "app"), /^page\.tsx$/)
   .filter((route) => !route.includes("["))
   .map((route) => (route === "" ? "/" : `/${route}`));
 
-const routes = new Set([...pages.keys(), ...changelogRoutes, ...appRoutes]);
+const routes = new Set([...pages.keys(), ...changelogRoutes, ...generatedRoutes, ...appRoutes]);
 
 describe("docs content", () => {
   it("finds the pages and routes (guards against scanning nothing)", () => {
