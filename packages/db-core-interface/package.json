@@ -1,6 +1,6 @@
 {
   "name": "@azmr/db-core-interface",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "The DbAdapter contract shared by @azmr/db and @azmr/db-supabase — types and DbAdapterError, no dependencies",
   "type": "module",
   "license": "MIT",
