@@ -32,7 +32,12 @@ The avatar element carries the label; the image inside is `alt=""` so it is not 
 
 ## Props
 
-<AutoTypeTable path="../../packages/ui/src/components/avatar/avatar.tsx" name="AvatarGroupProps" />
+<AutoTypeTable
+  path="../../packages/ui/src/components/avatar/index.ts"
+  name="AvatarGroupDocProps"
+  type={`import type { AvatarGroupProps } from "./avatar.js"
+export type AvatarGroupDocProps = Pick<AvatarGroupProps, "max" | "overflowLabel" | "children">`}
+/>
 
 ## Accessibility
 

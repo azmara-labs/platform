@@ -90,8 +90,18 @@ Menus fade and scale from the trigger on `--motion-duration-fast`, and collapse 
 
 ## Props
 
-<AutoTypeTable path="../../packages/ui/src/components/menu/parts.tsx" name="MenuItemProps" />
+<AutoTypeTable
+  path="../../packages/ui/src/components/menu/index.ts"
+  name="MenuItemDocProps"
+  type={`import type { MenuItemProps } from "./parts.js"
+export type MenuItemDocProps = Pick<MenuItemProps, "variant" | "className">`}
+/>
 
-<AutoTypeTable path="../../packages/ui/src/components/menu/dropdown-menu.tsx" name="DropdownMenuContentProps" />
+<AutoTypeTable
+  path="../../packages/ui/src/components/menu/index.ts"
+  name="DropdownMenuContentDocProps"
+  type={`import type { DropdownMenuContentProps } from "./dropdown-menu.js"
+export type DropdownMenuContentDocProps = Pick<DropdownMenuContentProps, "side" | "align" | "sideOffset" | "collisionPadding" | "className">`}
+/>
 
 The rest are Base UI's props, passed through (`open`, `onOpenChange`, `loopFocus`, `modal`, and so on).

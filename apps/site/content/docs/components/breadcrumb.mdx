@@ -44,7 +44,12 @@ With the parts, use `<BreadcrumbLink render={<NextLink href="/docs" />}>Docs</Br
 
 ## Props
 
-<AutoTypeTable path="../../packages/ui/src/components/breadcrumb/breadcrumb.tsx" name="BreadcrumbsProps" />
+<AutoTypeTable
+  path="../../packages/ui/src/components/breadcrumb/index.ts"
+  name="BreadcrumbsDocProps"
+  type={`import type { BreadcrumbsProps } from "./breadcrumb.js"
+export type BreadcrumbsDocProps = Pick<BreadcrumbsProps, "items" | "maxItems" | "separator" | "renderLink" | "ellipsisLabel" | "label">`}
+/>
 
 ## Accessibility
 

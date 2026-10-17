@@ -67,7 +67,12 @@ For a custom layout use `PaginationNav`, `PaginationList`, `PaginationItem`, `Pa
 
 ## Props
 
-<AutoTypeTable path="../../packages/ui/src/components/pagination/pagination.tsx" name="PaginationProps" />
+<AutoTypeTable
+  path="../../packages/ui/src/components/pagination/index.ts"
+  name="PaginationDocProps"
+  type={`import type { PaginationProps } from "./pagination.js"
+export type PaginationDocProps = Pick<PaginationProps, "page" | "pageCount" | "hrefFor" | "onPageChange" | "renderLink" | "siblingCount" | "boundaryCount" | "showPrevNext" | "label" | "labels">`}
+/>
 
 ## Accessibility
 

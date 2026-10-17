@@ -49,7 +49,12 @@ This is a presentational table. Sorting, filtering, selection, virtualised rows 
 
 ## Props
 
-<AutoTypeTable path="../../packages/ui/src/components/table/table.tsx" name="TableProps" />
+<AutoTypeTable
+  path="../../packages/ui/src/components/table/index.ts"
+  name="TableDocProps"
+  type={`import type { TableProps } from "./table.js"
+export type TableDocProps = Pick<TableProps, "label" | "containerClassName" | "stickyHeader" | "striped" | "hoverable">`}
+/>
 
 ## Accessibility
 

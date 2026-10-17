@@ -36,7 +36,12 @@ Each step's state is also written in text for screen readers ("Completed", "Curr
 
 ## Props
 
-<AutoTypeTable path="../../packages/ui/src/components/stepper/stepper.tsx" name="StepperProps" />
+<AutoTypeTable
+  path="../../packages/ui/src/components/stepper/index.ts"
+  name="StepperDocProps"
+  type={`import type { StepperProps } from "./stepper.js"
+export type StepperDocProps = Pick<StepperProps, "steps" | "current" | "orientation" | "label" | "statusLabels">`}
+/>
 
 ## Accessibility
 
