@@ -88,3 +88,10 @@ describe("checkLinks", () => {
     expect(check(["https://base-ui.com", "mailto:a@b.co", "//cdn.example.com/x"])).toEqual([]);
   });
 });
+
+describe("anchors: tags in headings", () => {
+  it("drops HTML tags from heading text, including nested fragments", () => {
+    expect(anchors("## A <b>bold</b> idea\n").has("a-bold-idea")).toBe(true);
+    expect(anchors("## Nested <<b>b>tag\n").has("nested-tag")).toBe(true);
+  });
+});

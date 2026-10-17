@@ -27,11 +27,19 @@ export function extractLinks(text: string): string[] {
   return links;
 }
 
+/** Removes HTML tags, repeating until none are left so nested fragments such as "<<b>b>" go too. */
+function stripTags(text: string): string {
+  let previous: string;
+  let current = text;
+  do {
+    previous = current;
+    current = current.replace(/<[^<>]*>/g, "");
+  } while (current !== previous);
+  return current;
+}
+
 function headingText(raw: string): string {
-  return raw
-    .replace(/\s*\{#[^}]*\}\s*$/, "")
-    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1")
-    .replace(/<[^>]+>/g, "")
+  return stripTags(raw.replace(/\s*\{#[^}]*\}\s*$/, "").replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1"))
     .replace(/[`*_]/g, "")
     .trim();
 }
