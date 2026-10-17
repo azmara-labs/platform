@@ -31,6 +31,10 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Record start time
+        id: started
+        run: echo "at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+
       - name: Run Claude Code Review
         id: claude-review
         uses: anthropics/claude-code-action@v1
@@ -65,10 +69,34 @@ jobs:
             1. Run `gh pr diff ${{ github.event.pull_request.number }}` to see the exact changes.
             2. If a file's surrounding context would help you judge whether something is a real bug (not just the diff hunk in isolation), use Read/Grep/Glob to look at it directly.
             3. Review for genuine, confirmable issues: correctness bugs, security issues, resource leaks, broken error handling, obviously wrong logic. Do not flag style preferences, and do not invent hypothetical edge cases you cannot confirm from the code itself.
-            4. Post exactly one review comment with `gh pr comment ${{ github.event.pull_request.number }} --body "..."` summarizing what you found. If you found genuine issues, list each as `**file:line** — description`. If you found nothing worth flagging, post a short comment saying so explicitly - do not skip posting.
+            4. Post exactly one review comment summarizing what you found. If you found genuine issues, list each as `**file:line** — description`. If you found nothing worth flagging, post a short comment saying so explicitly - do not skip posting.
+            Post it with a quoted heredoc, exactly in this shape (END alone at the start of its line), so backticks, quotes and `$` in the text are safe:
+
+            gh pr comment ${{ github.event.pull_request.number }} --body-file - <<'END'
+            (comment text)
+            END
+
+            Do NOT use `--body "..."` with backticks inside the double quotes: that form is rejected by the tool permission check and the review is then lost.
+
 
             Keep the comment concise and specific - evidence-based findings, not hedged commentary.
           claude_args: '--allowedTools "Read,Grep,Glob,Bash(gh pr diff:*),Bash(gh pr comment:*)"'
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
 
+      # The action reports success even when the review could not post (a tool call can be
+      # denied and the run still ends green), so a PR could look reviewed when it was not.
+      # If the run succeeded but claude[bot] left no comment since it started, say so on the PR.
+      - name: Flag a review that posted nothing
+        if: steps.claude-review.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          STARTED: ${{ steps.started.outputs.at }}
+        run: |
+          posted=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --paginate \
+            --jq ".[] | select(.user.login == \"claude[bot]\" and .created_at >= \"$STARTED\") | .id" | wc -l)
+          if [ "$posted" -eq 0 ]; then
+            echo "::warning::claude-review finished without posting a comment"
+            gh pr comment "$PR" --body "claude-review finished without posting a review, so this PR has not been reviewed by it. Re-run the check or close and reopen the PR."
+          fi
