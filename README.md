@@ -41,6 +41,7 @@ db.insertMany("products", available.map(p => ({ ...p, inStock: 1 })));
 | [`@azmr/query`](packages/query) | Chainable, type-safe query builder | [![npm](https://img.shields.io/npm/v/@azmr/query)](https://www.npmjs.com/package/@azmr/query) | [![downloads](https://img.shields.io/npm/dm/@azmr/query)](https://www.npmjs.com/package/@azmr/query) |
 | [`@azmr/security`](packages/security) | Validation, audit logging, env guards | [![npm](https://img.shields.io/npm/v/@azmr/security)](https://www.npmjs.com/package/@azmr/security) | [![downloads](https://img.shields.io/npm/dm/@azmr/security)](https://www.npmjs.com/package/@azmr/security) |
 | [`@azmr/db`](packages/db) | Secure SQLite persistence adapter | [![npm](https://img.shields.io/npm/v/@azmr/db)](https://www.npmjs.com/package/@azmr/db) | [![downloads](https://img.shields.io/npm/dm/@azmr/db)](https://www.npmjs.com/package/@azmr/db) |
+| [`@azmr/db-core-interface`](packages/db-core-interface) | The `DbAdapter` contract shared by both database adapters — no dependencies | [![npm](https://img.shields.io/npm/v/@azmr/db-core-interface)](https://www.npmjs.com/package/@azmr/db-core-interface) | [![downloads](https://img.shields.io/npm/dm/@azmr/db-core-interface)](https://www.npmjs.com/package/@azmr/db-core-interface) |
 | [`@azmr/db-supabase`](packages/db-supabase) | Supabase/PostgREST adapter — same interface as `@azmr/db` | [![npm](https://img.shields.io/npm/v/@azmr/db-supabase)](https://www.npmjs.com/package/@azmr/db-supabase) | [![downloads](https://img.shields.io/npm/dm/@azmr/db-supabase)](https://www.npmjs.com/package/@azmr/db-supabase) |
 | [`@azmr/ui`](packages/ui) | React components wired to Signals | [![npm](https://img.shields.io/npm/v/@azmr/ui)](https://www.npmjs.com/package/@azmr/ui) | [![downloads](https://img.shields.io/npm/dm/@azmr/ui)](https://www.npmjs.com/package/@azmr/ui) |
 | [`@azmr/ai`](packages/ai) | AI auto-fix system — capability-scoped sandboxed code analysis and fixes | [![npm](https://img.shields.io/npm/v/@azmr/ai)](https://www.npmjs.com/package/@azmr/ai) | [![downloads](https://img.shields.io/npm/dm/@azmr/ai)](https://www.npmjs.com/package/@azmr/ai) |
@@ -79,8 +80,9 @@ pnpm add -g @azmr/cli      # CLI tool
 @azmr/security          ← foundation — no internal deps
     ↑
 @azmr/core              ← Signal reactive engine
-@azmr/db                ← SQLite adapter (depends: security)
-@azmr/db-supabase       ← Supabase/PostgREST adapter, same interface as db (depends: db, security)
+@azmr/db-core-interface ← DbAdapter contract — no internal deps
+@azmr/db                ← SQLite adapter (depends: db-core-interface, security)
+@azmr/db-supabase       ← Supabase/PostgREST adapter, same interface as db (depends: db-core-interface, security)
 @azmr/query             ← query builder (depends: core)
 @azmr/ui                ← React components (depends: core)
 @azmr/policycore        ← policy engine, secrets, API keys, OWASP reporting (depends: security)

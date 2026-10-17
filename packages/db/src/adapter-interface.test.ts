@@ -1,7 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { DbAdapterError as CoreDbAdapterError } from "@azmr/db-core-interface";
 import { describe, expect, it } from "vitest";
+import { DbAdapterError as InterfaceDbAdapterError } from "./adapter-interface.js";
+import { DbAdapterError as RootDbAdapterError } from "./index.js";
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -49,5 +52,15 @@ describe("adapter-interface.ts source graph", () => {
   it("never pulls in better-sqlite3 or the SQLite adapter, transitively", () => {
     const violations = findViolations(path.join(dir, "adapter-interface.ts"), new Set());
     expect(violations).toEqual([]);
+  });
+});
+
+describe("DbAdapterError re-exports", () => {
+  // DbAdapterError is a class, so `instanceof` only works if every entry point hands out the very
+  // same one. A copy here would make `error instanceof DbAdapterError` false for errors thrown by
+  // @azmr/db-supabase.
+  it('hands out the class from @azmr/db-core-interface from both "@azmr/db" and "@azmr/db/interface"', () => {
+    expect(InterfaceDbAdapterError).toBe(CoreDbAdapterError);
+    expect(RootDbAdapterError).toBe(CoreDbAdapterError);
   });
 });

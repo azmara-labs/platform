@@ -67,16 +67,16 @@ db.close();
 - WAL mode, `secure_delete ON`, `foreign_keys ON`
 - Every mutation written to a hash-chained audit log
 
-## Interface-only usage (`@azmr/db/interface`)
+## Interface-only usage (`@azmr/db-core-interface`)
 
-If you only need the storage-agnostic `DbAdapter` shape — `DbAdapter`, `DbAdapterError`, `Filter`, `FilterCondition`, `FilterOperator`, `ColumnSchema`, `ColumnType` — without pulling in `better-sqlite3` (a native module), import from the `./interface` subpath instead of the package root:
+The storage-agnostic `DbAdapter` shape — `DbAdapter`, `DbAdapterError`, `Filter`, `FilterCondition`, `FilterOperator`, `ColumnSchema`, `ColumnType` — lives in its own dependency-free package, [`@azmr/db-core-interface`](https://github.com/azmara-labs/platform/tree/main/packages/db-core-interface). If you only need the contract (for example to write a new adapter), depend on that and nothing else is installed; in particular, not `better-sqlite3`, which is a native module:
 
 ```typescript
-import type { DbAdapter, Filter } from "@azmr/db/interface";
-import { DbAdapterError } from "@azmr/db/interface";
+import type { DbAdapter, Filter } from "@azmr/db-core-interface";
+import { DbAdapterError } from "@azmr/db-core-interface";
 ```
 
-This is what `@azmr/db-supabase` and any other non-SQLite `DbAdapter` implementation should use. The root `@azmr/db` export (`import { SQLiteAdapter } from "@azmr/db"`) still includes the native module and remains the right choice when you actually want SQLite.
+`@azmr/db` re-exports all of it from the package root and from the `@azmr/db/interface` subpath, so existing imports keep working, and they hand out the very same `DbAdapterError` class, so `instanceof` checks hold. But installing `@azmr/db` installs `better-sqlite3`; that is why `@azmr/db-supabase` and any other non-SQLite `DbAdapter` implementation should depend on `@azmr/db-core-interface` instead. The root `@azmr/db` export (`import { SQLiteAdapter } from "@azmr/db"`) remains the right choice when you actually want SQLite.
 
 ## Requirements
 

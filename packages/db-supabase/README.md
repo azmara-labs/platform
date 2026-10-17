@@ -51,7 +51,9 @@ Conditions are implicitly AND-combined. No OR support yet.
 
 ## Runtime footprint
 
-`@azmr/db-supabase` depends on `@azmr/db`, but only via its `./interface` subpath (`DbAdapter`, `DbAdapterError`, `Filter` types) — the same PostgREST-only module graph you'd expect from a pure network client. It does **not** pull in `better-sqlite3` or any native module, so it's safe to bundle into serverless/edge runtimes (Vercel, Next.js server components/actions, Cloudflare Workers, etc.).
+`@azmr/db-supabase` depends on [`@azmr/db-core-interface`](https://github.com/azmara-labs/platform/tree/main/packages/db-core-interface) (the `DbAdapter`, `DbAdapterError` and `Filter` contract) and `@azmr/security`, not on `@azmr/db`. Installing it does **not** install `better-sqlite3` or any native module, so it's safe to bundle into serverless/edge runtimes (Vercel, Next.js server components/actions, Cloudflare Workers, etc.) and builds on platforms with no prebuilt SQLite binary.
+
+Earlier versions (0.2.1 and before) depended on `@azmr/db` for the interface, which did install `better-sqlite3` even though it was never loaded.
 
 ## Requirements
 
