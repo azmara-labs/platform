@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+    # Listed explicitly (the defaults omit ready_for_review) so closing and reopening a PR, or
+    # taking it out of draft, re-runs every check.
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 
 permissions:
