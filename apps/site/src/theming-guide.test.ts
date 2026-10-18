@@ -34,9 +34,9 @@ describe("the Theming guide's examples", () => {
 
   it.each(all.map((e) => [e.name, e] as const))(
     "%s: shows the output the package returns",
-    (_n, example) => {
+    async (_n, example) => {
       expect(example.expected, `${example.name} has no // => line`).not.toBeUndefined();
-      expect(runExample(example, { createTheme, htmlAttributes })).toEqual(example.expected);
+      expect(await runExample(example, { createTheme, htmlAttributes })).toEqual(example.expected);
     },
   );
 });

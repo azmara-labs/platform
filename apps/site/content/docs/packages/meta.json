@@ -1,4 +1,16 @@
 {
   "title": "Packages",
-  "pages": ["core", "query", "db", "db-core-interface", "ui", "ai", "security", "policycore", "cli"]
+  "pages": [
+    "index",
+    "core",
+    "query",
+    "db",
+    "db-core-interface",
+    "db-supabase",
+    "ui",
+    "ai",
+    "security",
+    "policycore",
+    "cli"
+  ]
 }
