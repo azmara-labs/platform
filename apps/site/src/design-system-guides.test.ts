@@ -21,10 +21,13 @@ describe("Customising components", () => {
     expect(examples.map((e) => e.name)).toEqual(["merge", "merge-padding", "merge-values"]);
   });
 
-  it.each(examples.map((e) => [e.name, e] as const))("%s: shows the output cn returns", (_n, e) => {
-    expect(e.expected, `${e.name} has no // => line`).not.toBeUndefined();
-    expect(runExample(e, { cn })).toEqual(e.expected);
-  });
+  it.each(examples.map((e) => [e.name, e] as const))(
+    "%s: shows the output cn returns",
+    async (_n, e) => {
+      expect(e.expected, `${e.name} has no // => line`).not.toBeUndefined();
+      expect(await runExample(e, { cn })).toEqual(e.expected);
+    },
+  );
 
   it("buttonVariants returns a class string that depends on the variant and size", () => {
     const base = buttonVariants();

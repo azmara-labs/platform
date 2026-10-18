@@ -35,9 +35,23 @@ export function extractExamples(markdown: string): DocExample[] {
   return out;
 }
 
-/** Runs an example with the given names in scope and returns the value of its `result` variable. */
-export function runExample(example: DocExample, scope: Record<string, unknown>): unknown {
+const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor as new (
+  ...args: string[]
+) => (...values: unknown[]) => Promise<unknown>;
+
+/**
+ * Runs an example with the given names in scope and resolves to the value of its `result`
+ * variable. The code may use `await` at the top level.
+ */
+export async function runExample(
+  example: DocExample,
+  scope: Record<string, unknown>,
+): Promise<unknown> {
   const names = Object.keys(scope);
-  const fn = new Function(...names, `${example.code}\nreturn ${example.result};`);
+  const fn = new AsyncFunction(
+    ...names,
+    `${example.code}
+return ${example.result};`,
+  );
   return fn(...names.map((name) => scope[name]));
 }

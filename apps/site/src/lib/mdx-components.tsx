@@ -5,6 +5,7 @@ import type { MDXComponents } from "mdx/types";
 import { ComponentIndex } from "../components/component-index";
 import { Demo } from "../components/demo";
 import { KeyboardMap } from "../components/keyboard-map";
+import { PackageIndex } from "../components/package-index";
 import { ElevationSample, TokenSwatch } from "../components/token-swatch";
 
 const generator = createGenerator({
@@ -20,6 +21,7 @@ export function getMDXComponents(components?: MDXComponents) {
     ComponentIndex,
     Demo,
     KeyboardMap,
+    PackageIndex,
     TokenSwatch,
     ElevationSample,
     ...components,
