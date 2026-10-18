@@ -150,6 +150,15 @@ async function verify(name, tarballs) {
   pkg.dependencies["@azmr/ui"] = `file:${tarballs.ui.replaceAll("\\", "/")}`;
   writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));
 
+  // pnpm 10 and newer will not run a dependency's install script unless it is approved, and in CI an
+  // unapproved one is an error. Two dependencies here have scripts (esbuild and @parcel/watcher, from
+  // the Tailwind CLI) and neither is needed: both ship prebuilt binaries as optional packages. Say so
+  // here, the way a project would, so the result does not depend on the machine's own pnpm settings.
+  writeFileSync(
+    join(app, "pnpm-workspace.yaml"),
+    ["allowBuilds:", "  esbuild: false", "  '@parcel/watcher': false", ""].join("\n"),
+  );
+
   // Copy (not hard-link) so sabotage can never touch the pnpm store.
   const install = run(
     "pnpm",
