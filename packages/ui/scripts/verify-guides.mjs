@@ -150,24 +150,20 @@ async function verify(name, tarballs) {
   pkg.dependencies["@azmr/ui"] = `file:${tarballs.ui.replaceAll("\\", "/")}`;
   writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));
 
-  // pnpm 10 and newer will not run a dependency's install script unless it is approved, and in CI an
-  // unapproved one is an error. Two dependencies here have scripts (esbuild and @parcel/watcher, from
-  // the Tailwind CLI) and neither is needed: both ship prebuilt binaries as optional packages. Say so
-  // here, the way a project would, so the result does not depend on the machine's own pnpm settings.
+  // pnpm 10 and newer will not run a dependency's install script until it is approved (a reader runs
+  // `pnpm approve-builds`), and in CI an unapproved one is an error. Two dependencies here have
+  // scripts: esbuild and @parcel/watcher (from the Tailwind CLI). Approve them here, as a project
+  // would, so the result does not depend on the machine's own pnpm settings. The folder is its own
+  // workspace root, so pnpm reads the approvals from this file.
   writeFileSync(
     join(app, "pnpm-workspace.yaml"),
-    ["allowBuilds:", "  esbuild: false", "  '@parcel/watcher': false", ""].join("\n"),
+    ["allowBuilds:", "  esbuild: true", "  '@parcel/watcher': true", ""].join("\n"),
   );
 
   // Copy (not hard-link) so sabotage can never touch the pnpm store.
   const install = run(
     "pnpm",
-    [
-      "install",
-      "--ignore-workspace",
-      "--no-frozen-lockfile",
-      "--config.package-import-method=copy",
-    ],
+    ["install", "--no-frozen-lockfile", "--config.package-import-method=copy"],
     app,
   );
   check(`${name}: installs with the packed packages`, install.ok, tail(install.output));
