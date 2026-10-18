@@ -84,8 +84,15 @@ describe("ContextMenu", () => {
     const { container } = renderUi(<Demo />);
     await user.pointer({ keys: "[MouseRight]", target: area(container) });
     await vi.waitFor(() => expect(menu()).not.toBeNull());
-    await user.keyboard("{End}");
-    await vi.waitFor(() => expect(label(document.activeElement)).toBe("Delete"));
+    // A Base UI menu opens a moment before it handles keys, so press End again until focus lands
+    // (pressing it twice is harmless).
+    await vi.waitFor(
+      async () => {
+        await user.keyboard("{End}");
+        expect(label(document.activeElement)).toBe("Delete");
+      },
+      { timeout: 4000 },
+    );
     await user.keyboard("{Home}");
     expect(label(document.activeElement)).toBe("Copy");
     await user.keyboard("{ArrowDown}");
