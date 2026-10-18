@@ -1,4 +1,5 @@
 import { join } from "node:path";
+import Link from "next/link";
 import { PACKAGE_GROUPS, readPackages } from "../lib/package-index";
 
 const idFor = (title: string) => `packages-${title.toLowerCase().replaceAll(" ", "-")}`;
@@ -27,9 +28,9 @@ export function PackageIndex() {
                   className="flex flex-col gap-2 rounded-lg border border-fd-border bg-fd-card p-4"
                 >
                   <h3 className="flex flex-wrap items-baseline gap-2 font-medium">
-                    <a href={pkg.docsUrl} className="underline-offset-2 hover:underline">
+                    <Link href={pkg.docsUrl} className="underline-offset-2 hover:underline">
                       {pkg.name}
-                    </a>
+                    </Link>
                     <span className="text-xs font-normal text-fd-muted-foreground">
                       v{pkg.version}
                     </span>
@@ -39,8 +40,8 @@ export function PackageIndex() {
                     pnpm add {pkg.name}
                   </code>
                   <p className="flex flex-wrap gap-x-4 text-sm">
-                    <a href={pkg.docsUrl}>Docs</a>
-                    <a href={pkg.changelogUrl}>Changelog</a>
+                    <Link href={pkg.docsUrl}>Docs</Link>
+                    <Link href={pkg.changelogUrl}>Changelog</Link>
                     <a href={pkg.npmUrl}>npm</a>
                     <a href={pkg.repoUrl}>Source</a>
                   </p>

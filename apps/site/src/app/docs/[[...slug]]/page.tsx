@@ -1,6 +1,7 @@
 import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "fumadocs-ui/page";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { ComponentMeta } from "@/components/component-meta";
 import { getMDXComponents } from "@/lib/mdx-components";
 import { source } from "@/lib/source";
 
@@ -29,6 +30,9 @@ export default async function Page({ params }: PageProps) {
     >
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
+      {page.data.group && page.data.status && page.data.since ? (
+        <ComponentMeta group={page.data.group} status={page.data.status} since={page.data.since} />
+      ) : null}
       <DocsBody>
         <MDXContent components={getMDXComponents()} />
       </DocsBody>
