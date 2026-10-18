@@ -17,6 +17,8 @@ npm install -D tailwindcss @tailwindcss/cli esbuild typescript @types/react @typ
 
 `@azmr/core` is a peer dependency, so install it yourself: see [Installation](/docs/guide/installation#the-four-steps).
 
+pnpm 10 and newer does not run a package's install script until you approve it, and in CI it reports an unapproved one as an error. Two of these packages have install scripts, `esbuild` and `@parcel/watcher` (used by the Tailwind CLI). Run `pnpm approve-builds` and approve them; the check for this guide approves the same two. npm and Yarn run install scripts without asking.
+
 ## 2. Set up Tailwind CSS v4
 
 Add two scripts that build the stylesheet and the bundle:
