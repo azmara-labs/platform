@@ -33,6 +33,7 @@ export function SiteFooter() {
               {DOCS_LINKS.map((link) => (
                 <li key={link.href}>
                   <Link
+                    prefetch={false}
                     href={link.href}
                     className="text-sm text-fd-muted-foreground transition-colors hover:text-fd-primary"
                   >

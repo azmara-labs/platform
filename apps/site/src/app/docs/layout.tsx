@@ -1,3 +1,4 @@
+import { Toaster } from "@azmr/ui/toast";
 import { DocsLayout } from "fumadocs-ui/layouts/docs";
 import type { ReactNode } from "react";
 import { DocsFooter } from "@/components/docs-footer";
@@ -22,6 +23,8 @@ export default function Layout({ children }: { children: ReactNode }) {
         {children}
       </DocsLayout>
       <DocsFooter />
+      {/* One Toaster for the docs: the toast demos raise toasts into it. */}
+      <Toaster />
     </>
   );
 }
