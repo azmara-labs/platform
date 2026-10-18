@@ -121,6 +121,9 @@ importers:
       '@types/culori':
         specifier: ^4.0.1
         version: 4.0.1
+      '@types/mdast':
+        specifier: ^4.0.4
+        version: 4.0.4
       '@types/mdx':
         specifier: ^2.0.14
         version: 2.0.14
@@ -151,9 +154,21 @@ importers:
       jsdom:
         specifier: ^29.1.1
         version: 29.1.1
+      mdast-util-mdx-jsx:
+        specifier: ^3.2.0
+        version: 3.2.0(supports-color@8.1.1)
       postcss:
         specifier: '>=8.5.10 <9'
         version: 8.5.30
+      remark:
+        specifier: ^15.0.1
+        version: 15.0.1(supports-color@8.1.1)
+      remark-gfm:
+        specifier: ^4.0.1
+        version: 4.0.1(supports-color@8.1.1)
+      remark-mdx:
+        specifier: ^3.1.1
+        version: 3.1.1(supports-color@8.1.1)
       tailwindcss:
         specifier: ^4.3.3
         version: 4.3.3
