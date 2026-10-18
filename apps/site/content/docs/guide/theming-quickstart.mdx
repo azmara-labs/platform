@@ -1,0 +1,72 @@
+---
+title: Theming quickstart
+description: Change the brand colour, density and dark mode in five minutes, then theme one part of a page. The full reference is in Theming.
+---
+
+This page gets you from the default look to your own brand in four small steps. Every step works the same in Next.js, Vite, React Router and plain React; the [install guides](/docs/guide/installation) show where the pieces go. For everything the theme can do, and what it guarantees, see [Theming](/docs/guide/theming). The examples with an `// =>` line on this page are run by the docs tests, so the output shown is what the package returns.
+
+## 1. Change the brand colour
+
+`createTheme` turns a brand colour into the CSS variables the components read:
+
+```ts example=primary result=variables
+import { createTheme } from "@azmr/ui/theme";
+
+const theme = createTheme({ primary: "#7B1FA2" });
+const variables = Object.keys(theme.cssVariables);
+// => ["--primary","--primary-foreground","--ring","--sidebar-primary","--sidebar-primary-foreground","--sidebar-ring"]
+```
+
+One colour sets six variables: the colour itself, the text on it, the focus ring, and the same three for the sidebar. Put them on `<html>` as a `style` attribute and every component follows:
+
+```tsx
+<html lang="en-NZ" style={theme.cssVariables}>
+```
+
+You do not have to pick text colours or check contrast. `createTheme` adjusts the colour until the text on it and the focus ring meet their contrast targets in both light and dark mode, so the result can differ a little from what you typed. See [what it guarantees](/docs/guide/theming#what-it-guarantees).
+
+## 2. Set the density
+
+Density changes control heights, padding and gaps together. It is an attribute, so there is nothing to compute:
+
+```ts example=density result=attributes
+import { htmlAttributes } from "@azmr/ui/theme";
+
+const attributes = htmlAttributes({ density: "compact" });
+// => {"data-density":"compact"}
+```
+
+Spread the result onto `<html>` (`<html {...attributes}>`), or put `data-density="compact"` on any element to change only what is inside it. The values are `compact`, `comfortable` (the default, which needs no attribute) and `spacious`.
+
+## 3. Choose how dark mode works
+
+With nothing set, the page follows the operating system: no attribute, no JavaScript. To force a mode, or to let people choose:
+
+```ts example=dark result=attributes
+const attributes = htmlAttributes({ theme: "dark" });
+// => {"data-theme":"dark"}
+```
+
+To let people choose and remember it, wrap the app in `ThemeProvider` and change the choice with `useTheme()`. The install guide for your framework has the complete files, including how to read the saved choice so a reload keeps it: [Next.js](/docs/guide/install-nextjs#5-add-dark-mode), [Vite](/docs/guide/install-vite#5-add-dark-mode), [React Router](/docs/guide/install-react-router#5-add-dark-mode) or [plain React](/docs/guide/install-react#5-add-dark-mode).
+
+## 4. Theme one part of the page
+
+A theme is only CSS variables, so apply it to an element to theme just what is inside it:
+
+```tsx
+<section style={createTheme({ primary: "#2E7D32" }).cssVariables}>
+  <Button>Place order</Button>
+</section>
+```
+
+This is how to give each customer of a multi-tenant app their own brand colour: the [recipe](/docs/recipes/theme-per-tenant) has a live demo. One thing to know: a scope that sets its own `data-theme` (such as a panel forced to light) re-declares every colour, so put the theme's variables on that same element, not on an ancestor. [Apply the theme](/docs/guide/theming#apply-the-theme) explains why.
+
+## If a value is wrong
+
+`createTheme` checks every option and throws an `Error` that names the one that was wrong, because its output is CSS. Validate anything a user types before it reaches the theme, and show them the message. [Invalid input](/docs/guide/theming#invalid-input) shows what the errors look like.
+
+## Next steps
+
+- [Theming](/docs/guide/theming): every option, dark mode in full, density and reduced motion.
+- [Design tokens](/docs/guide/tokens): every token, with its value in light and dark mode.
+- [Customising components](/docs/guide/customising): change one component without changing the theme.

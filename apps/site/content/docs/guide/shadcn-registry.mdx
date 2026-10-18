@@ -1,0 +1,61 @@
+---
+title: Copy the source with the shadcn CLI
+description: Add @azmr/ui components to a shadcn project as source files you own, with the shadcn CLI and the @azmr registry.
+---
+
+`@azmr/ui` is a package, and it is also published as a **shadcn-compatible registry**. If your project already uses [shadcn/ui](https://ui.shadcn.com), or you would rather own the code than depend on a package, you can copy components straight into your project as ordinary source files.
+
+## Use the package or the registry?
+
+| | The package (`@azmr/ui`) | The registry (`shadcn add @azmr/...`) |
+| --- | --- | --- |
+| What you get | A dependency you import from | Source files copied into your project |
+| Updates | Change the version | You edit or re-add the files yourself |
+| Components | All of them | Only the ones listed below |
+| Customising | Props, `className`, tokens | Edit the file |
+
+Both look the same, because the copied source is generated from the package source with only the import paths rewritten.
+
+## Set it up
+
+In a project that has run `npx shadcn@latest init`, add the `@azmr` namespace to your `components.json`:
+
+```json
+{
+  "registries": {
+    "@azmr": "https://platform.azmara.io/r/{name}.json"
+  }
+}
+```
+
+Then add a component:
+
+```bash
+npx shadcn@latest add @azmr/button
+```
+
+## What it does
+
+`add @azmr/button` copies `button.tsx` and the files it needs (`button-variants.ts` and `spinner.tsx`) into your `components/ui` folder, with the imports rewritten to your own aliases (`@/lib/utils` for `cn`). It installs the dependencies the component uses (`@base-ui/react` and `class-variance-authority`), and it adds the `tokens` item to your global CSS.
+
+The `tokens` item is what makes the components look right in a standard shadcn setup. It adds the density tokens and variants, the motion and elevation tokens, the reduced-motion rules, and colours a standard shadcn setup lacks: `--destructive-foreground`, `--success`, `--warning` and `--info`. It never changes a token you already have, so your palette stays yours.
+
+## What is available
+
+| Item | What it is |
+| --- | --- |
+| `button` | The Button, with its variants and the spinner it needs |
+| `spinner` | The Spinner |
+| `tokens` | The tokens and base rules the components rely on |
+
+Only these three are in the registry so far. The package has every component; the registry grows as more are added to it.
+
+## How this is verified
+
+CI builds the registry, serves it, creates a standard shadcn app with no `@azmr/ui` dependency, runs `shadcn add @azmr/button` against it, and then builds the app and checks the page. It checks that the files and dependencies landed, that no relative import is left, that the Button renders and is busy when loading, that Tailwind generated the Button's classes, and that the tokens were added without changing existing ones. That check uses the shadcn CLI version pinned in the package (4.21.4); `npx shadcn@latest` is not run against it, so a newer CLI is the likeliest source of a surprise. If one appears, [open an issue](https://github.com/azmara-labs/platform/issues).
+
+## Next steps
+
+- [Customising components](/docs/guide/customising): the same four ways to change a component, including copying its source.
+- [Theming quickstart](/docs/guide/theming-quickstart): set your brand colour.
+- [Components](/docs/components): every component and its import path.
