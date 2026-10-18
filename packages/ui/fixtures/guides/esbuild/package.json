@@ -1,0 +1,27 @@
+{
+  "name": "azmr-ui-guide-esbuild",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "The plain React getting-started guide (Tailwind CLI and esbuild, no framework), built against the PACKED @azmr/ui. The guide quotes these files, so they cannot drift. See ../../../scripts/verify-guides.mjs.",
+  "scripts": {
+    "build:css": "tailwindcss --input src/app.css --output dist/app.css",
+    "build:js": "esbuild src/main.tsx --bundle --minify --jsx=automatic --outfile=dist/main.js",
+    "build": "npm run build:css && npm run build:js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@azmr/core": "*",
+    "@azmr/ui": "*",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "esbuild": "^0.28.2",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.7.3"
+  }
+}

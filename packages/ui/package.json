@@ -176,6 +176,7 @@
     "size": "size-limit && node scripts/check-css-size.mjs",
     "verify:consumer": "node scripts/verify-consumer.mjs",
     "build:registry": "node scripts/build-registry.mjs",
+    "verify:guides": "node scripts/verify-guides.mjs",
     "verify:registry": "node scripts/verify-registry.mjs"
   },
   "dependencies": {

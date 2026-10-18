@@ -20,6 +20,7 @@ import remarkMdx from "remark-mdx";
 import { parse as parseYaml } from "yaml";
 import { COMPONENT_GROUPS } from "../src/lib/component-taxonomy";
 import { demoSourcePath, isDemoName } from "../src/lib/demo-name";
+import { fixtureFilePath, fixturesRoot, isFixtureFile, languageOf } from "../src/lib/fixture-file";
 import { markdownUrl } from "../src/lib/markdown-url";
 import { readPackages } from "../src/lib/package-index";
 import { parseLiteral } from "./build-accessibility";
@@ -303,6 +304,16 @@ async function demoCode(node: Jsx, where: string): Promise<Content[]> {
   return [{ type: "code", lang: "tsx", value: source } as Code];
 }
 
+/** A fixture file, with the name a reader should give it, as a code block. */
+async function fixtureCode(node: Jsx, where: string): Promise<Content[]> {
+  const file = attribute(node, "file");
+  if (!file || !isFixtureFile(file))
+    throw new Error(`${where}: unknown fixture file ${String(file)}`);
+  const source = fs.readFileSync(fixtureFilePath(fixturesRoot(SITE_DIR), file), "utf8").trim();
+  const title = attribute(node, "title") ?? file.split("/").slice(1).join("/");
+  return [paragraph(code(title)), { type: "code", lang: languageOf(file), value: source } as Code];
+}
+
 function calloutBlock(node: Jsx, children: Content[]): Content[] {
   const title = attribute(node, "title");
   const label =
@@ -341,6 +352,7 @@ async function replace(node: Content, ctx: RenderContext, where: string): Promis
       const name = node.name ?? "";
       if (DECORATIVE.has(name)) return [];
       if (name === "Demo") return demoCode(node, where);
+      if (name === "FixtureFile") return fixtureCode(node, where);
       if (name === "AutoTypeTable") return propsTables(node, ctx, where);
       if (name === "KeyboardMap") return keyboardTable(node, where);
       if (name === "ComponentIndex") return componentList(ctx);

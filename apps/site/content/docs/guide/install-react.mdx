@@ -1,0 +1,75 @@
+---
+title: Install in plain React
+description: Add @azmr/ui to a React app with no framework, using Tailwind CSS v4's command line tool and esbuild, a first component and dark mode.
+---
+
+This guide adds `@azmr/ui` to a React app with no framework or dev server: Tailwind's command line tool builds the CSS and esbuild builds the JavaScript. It is the smallest setup that works, and the same three steps apply to any bundler (webpack, Parcel, Rspack): run Tailwind v4, import the stylesheet, import the components. If you use Vite, Next.js or React Router, use their guides instead.
+
+## 1. Install
+
+```bash
+pnpm add @azmr/ui @azmr/core react react-dom
+pnpm add -D tailwindcss @tailwindcss/cli esbuild typescript @types/react @types/react-dom
+# or
+npm install @azmr/ui @azmr/core react react-dom
+npm install -D tailwindcss @tailwindcss/cli esbuild typescript @types/react @types/react-dom
+```
+
+`@azmr/core` is a peer dependency, so install it yourself: see [Installation](/docs/guide/installation#the-four-steps).
+
+pnpm 10 and newer does not run a package's install script until you approve it, and in CI it reports an unapproved one as an error. Two of these packages have install scripts, `esbuild` and `@parcel/watcher` (used by the Tailwind CLI). Run `pnpm approve-builds` and approve them; the check for this guide approves the same two. npm and Yarn run install scripts without asking.
+
+## 2. Set up Tailwind CSS v4
+
+Add two scripts that build the stylesheet and the bundle:
+
+<FixtureFile file="esbuild/package.json" />
+
+If your bundler has a Tailwind v4 plugin or PostCSS support, use that instead of `@tailwindcss/cli`: the stylesheet below is the same.
+
+## 3. Import the stylesheet
+
+In your global CSS, import Tailwind and then the package's stylesheet:
+
+<FixtureFile file="esbuild/src/app.css" />
+
+The page links the built stylesheet and the bundle:
+
+<FixtureFile file="esbuild/index.html" />
+
+## 4. Use a component
+
+The entry file starts the app, and also wraps it in `ThemeProvider` for [step 5](#5-add-dark-mode):
+
+<FixtureFile file="esbuild/src/main.tsx" />
+
+<FixtureFile file="esbuild/src/App.tsx" />
+
+Run `pnpm build`, serve the folder with any static file server, and open `index.html`. You should see a heading, a labelled field and a button, styled with the design tokens.
+
+## 5. Add dark mode
+
+With no setup at all the page already follows the operating system. To let people choose, the entry file above wraps the app in `ThemeProvider`, which remembers a choice in a cookie. The entry file reads that cookie when the page starts, so a reload keeps the choice. A component changes it with `useTheme()`:
+
+<FixtureFile file="esbuild/src/theme-toggle.tsx" />
+
+Density works the same way: `useTheme()` also returns `density` and `setDensity`, with the values `compact`, `comfortable` and `spacious`.
+
+A page that is built in the browser can only apply the saved choice once its JavaScript has run, so someone who chose dark while their system is light may see a brief flash of the light theme first. If that matters, inline the `themeInitScript()` described in [Theming](/docs/guide/theming#remember-the-choice-without-a-flash).
+
+## What was tested
+
+The files above are the files of an app that CI builds. On every change it packs `@azmr/ui` into a tarball, installs it into that app, type-checks and builds it, and checks that:
+
+- Tailwind found the package's classes inside `node_modules`, with nothing added to the config;
+- the colour tokens are in the built stylesheet;
+- the built bundle contains the app and the Button, and reads the saved theme cookie.
+
+Bundlers other than esbuild are not built in CI. The package ships standard ES modules and a plain stylesheet, so nothing here is specific to esbuild, but only the setups with a guide are tested.
+
+## Next steps
+
+- [Theming](/docs/guide/theming): change the brand colour, density and dark mode.
+- [Components](/docs/components): every component, with live demos.
+- [Examples](/docs/examples): complete screens to copy.
+- [Tailwind CSS setup](/docs/guide/tailwind): what the package needs from Tailwind.

@@ -1,0 +1,64 @@
+---
+title: Install in React Router
+description: Add @azmr/ui to a React Router app in framework mode (the successor to Remix) with Tailwind CSS v4, a first component and dark mode.
+---
+
+This guide adds `@azmr/ui` to a React Router app in framework mode, which is the successor to Remix and is built with Vite. It takes about five minutes. If you do not have an app yet, create one with `npx create-react-router@latest my-app`; everything below is what you add or change. For a Remix v2 app, upgrade to React Router first.
+
+## 1. Install
+
+```bash
+pnpm add @azmr/ui @azmr/core
+# or
+npm install @azmr/ui @azmr/core
+```
+
+`react`, `react-dom` and `react-router` are already in your app. `@azmr/core` is a peer dependency, so install it yourself: see [Installation](/docs/guide/installation#the-four-steps).
+
+## 2. Set up Tailwind CSS v4
+
+The React Router template already uses Tailwind's Vite plugin. If yours does not, install it (`pnpm add -D tailwindcss @tailwindcss/vite`) and add it to the Vite config:
+
+<FixtureFile file="react-router/vite.config.ts" />
+
+## 3. Import the stylesheet
+
+In your global CSS, import Tailwind and then the package's stylesheet:
+
+<FixtureFile file="react-router/app/app.css" />
+
+Load it once in the root route. The root below also sets up dark mode, explained in [step 5](#5-add-dark-mode):
+
+<FixtureFile file="react-router/app/root.tsx" />
+
+## 4. Use a component
+
+A route is an ordinary React component, so use `@azmr/ui` in it directly:
+
+<FixtureFile file="react-router/app/routes/home.tsx" />
+
+Run `pnpm dev` and open the page. You should see a heading, a labelled field and a button, styled with the design tokens. The page is rendered on the server and hydrated in the browser, and the components work in both.
+
+## 5. Add dark mode
+
+With no setup at all the page already follows the operating system. To let people choose, the root above reads a saved choice from the cookie in its `loader` and renders it onto `<html>`, so the first paint is already in the right mode. It also wraps the routes in `ThemeProvider`, which remembers a new choice in the cookie. A component changes it with `useTheme()`:
+
+<FixtureFile file="react-router/app/theme-toggle.tsx" />
+
+Density works the same way: `useTheme()` also returns `density` and `setDensity`, with the values `compact`, `comfortable` and `spacious`.
+
+## What was tested
+
+The files above are the files of an app that CI builds. On every change it packs `@azmr/ui` into a tarball, installs it into that app, type-checks (including React Router's generated route types) and builds it, starts the server and checks that:
+
+- the page renders the Button and the label on the server;
+- Tailwind found the package's classes inside `node_modules`, with nothing added to the config;
+- the colour tokens are in the stylesheet;
+- a `dark` cookie renders `data-theme="dark"` on `<html>`, and no cookie renders no attribute.
+
+## Next steps
+
+- [Theming](/docs/guide/theming): change the brand colour, density and dark mode.
+- [Components](/docs/components): every component, with live demos.
+- [Examples](/docs/examples): complete screens to copy.
+- [Tailwind CSS setup](/docs/guide/tailwind): what the package needs from Tailwind.

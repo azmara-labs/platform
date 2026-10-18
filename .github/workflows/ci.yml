@@ -49,6 +49,9 @@ jobs:
       - name: Registry fixture (shadcn add @azmr/button into a standard shadcn app)
         run: pnpm --filter @azmr/ui verify:registry
 
+      - name: Getting-started guides (Next.js, Vite, React Router and plain React, each built against the packed package)
+        run: pnpm --filter @azmr/ui verify:guides
+
       - name: Run tests with coverage
         run: pnpm test:coverage
 

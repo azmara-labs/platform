@@ -1,0 +1,63 @@
+---
+title: Install in Vite
+description: Add @azmr/ui to a Vite React app with Tailwind CSS v4's Vite plugin, a first component and dark mode.
+---
+
+This guide adds `@azmr/ui` to a React app built with Vite. It takes about five minutes. If you do not have an app yet, create one with `npm create vite@latest my-app -- --template react-ts`; everything below is what you add or change.
+
+## 1. Install
+
+```bash
+pnpm add @azmr/ui @azmr/core
+# or
+npm install @azmr/ui @azmr/core
+```
+
+`react` and `react-dom` are already in your app. `@azmr/core` is a peer dependency, so install it yourself: see [Installation](/docs/guide/installation#the-four-steps).
+
+## 2. Set up Tailwind CSS v4
+
+Tailwind v4 has a Vite plugin. Install it (`pnpm add -D tailwindcss @tailwindcss/vite`) and add it to your Vite config:
+
+<FixtureFile file="vite/vite.config.ts" />
+
+## 3. Import the stylesheet
+
+In your global CSS, import Tailwind and then the package's stylesheet:
+
+<FixtureFile file="vite/src/index.css" />
+
+Load it once, where your app starts. The entry file below also sets up dark mode, explained in [step 5](#5-add-dark-mode):
+
+<FixtureFile file="vite/src/main.tsx" />
+
+## 4. Use a component
+
+<FixtureFile file="vite/src/App.tsx" />
+
+Run `pnpm dev` and open the page. You should see a heading, a labelled field and a button, styled with the design tokens.
+
+## 5. Add dark mode
+
+With no setup at all the page already follows the operating system. To let people choose, the entry file above wraps the app in `ThemeProvider`, which remembers a choice in a cookie. The entry file reads that cookie when the page starts, so a reload keeps the choice. A component changes it with `useTheme()`:
+
+<FixtureFile file="vite/src/theme-toggle.tsx" />
+
+Density works the same way: `useTheme()` also returns `density` and `setDensity`, with the values `compact`, `comfortable` and `spacious`.
+
+A page that is built in the browser can only apply the saved choice once its JavaScript has run, so someone who chose dark while their system is light may see a brief flash of the light theme first. If that matters, inline the `themeInitScript()` described in [Theming](/docs/guide/theming#remember-the-choice-without-a-flash).
+
+## What was tested
+
+The files above are the files of an app that CI builds. On every change it packs `@azmr/ui` into a tarball, installs it into that app, type-checks and builds it, and checks that:
+
+- Tailwind found the package's classes inside `node_modules`, with nothing added to the config;
+- the colour tokens are in the built stylesheet;
+- the built bundle contains the app and the Button, and reads the saved theme cookie.
+
+## Next steps
+
+- [Theming](/docs/guide/theming): change the brand colour, density and dark mode.
+- [Components](/docs/components): every component, with live demos.
+- [Examples](/docs/examples): complete screens to copy.
+- [Tailwind CSS setup](/docs/guide/tailwind): what the package needs from Tailwind.

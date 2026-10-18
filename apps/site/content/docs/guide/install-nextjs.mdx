@@ -1,0 +1,70 @@
+---
+title: Install in Next.js
+description: Add @azmr/ui to a Next.js App Router app with Tailwind CSS v4, a first component and dark mode, and see which parts are Server Components.
+---
+
+This guide adds `@azmr/ui` to a Next.js app that uses the App Router. It takes about five minutes. If you do not have an app yet, create one with `npx create-next-app@latest` and answer yes to TypeScript, Tailwind CSS and the App Router; everything below is what you add or change.
+
+## 1. Install
+
+```bash
+pnpm add @azmr/ui @azmr/core
+# or
+npm install @azmr/ui @azmr/core
+```
+
+`next`, `react` and `react-dom` are already in your app. `@azmr/core` is a peer dependency, so install it yourself: see [Installation](/docs/guide/installation#the-four-steps).
+
+## 2. Set up Tailwind CSS v4
+
+Tailwind v4 runs through PostCSS in Next.js. Install it if `create-next-app` did not (`pnpm add -D tailwindcss @tailwindcss/postcss postcss`), then use its plugin:
+
+<FixtureFile file="next/postcss.config.mjs" />
+
+## 3. Import the stylesheet
+
+In your global CSS, import Tailwind and then the package's stylesheet:
+
+<FixtureFile file="next/app/globals.css" />
+
+Then load that file once, in the root layout. The layout below also sets up dark mode, which is explained in [step 5](#5-add-dark-mode):
+
+<FixtureFile file="next/app/layout.tsx" />
+
+## 4. Use a component
+
+A page in the App Router is a Server Component, and it can render `@azmr/ui` components directly:
+
+<FixtureFile file="next/app/page.tsx" />
+
+Run `pnpm dev` and open the page. You should see a heading, a labelled field and a button, styled with the design tokens.
+
+### Server Components and client components
+
+`Button` and `Input` handle clicks and focus, so they are client components. You do not need to mark your own file `"use client"` to use them: the package marks its client entries itself, so a Server Component may import and render them. Some entries, such as `Spinner`, `Icon` and the layout components, have no client code at all and render on the server.
+
+One rule matters: **a Server Component cannot pass a function to a client component.** An `onClick` on the `Button` above would make the page fail when it renders (`Event handlers cannot be passed to Client Component props`), and TypeScript does not warn you. Move the interactive part into a small component marked `"use client"`, as `ThemeToggle` is below. The [Server Components guide](/docs/guide/server-components) lists which entries are which, with the rule in full.
+
+## 5. Add dark mode
+
+With no setup at all the page already follows the operating system. To let people choose, the layout above reads a saved choice from a cookie on the server and renders it onto `<html>`, so the first paint is already in the right mode. `ThemeProvider` keeps the choice and writes the cookie. A client component changes it with `useTheme()`:
+
+<FixtureFile file="next/app/theme-toggle.tsx" />
+
+Density works the same way: `useTheme()` also returns `density` and `setDensity`, with the values `compact`, `comfortable` and `spacious`.
+
+## What was tested
+
+The files above are the files of an app that CI builds. On every change it packs `@azmr/ui` into a tarball, installs it into that app, type-checks and builds it, starts the server and checks that:
+
+- the page renders the Button and the label on the server;
+- Tailwind found the package's classes inside `node_modules`, with nothing added to the config;
+- the colour tokens are in the stylesheet;
+- a `dark` cookie renders `data-theme="dark"` on `<html>`, and no cookie renders no attribute.
+
+## Next steps
+
+- [Theming](/docs/guide/theming): change the brand colour, density and dark mode.
+- [Components](/docs/components): every component, with live demos.
+- [Examples](/docs/examples): complete screens to copy.
+- [Tailwind CSS setup](/docs/guide/tailwind): what the package needs from Tailwind.
