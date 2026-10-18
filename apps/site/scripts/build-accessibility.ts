@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseExpressionAt } from "acorn";
+import { type AnyNode, parseExpressionAt } from "acorn";
 import { parse as parseYaml } from "yaml";
 import { COMPONENT_GROUPS } from "../src/lib/component-taxonomy";
 
@@ -37,47 +37,49 @@ export interface ComponentAccessibility {
  * an error, so a page can never run code at build time.
  */
 export function parseLiteral(source: string): unknown {
-  const root = parseExpressionAt(source.trim(), 0, { ecmaVersion: "latest" });
-  const read = (node: { type: string } & Record<string, unknown>): unknown => {
+  const read = (node: AnyNode): unknown => {
     switch (node.type) {
-      case "Literal":
-        if (
-          (node as { regex?: unknown }).regex ||
-          typeof (node as { value: unknown }).value === "bigint"
-        ) {
+      case "Literal": {
+        if ("regex" in node || "bigint" in node) {
           throw new Error("a KeyboardMap may only contain plain values");
         }
-        return (node as { value: unknown }).value;
-      case "TemplateLiteral": {
-        const t = node as unknown as {
-          expressions: unknown[];
-          quasis: { value: { cooked: string } }[];
-        };
-        if (t.expressions.length > 0)
-          throw new Error("a KeyboardMap may not use template expressions");
-        return t.quasis[0]?.value.cooked ?? "";
+        return node.value;
       }
+      case "TemplateLiteral":
+        if (node.expressions.length > 0) {
+          throw new Error("a KeyboardMap may not use template expressions");
+        }
+        return node.quasis[0]?.value.cooked ?? "";
       case "ArrayExpression":
-        return (node as unknown as { elements: ({ type: string } | null)[] }).elements.map((e) => {
-          if (!e) throw new Error("a KeyboardMap may not have holes");
-          return read(e as { type: string } & Record<string, unknown>);
+        return node.elements.map((element) => {
+          if (!element || element.type === "SpreadElement") {
+            throw new Error("a KeyboardMap may only contain plain items");
+          }
+          return read(element);
         });
       case "ObjectExpression": {
         const out: Record<string, unknown> = {};
-        for (const p of (node as unknown as { properties: Record<string, unknown>[] }).properties) {
-          if (p.type !== "Property" || p.computed || p.kind !== "init" || p.method || p.shorthand) {
+        for (const property of node.properties) {
+          if (
+            property.type !== "Property" ||
+            property.computed ||
+            property.kind !== "init" ||
+            property.method ||
+            property.shorthand
+          ) {
             throw new Error("a KeyboardMap may only have plain key: value properties");
           }
-          const key = p.key as { type: string; name?: string; value?: unknown };
+          const key = property.key;
           const name =
             key.type === "Identifier"
               ? key.name
               : key.type === "Literal"
                 ? String(key.value)
                 : undefined;
-          if (name === undefined || name === "__proto__")
+          if (name === undefined || name === "__proto__") {
             throw new Error("a KeyboardMap has an unsupported key");
-          out[name] = read(p.value as { type: string } & Record<string, unknown>);
+          }
+          out[name] = read(property.value);
         }
         return out;
       }
@@ -85,7 +87,7 @@ export function parseLiteral(source: string): unknown {
         throw new Error(`a KeyboardMap may only contain literals, found ${node.type}`);
     }
   };
-  return read(root as unknown as { type: string } & Record<string, unknown>);
+  return read(parseExpressionAt(source.trim(), 0, { ecmaVersion: "latest" }));
 }
 
 /** Every `<KeyboardMap rows={[...]} />` in a page, with the heading it sits under. */
