@@ -1,0 +1,27 @@
+---
+title: Show a toast while a promise runs
+description: Report the loading, success and failure of one async call with toast.promise.
+---
+
+Pass the promise to `toast.promise` with a message for each outcome. One toast moves from loading to success or error, so nothing stacks up.
+
+<Demo name="toast/promise" />
+
+## The pattern
+
+```tsx
+import { toast } from "@azmr/ui/toast";
+
+toast.promise(save(), {
+  loading: "Saving…",
+  success: (rows) => `Saved ${rows} rows`,
+  error: (e: Error) => `Could not save: ${e.message}`,
+});
+```
+
+- `success` and `error` can be a string or a function of the resolved value or the error.
+- A rejected promise is still rejected for you: `toast.promise` returns the promise, so catch it (`.catch(() => {})`) if you have nothing more to do, as the failing button above does.
+- Toasts are announced by a polite live region and do not move focus, so the person keeps typing.
+- Mount one [`Toaster`](/docs/components/toast) near the root of the app. Toasts show for a few seconds, so use one only for something that needs no decision. If the person has to choose, use a dialog.
+
+For a toast with an action, such as Undo, see the [confirm-delete example](/docs/examples/confirm-delete-flow).

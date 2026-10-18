@@ -43,6 +43,10 @@ Each step's state is also written in text for screen readers ("Completed", "Curr
 export type StepperDocProps = Pick<StepperProps, "steps" | "current" | "orientation" | "label" | "statusLabels">`}
 />
 
+## In an example
+
+The [onboarding wizard](/docs/examples/onboarding-wizard) drives a stepper from a form, with focus moving to each new step.
+
 ## Accessibility
 
 - An ordered list named "Progress" (rename it with `label`).

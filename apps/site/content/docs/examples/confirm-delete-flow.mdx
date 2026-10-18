@@ -1,0 +1,24 @@
+---
+title: Confirm-delete flow
+description: A menu that opens a confirmation, then a toast with Undo, with the dialog kept next to the menu so it survives it closing.
+---
+
+Deleting is the flow that most needs care. This one asks, says what will be lost, does it and offers to take it back.
+
+<Demo name="examples/confirm-delete-flow" />
+
+## What it shows
+
+- **A [menu](/docs/components/menu) item that opens a dialog.** The dialog is controlled and sits next to the menu, not inside it. Opening it from the item's `onClick` means it is still there when the menu closes. This is the same pattern as the [recipe](/docs/recipes/menu-opens-dialog).
+- **Safe focus.** An [alert dialog](/docs/components/modal) starts focus on its cancel button ("Keep it"), so pressing Enter by reflex cannot delete anything. Escape cancels.
+- **Say what is being deleted.** The title names the file, because "Delete this item?" is meaningless to a screen reader user who has lost track of which row they were on.
+- **An undo that does not stack.** The [toast](/docs/components/toast) has an Undo action and a stable `id`, so deleting the same file twice replaces the toast. Undo puts the file back where it was.
+- **Focus after the row is gone.** The row that opened the menu no longer exists, so the example moves focus to the list. Without that, focus would fall back to the page.
+
+## Try it
+
+Open the menu on a file with the keyboard (Tab to its button, then Enter), choose Delete…, confirm, and note where focus is. Then use Undo in the toast.
+
+## Limits
+
+Undo works while the toast is visible. A real app should also delay the server call until then, or support restoring a deleted item, because a toast is easy to miss.

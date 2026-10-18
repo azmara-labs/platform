@@ -68,6 +68,10 @@ export type StackDocProps = Pick<StackProps, "direction" | "gap" | "align" | "ju
 export type GridDocProps = Pick<GridProps, "cols" | "minItemWidth" | "gap" | "align" | "justify" | "as" | "children">`}
 />
 
+## In an example
+
+The [dashboard shell example](/docs/examples/dashboard-shell) uses `Grid` to lay out stat cards inside an app frame.
+
 ## Accessibility
 
 - Layout components render no roles of their own; pass `as` for a landmark (`main`, `nav`, `aside`, `header`, `footer`, `section`) so the page has a real structure.

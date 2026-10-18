@@ -1,0 +1,101 @@
+# @azmr/db-supabase
+
+> A DbAdapter backed by Supabase's PostgREST query builder, the cloud counterpart to the SQLite adapter in @azmr/db.
+
+Source: https://platform.azmara.io/docs/packages/db-supabase
+
+`@azmr/db-supabase` implements the same [`DbAdapter`](https://platform.azmara.io/docs/packages/db-core-interface.md) interface as [`@azmr/db`](https://platform.azmara.io/docs/packages/db.md)'s `SQLiteAdapter`, but stores data in Supabase (Postgres). Code written against `DbAdapter` runs against either backend without changes.
+
+## Installation
+
+```bash
+pnpm add @azmr/db-supabase @supabase/supabase-js
+```
+
+`@supabase/supabase-js` is a peer dependency: bring your own client, so you keep full control over auth, session and cookie wiring (for example `@supabase/ssr`'s browser and server client constructors).
+
+## Usage
+
+```typescript
+import { createClient } from "@supabase/supabase-js";
+import { SupabaseAdapter } from "@azmr/db-supabase";
+
+const client = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_KEY!);
+const db = new SupabaseAdapter(client);
+
+await db.insert("products", { name: "Widget A", price: 9.99 });
+
+const inStock = await db.findWhere("products", [
+  { column: "inStock", operator: "is", value: true },
+]);
+```
+
+Row Level Security is enforced by whatever JWT the `SupabaseClient` you pass in carries. This package never constructs its own client and never bypasses that.
+
+## What is different from SQLiteAdapter
+
+- **Async throughout.** Every method returns a `Promise`, because PostgREST is a network call.
+- **No `rawSelect`.** PostgREST does not accept arbitrary SQL. Use `findWhere` with a structured filter instead.
+- **`createTable` always throws.** PostgREST cannot run DDL, so this package is bring-your-own-schema: manage tables with the Supabase SQL editor, CLI migrations or the dashboard.
+
+```ts
+import { SupabaseAdapter } from "@azmr/db-supabase";
+
+// `client` is your SupabaseClient. This call never reaches it.
+const db = new SupabaseAdapter(client);
+
+let message;
+try {
+  await db.createTable("products", { name: "string" });
+} catch (error) {
+  message = error.message;
+}
+// => "[azmara/db-supabase] createTable(\"products\") is not supported — PostgREST cannot execute DDL. Create/manage this table via the Supabase SQL editor, CLI migrations, or dashboard."
+```
+
+## Errors
+
+Every `{ data, error }` result from `supabase-js` is checked. On failure the adapter throws a `DbAdapterError` that carries the original Postgres error's `code`, `details` and `hint`, with the raw error as `cause`. Nothing is swallowed.
+
+Because the adapter only calls the client you give it, you can test code that uses it with a stub. This one fails the way Postgres does when a policy denies a read:
+
+```ts
+const denied = { message: "boom", code: "42501", details: "d", hint: "h" };
+const failing = new SupabaseAdapter({
+  from: () => ({ select: () => Promise.resolve({ data: null, error: denied }) }),
+});
+
+let fields;
+try {
+  await failing.getAll("products");
+} catch (error) {
+  fields = { name: error.name, message: error.message, code: error.code, details: error.details, hint: error.hint };
+}
+// => {"name":"DbAdapterError","message":"[azmara/db-supabase] getAll(\"products\") failed: boom","code":"42501","details":"d","hint":"h"}
+```
+
+## Filters
+
+`findWhere` and `deleteWhere` take a `Filter`: a list of conditions that are combined with AND. There is no OR yet.
+
+```typescript
+type Filter = Array<{
+  column: string;
+  operator: "eq" | "neq" | "gt" | "gte" | "lt" | "lte" | "like" | "ilike" | "is" | "in";
+  value: unknown;
+}>;
+```
+
+See [`@azmr/db-core-interface`](https://platform.azmara.io/docs/packages/db-core-interface.md) for what each operator expects.
+
+## Runtime footprint
+
+`@azmr/db-supabase` depends on [`@azmr/db-core-interface`](https://platform.azmara.io/docs/packages/db-core-interface.md) (the contract) and `@azmr/security`, and **not** on `@azmr/db`. Installing it does not install `better-sqlite3` or any other native module, so it is safe to bundle into serverless and edge runtimes (Vercel, Next.js server components and actions, Cloudflare Workers).
+
+Versions 0.2.1 and earlier depended on `@azmr/db` for the interface, which installed `better-sqlite3` even though it was never loaded.
+
+## Requirements
+
+- Node.js 18 or later
+- `@supabase/supabase-js` ^2.103.0
+- ESM only: `require("@azmr/db-supabase")` does not work; use `import`.

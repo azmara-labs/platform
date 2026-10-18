@@ -1,0 +1,25 @@
+---
+title: Settings page
+description: A form that validates on submit, moves focus to the first problem, and saves with a toast.
+---
+
+An account settings screen: three text fields, a group of notification toggles and a Save button.
+
+<Demo name="examples/settings-page" />
+
+## What it shows
+
+- **Validation on submit.** Nothing is flagged while someone is still typing. Pressing Save checks every field, shows all the problems at once and moves focus to the first invalid field.
+- **Each message is tied to its field.** An invalid [Input](/docs/components/input) gets `aria-invalid="true"` and `aria-describedby` pointing at its message, so a screen reader reads the problem with the field. A summary [Alert](/docs/components/display) says how many fields need fixing.
+- **A saving state that cannot be double-clicked.** The [Button](/docs/components/button) uses `loading`, which keeps keyboard focus and ignores a second activation, and [`toast.promise`](/docs/components/toast) reports the result without moving focus.
+- **A labelled group.** The notification choices are in a `fieldset` with a `legend`, so they are announced as one group.
+
+## Try it
+
+1. Clear the name and press Save: focus lands on the name field and its message is read out.
+2. Type `aroha@` in the email and press Save: the email is flagged and the name is not.
+3. Fix both and press Save: the button shows a spinner, then a toast confirms.
+
+## Limits
+
+The notification toggles keep their own state and are not read on save; in a real form, hold their values in state next to the text fields. The save is a timer standing in for a request.

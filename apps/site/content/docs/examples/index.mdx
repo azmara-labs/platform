@@ -1,0 +1,24 @@
+---
+title: Examples
+description: Five complete screens built only from @azmr/ui, each live, keyboard-tested and with its full source.
+---
+
+A component page shows one component. These pages show how they fit together: a form, a table, an app shell, a destructive action and a multi-step flow. Each is a real component you can copy into an app. Every example is rendered and checked with axe by the docs tests, so none of them can quietly break.
+
+| Example | What it shows | Built from |
+| --- | --- | --- |
+| [Settings page](/docs/examples/settings-page) | A form that validates on submit, moves focus to the first problem and saves with a toast. | Card, Input, Toggle, Alert, Button, toast |
+| [Data table page](/docs/examples/data-table-page) | Search, sortable columns, row actions, paging and an empty state. | Table, Pagination, Input, DropdownMenu, EmptyState |
+| [Dashboard shell](/docs/examples/dashboard-shell) | Navigation, a top bar with a user menu, stat cards with a loading state, and tabs. | Layout, Breadcrumbs, Tabs, Avatar, Progress, Skeleton |
+| [Confirm-delete flow](/docs/examples/confirm-delete-flow) | A menu that opens a confirmation, then a toast with Undo. | DropdownMenu, AlertDialog, toast |
+| [Onboarding wizard](/docs/examples/onboarding-wizard) | A step-by-step form with a progress indicator and focus that follows the step. | Stepper, Input, ToggleGroup, Card |
+
+## How to read them
+
+Each page has the live example, the source under it, what the example is demonstrating and the choices that matter for accessibility. The source imports only from `@azmr/ui`, `react` and `lucide-react`, so you can paste it into an app that has [installed the package](/docs/components#set-up).
+
+Use the preview switches above each example to see it in light and dark and at each density. For the smaller, single-purpose patterns, see the [recipes](/docs/recipes).
+
+## What the examples do not cover
+
+`@azmr/ui` has no select, checkbox, radio, switch or textarea yet, so the forms here use the text input and toggle buttons. They are not wired to a server or a form library: the save is a timer. Where an example stands in for something real, the page says so.

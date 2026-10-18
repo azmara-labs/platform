@@ -1,0 +1,20 @@
+---
+title: Validate a form
+description: Show an error next to a field in a way a screen reader hears, and put focus on the field that needs fixing.
+---
+
+Validate when the form is submitted, show each message next to its field, and move focus to the first field with a problem.
+
+<Demo name="recipes/form-validation" />
+
+## The pattern
+
+1. Put `noValidate` on the `form`, so the browser's own pop-ups do not compete with yours.
+2. On submit, call `preventDefault()`, check the values and store a message for each problem.
+3. For an invalid [Input](/docs/components/input), set `aria-invalid="true"` and `aria-describedby` to the id of its message. Only set them while there is an error.
+4. Move focus to the first invalid field. A keyboard user is left exactly where the problem is, and a screen reader reads the label, the state and the message.
+5. Write the message as the fix ("Enter an email address like aroha@example.co.nz."), not the rule ("Invalid format").
+
+Do not rely on colour. The red border is a reinforcement: `aria-invalid` and the text carry the meaning.
+
+For a whole form with several fields, an error summary and a saving state, see the [settings page example](/docs/examples/settings-page).

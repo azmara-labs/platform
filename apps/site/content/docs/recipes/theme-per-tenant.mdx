@@ -1,0 +1,30 @@
+---
+title: Give each tenant its own theme
+description: Apply a brand colour from data to one part of a page, with text colours that stay readable.
+---
+
+Compute a theme from the tenant's settings and put its variables on the element that should be themed. Everything inside follows, and nothing outside changes.
+
+<Demo name="recipes/tenant-theme" />
+
+## The pattern
+
+```ts example=tenant result=differs
+import { createTheme } from "@azmr/ui/theme";
+
+const kauri = createTheme({ primary: "#2E7D32" }).cssVariables["--primary"];
+const harbour = createTheme({ primary: "#1E88E5" }).cssVariables["--primary"];
+const differs = kauri !== harbour;
+// => true
+```
+
+Then apply the variables:
+
+```tsx
+<div style={createTheme({ primary: tenant.primary }).cssVariables}>…</div>
+```
+
+- `createTheme` does not return your colour as given. It adjusts it until the text on it, and the focus ring, meet their contrast targets in light and dark mode, so a tenant who picks a hard-to-read brand colour still gets a readable interface. The demo's third tenant is a bright yellow and gets dark text on its buttons. See [what it guarantees](/docs/guide/theming#what-it-guarantees).
+- It throws an error that names the option when a value is not a valid colour, so validate what a tenant types before it reaches the page, and show them the message.
+- Put the variables on the element, not only on `<html>`: a scope that sets its own `data-theme` re-declares every colour, so variables set outside it do not reach inside. See [Apply the theme](/docs/guide/theming#apply-the-theme).
+- For the whole app, apply the theme to `<html>`, and do it on the server so the first paint is already right.
