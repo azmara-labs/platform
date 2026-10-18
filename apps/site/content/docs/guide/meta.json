@@ -4,6 +4,11 @@
     "---Getting Started---",
     "introduction",
     "installation",
+    "install-nextjs",
+    "install-vite",
+    "install-react-router",
+    "install-react",
+    "server-components",
     "playground",
     "---Concepts---",
     "reactivity",
@@ -14,6 +19,8 @@
     "customising",
     "tokens",
     "accessibility",
-    "accessibility-reference"
+    "accessibility-reference",
+    "---Contributing---",
+    "monorepo-setup"
   ]
 }

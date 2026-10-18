@@ -1,0 +1,28 @@
+{
+  "name": "azmr-ui-guide-next",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "The Next.js getting-started guide, built against the PACKED @azmr/ui. The guide quotes these files, so they cannot drift. See ../../../scripts/verify-guides.mjs.",
+  "scripts": {
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@azmr/core": "*",
+    "@azmr/ui": "*",
+    "next": "^16.3.1",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^26.1.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "postcss": "^8.5.30",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.7.3"
+  }
+}

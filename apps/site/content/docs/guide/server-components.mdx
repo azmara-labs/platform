@@ -1,0 +1,112 @@
+---
+title: Server Components
+description: Which @azmr/ui entries are client components and which are server-safe, and the one rule for passing props from a Server Component.
+---
+
+In a framework with React Server Components, such as the Next.js App Router, every component is either a Server Component (it runs only on the server) or a client component (it also runs in the browser, and can hold state and handle events). `@azmr/ui` marks this for you, so you can import any of it from a Server Component without adding `"use client"` yourself. This page says which entries are which, and the one rule you have to follow.
+
+## The three kinds of entry
+
+Each [component page](/docs/components) shows its import path. Every entry belongs to one of three groups.
+
+### Client entries
+
+These components keep state or handle events, so they carry `"use client"` on their own entry. A Server Component can import and render them; they run on the client from that point down.
+
+| Import path |
+| --- |
+| `@azmr/ui` |
+| `@azmr/ui/hooks` |
+| `@azmr/ui/react` |
+| `@azmr/ui/button` |
+| `@azmr/ui/input` |
+| `@azmr/ui/scroll-area` |
+| `@azmr/ui/progress` |
+| `@azmr/ui/avatar` |
+| `@azmr/ui/disclosure` |
+| `@azmr/ui/floating` |
+| `@azmr/ui/modal` |
+| `@azmr/ui/menu` |
+| `@azmr/ui/toast` |
+| `@azmr/ui/toggle` |
+| `@azmr/ui/split-button` |
+| `@azmr/ui/transition` |
+| `@azmr/ui/motion` |
+
+### Server-safe components
+
+These have no client code and no hooks, so they render on the server and cost no JavaScript in the browser. They work in client components too.
+
+| Import path |
+| --- |
+| `@azmr/ui/spinner` |
+| `@azmr/ui/icons` |
+| `@azmr/ui/icons/lucide` |
+| `@azmr/ui/typography` |
+| `@azmr/ui/layout` |
+| `@azmr/ui/display` |
+| `@azmr/ui/table` |
+| `@azmr/ui/breadcrumb` |
+| `@azmr/ui/pagination` |
+| `@azmr/ui/stepper` |
+| `@azmr/ui/presets` |
+
+### Server-safe modules
+
+These are plain functions with no React rendering and no browser globals, so they work anywhere: Server Components, layouts, route handlers and middleware.
+
+| Import path | What it is |
+| --- | --- |
+| `@azmr/ui/lib` | Helpers such as `cn` |
+| `@azmr/ui/theme` | `createTheme`, the cookie helpers and `htmlAttributes` |
+| `@azmr/ui/icons/mui-map` | Migration map from MUI icon names |
+| `@azmr/ui/typography/mui-map` | Migration map from MUI typography variants |
+| `@azmr/ui/layout/mui-map` | Migration map from MUI layout props |
+
+Import from the entry you need (`@azmr/ui/button`) rather than the package root. Each entry is small, and a bundler only includes what you import.
+
+## The rule: do not pass functions from a Server Component
+
+A Server Component can pass **data and elements** to a client component. It cannot pass a **function**, because a function cannot be sent from the server to the browser.
+
+```tsx
+// app/page.tsx, a Server Component
+import { Button, IconButton } from "@azmr/ui/button";
+import { Icon } from "@azmr/ui/icons";
+import { Plus } from "lucide-react";
+
+export default function Page() {
+  return (
+    <>
+      {/* Fine: strings, and elements (JSX) are data. */}
+      <IconButton icon={<Icon icon={Plus} />} label="Add item" />
+      <Button startIcon={<Icon icon={Plus} />}>New</Button>
+      <Button render={<a href="/docs" />} nativeButton={false}>Docs</Button>
+
+      {/* Fails when the page renders: a function cannot cross the boundary. */}
+      <Button onClick={() => console.log("hi")}>Say hello</Button>
+    </>
+  );
+}
+```
+
+The last line fails when the page is rendered with the error `Event handlers cannot be passed to Client Component props`. TypeScript does not warn you, and `next build` can succeed on a page that renders on request, so the failure appears when someone visits it. The same applies to any prop that takes a function: `onClick`, `onValueChange`, a render callback.
+
+The fix is to move the interactive part into a small component of your own marked `"use client"`, and render that from the Server Component:
+
+```tsx
+// app/save-button.tsx
+"use client";
+
+import { Button } from "@azmr/ui/button";
+
+export function SaveButton() {
+  return <Button onClick={() => console.log("saving")}>Save</Button>;
+}
+```
+
+That is why `@azmr/ui` takes elements where it could take a component function: `IconButton icon={<Icon icon={Plus} />}`, `startIcon`, and `render={<a />}`. An element is data, so it crosses the boundary. `Icon` itself takes the icon component (`<Icon icon={Plus} />`), which is fine because `Icon` is a server-safe component: both sides run on the server.
+
+## Check it yourself
+
+The [Next.js guide](/docs/guide/install-nextjs) builds a Server Component page that renders `Button` and `Input`, and CI checks that the page renders. If a component you add is a client component and your build complains about hooks or `createContext` in a Server Component, the entry is missing its `"use client"`: that is a bug in the package, so [open an issue](https://github.com/azmara-labs/platform/issues).

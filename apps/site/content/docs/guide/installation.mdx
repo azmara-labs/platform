@@ -1,59 +1,60 @@
 ---
 title: Installation
-description: Set up the Azmara Platform monorepo locally.
+description: Add @azmr/ui to a React app in four steps, then follow the guide for your framework, whether Next.js, Vite, React Router or plain React.
 ---
 
-## Prerequisites
+`@azmr/ui` is a React component library styled with Tailwind CSS v4. Adding it to an app is the same four steps in every framework. What differs is how each one runs Tailwind, so there is a guide for each.
 
-- Node.js >= 20.0.0
-- pnpm >= 9.0.0
-- **For `@azmr/ai`**: Visual Studio 2022 with "Desktop development with C++" workload
+## Pick your framework
 
-## Clone & install
+| Your app uses | Guide |
+| --- | --- |
+| Next.js (App Router) | [Install in Next.js](/docs/guide/install-nextjs) |
+| Vite | [Install in Vite](/docs/guide/install-vite) |
+| React Router (framework mode, the successor to Remix) | [Install in React Router](/docs/guide/install-react-router) |
+| React with another bundler, or none of the above | [Install in plain React](/docs/guide/install-react) |
 
-```bash
-git clone https://github.com/azmara-labs/platform.git
-cd platform
-pnpm install
-```
+If you would rather own the code than depend on a package, copy the components with the shadcn CLI. See [Or copy the source with the shadcn CLI](/docs/components#or-copy-the-source-with-the-shadcn-cli).
 
-## Environment setup
+## The four steps
 
-```bash
-cp .env.example .env
-```
+1. **Install the packages.** `@azmr/ui` and `@azmr/core` together with React:
 
-Fill in the required values:
+   ```bash
+   pnpm add @azmr/ui @azmr/core react react-dom
+   # or
+   npm install @azmr/ui @azmr/core react react-dom
+   ```
 
-```bash
-# Generate an encryption key
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-```
+   `@azmr/core` is a **peer dependency**. Install it yourself so your app and `@azmr/ui` share one copy: two copies give incompatible `Signal` types. `motion` is an optional peer, needed only for the [`@azmr/ui/motion`](/docs/components/motion) entry.
 
-## Build all packages
+2. **Set up Tailwind CSS v4** with your framework's plugin. `@azmr/ui` does not install Tailwind for you. See [Tailwind CSS setup](/docs/guide/tailwind) for what it needs and why.
 
-```bash
-pnpm build
-```
+3. **Import the stylesheet** after Tailwind, in your global CSS:
 
-## Try the playground
+   ```css
+   @import "tailwindcss";
+   @import "@azmr/ui/styles.css";
+   ```
 
-```bash
-pnpm --filter @azmr/site dev
-```
+   You add nothing to a Tailwind config: the stylesheet tells Tailwind where the package's classes are.
 
-Then open `/playground` — a live, interactive demo of `@azmr/core`, `@azmr/query`, and `@azmr/ui`
-working together, no separate app to run. See the [Playground](/docs/guide/playground) guide for
-what it demonstrates.
+4. **Use a component.** Import it from its own entry, for example `import { Button } from "@azmr/ui/button"`. Every component's import path is at the top of its [component page](/docs/components).
 
-## Native module note
+## What you need
 
-`@azmr/ai` uses `isolated-vm` which requires native compilation.
+- **React 18 or 19.**
+- **Tailwind CSS v4.** Version 3 does not work: the stylesheets use v4 directives.
+- **A Node.js version your framework supports.** The package itself supports Node 18 and newer. The guides below are built in CI on Node 24.
 
-**Windows:**
-1. Install **Visual Studio 2022** with "Desktop development with C++" workload
-2. Run `pnpm rebuild isolated-vm`
+## Dark mode and density
 
-**macOS:** Xcode Command Line Tools (`xcode-select --install`)
+The page follows the operating system's light or dark setting with no setup and no JavaScript. To let people choose, wrap the app in `ThemeProvider` and read the choice with `useTheme()`; each guide shows how. Density (`compact`, `comfortable`, `spacious`) works the same way. See [Theming](/docs/guide/theming) for everything the theme can do.
 
-**Linux:** `sudo apt install build-essential python3`
+## How these guides stay correct
+
+Each framework guide shows the real files of a small app, not snippets written for the page. CI packs `@azmr/ui` into a tarball, installs it into each of those apps as a new project would, type-checks and builds them, and then checks the output: the Button is rendered, the colour tokens are there, and Tailwind found the package's classes inside `node_modules`. A change that breaks a guide fails the build, and the guide always shows the files that were tested.
+
+## Working on the packages themselves
+
+To clone the repository and run the docs site locally, see [Set up the monorepo](/docs/guide/monorepo-setup).

@@ -1,0 +1,32 @@
+{
+  "name": "azmr-ui-guide-react-router",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "The React Router (framework mode) getting-started guide, built against the PACKED @azmr/ui. The guide quotes these files, so they cannot drift. See ../../../scripts/verify-guides.mjs.",
+  "scripts": {
+    "build": "react-router build",
+    "start": "react-router-serve ./build/server/index.js",
+    "typecheck": "react-router typegen && tsc"
+  },
+  "dependencies": {
+    "@azmr/core": "*",
+    "@azmr/ui": "*",
+    "@react-router/node": "^8.4.0",
+    "@react-router/serve": "^8.4.0",
+    "isbot": "^5.1.36",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-router": "^8.4.0"
+  },
+  "devDependencies": {
+    "@react-router/dev": "^8.4.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^26.1.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.7.3",
+    "vite": "^8.3.4"
+  }
+}
