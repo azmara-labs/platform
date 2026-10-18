@@ -43,7 +43,7 @@ export default function TenantTheme() {
       <div style={theme.cssVariables}>
         <Card>
           <CardHeader>
-            <CardTitle>{TENANTS[tenant].label}</CardTitle>
+            <CardTitle as="h2">{TENANTS[tenant].label}</CardTitle>
           </CardHeader>
           <CardContent className="flex items-center gap-3">
             <Button>Place order</Button>

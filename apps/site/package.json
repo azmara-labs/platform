@@ -17,7 +17,8 @@
     "generate:registry": "node ../../packages/ui/scripts/build-registry.mjs --out public/r",
     "generate:tokens": "tsx scripts/build-tokens.ts",
     "generate:accessibility": "tsx scripts/build-accessibility.ts",
-    "generate:llms": "tsx scripts/build-llms.mts"
+    "generate:llms": "tsx scripts/build-llms.mts",
+    "check:pages": "node scripts/axe-pages.mjs"
   },
   "keywords": [],
   "author": "",
@@ -58,6 +59,7 @@
     "github-slugger": "^2.0.0",
     "jsdom": "^29.1.1",
     "mdast-util-mdx-jsx": "^3.2.0",
+    "playwright-core": "^1.64.1",
     "postcss": "^8.5.23",
     "remark": "^15.0.1",
     "remark-gfm": "^4.0.1",

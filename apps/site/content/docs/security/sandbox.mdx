@@ -48,12 +48,12 @@ const result = await runSandbox(
 
 Capability handlers must be **synchronous** — `isolated-vm`'s `Callback` mechanism doesn't await a Promise returned by a handler, so an async handler fails fast with a clear error rather than misbehaving silently. True non-blocking async capabilities (e.g. network fetch) need a `worker_threads` + `Atomics.wait` blocking bridge and aren't implemented yet.
 
-Omitting `capabilities` preserves the sandbox's original zero-capability behavior exactly.
+Omitting `capabilities` preserves the sandbox's original zero-capability behaviour exactly.
 
 <Callout type="info" title="Explicit return required when using capabilities">
   With `capabilities`, your code runs inside a function body, not as a classic script — a bare
   trailing expression is silently discarded rather than returned. Use `return` to get a value back
-  in `result.output`. Without `capabilities`, the usual script completion-value behavior (last
+  in `result.output`. Without `capabilities`, the usual script completion-value behaviour (last
   expression counts) is unchanged.
 </Callout>
 

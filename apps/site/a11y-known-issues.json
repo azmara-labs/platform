@@ -1,0 +1,7 @@
+[
+  {
+    "rule": "landmark-unique",
+    "htmlIncludes": "fd-scroll-container",
+    "reason": "Fumadocs wraps every code block in a scrollable div with role=region and tabindex=0 but gives it no name, so axe reports a duplicate unnamed landmark on each page with more than one. The region needs its role and focus so the block can be scrolled by keyboard, and Fumadocs sets the role after any props we pass, so we cannot name or remove it from here. Fix upstream or with a patch."
+  }
+]

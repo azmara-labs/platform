@@ -69,9 +69,10 @@ export default function ConfirmDeleteFlow() {
 
   return (
     <div className="flex max-w-xl flex-col gap-3">
-      <h3 id="files-heading" className="m-0 text-base font-semibold">
+      {/* A label for the list, not a heading: a heading here would skip a level on the page. */}
+      <p id="files-heading" className="m-0 text-base font-semibold">
         Files
-      </h3>
+      </p>
       {files.length === 0 ? (
         <EmptyState
           icon={<Icon icon={FolderOpen} size="xl" />}

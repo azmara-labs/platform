@@ -20,7 +20,11 @@ export default async function Page({ params }: PageProps) {
 
   return (
     <DocsPage
+      // The page shell is an <article>; this makes it the page's main landmark, which Fumadocs does not.
+      role="main"
       toc={page.data.toc}
+      // Fumadocs renders the table of contents as a plain <div>, so it sits outside every landmark.
+      tableOfContent={{ container: { role: "navigation", "aria-label": "On this page" } }}
       className="max-w-300"
       editOnGithub={{
         owner: "azmara-labs",

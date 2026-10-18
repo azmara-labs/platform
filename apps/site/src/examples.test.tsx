@@ -198,7 +198,7 @@ describe("dashboard shell", () => {
 
   it("opens the account menu from the avatar button", async () => {
     await mount("examples/dashboard-shell");
-    await user().click(button("Account menu"));
+    await user().click(button("Aroha Ngata"));
     expect(await screen.findByRole("menuitem", { name: "Sign out" })).toBeTruthy();
     await expectAccessible("dashboard account menu open");
   });
@@ -262,7 +262,7 @@ describe("confirm-delete flow", () => {
 });
 
 describe("onboarding wizard", () => {
-  const stepHeading = () => document.querySelector("form h3") as HTMLElement;
+  const stepHeading = () => document.querySelector("form h2") as HTMLElement;
 
   it("will not move on from a step with a problem, and says what it is", async () => {
     await mount("examples/onboarding-wizard");

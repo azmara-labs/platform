@@ -87,14 +87,14 @@ export default function OnboardingWizard() {
       <Stepper steps={STEPS} current={step} label="Set-up progress" />
       <Card>
         <CardContent className="flex flex-col gap-4 pt-6">
-          <h3
+          <h2
             key={step}
             ref={focusHeading}
             tabIndex={-1}
             className="m-0 text-lg font-semibold outline-none"
           >
             {STEPS[step]?.label}
-          </h3>
+          </h2>
 
           {error && (
             <Alert variant="destructive">
