@@ -2,6 +2,7 @@ import { createFileSystemGeneratorCache, createGenerator } from "fumadocs-typesc
 import { AutoTypeTable, type AutoTypeTableProps } from "fumadocs-typescript/ui";
 import defaultMdxComponents from "fumadocs-ui/mdx";
 import type { MDXComponents } from "mdx/types";
+import { ComponentIndex } from "../components/component-index";
 import { Demo } from "../components/demo";
 import { KeyboardMap } from "../components/keyboard-map";
 import { ElevationSample, TokenSwatch } from "../components/token-swatch";
@@ -16,6 +17,7 @@ export function getMDXComponents(components?: MDXComponents) {
     AutoTypeTable: (props: Partial<AutoTypeTableProps>) => (
       <AutoTypeTable {...props} generator={generator} />
     ),
+    ComponentIndex,
     Demo,
     KeyboardMap,
     TokenSwatch,
