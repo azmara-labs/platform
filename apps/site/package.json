@@ -6,7 +6,7 @@
   "scripts": {
     "predev": "pnpm generate:changelog && pnpm generate:registry && pnpm generate:tokens && pnpm generate:accessibility",
     "dev": "next dev",
-    "prebuild": "pnpm generate:changelog && pnpm generate:registry && pnpm generate:tokens && pnpm generate:accessibility",
+    "prebuild": "pnpm generate:changelog && pnpm generate:registry && pnpm generate:tokens && pnpm generate:accessibility && pnpm generate:llms",
     "build": "next build",
     "start": "next start",
     "lint": "biome check",
@@ -16,7 +16,8 @@
     "generate:changelog": "tsx scripts/build-changelog.ts",
     "generate:registry": "node ../../packages/ui/scripts/build-registry.mjs --out public/r",
     "generate:tokens": "tsx scripts/build-tokens.ts",
-    "generate:accessibility": "tsx scripts/build-accessibility.ts"
+    "generate:accessibility": "tsx scripts/build-accessibility.ts",
+    "generate:llms": "tsx scripts/build-llms.mts"
   },
   "keywords": [],
   "author": "",
@@ -43,6 +44,7 @@
     "@biomejs/biome": "^2.5.5",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/culori": "^4.0.1",
+    "@types/mdast": "^4.0.4",
     "@types/mdx": "^2.0.14",
     "@types/node": "^26.1.1",
     "@types/react": "^19.2.17",
@@ -53,7 +55,11 @@
     "culori": "^4.0.2",
     "github-slugger": "^2.0.0",
     "jsdom": "^29.1.1",
+    "mdast-util-mdx-jsx": "^3.2.0",
     "postcss": "^8.5.23",
+    "remark": "^15.0.1",
+    "remark-gfm": "^4.0.1",
+    "remark-mdx": "^3.1.1",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.1",
     "typescript": "^7.0.2",
