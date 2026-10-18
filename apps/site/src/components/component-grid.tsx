@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useId, useState } from "react";
 import {
   type ComponentItem,
@@ -68,7 +69,7 @@ export function ComponentGrid({ items }: { items: ComponentItem[] }) {
             <ul className="grid list-none gap-3 p-0 sm:grid-cols-2">
               {entry.items.map((item) => (
                 <li key={item.url}>
-                  <a
+                  <Link
                     href={item.url}
                     className="block h-full rounded-lg border border-fd-border bg-fd-card p-4 transition-colors hover:bg-fd-accent"
                   >
@@ -77,7 +78,7 @@ export function ComponentGrid({ items }: { items: ComponentItem[] }) {
                       <StatusBadge status={item.status} />
                     </h4>
                     <p className="mt-1 text-sm text-fd-muted-foreground">{item.description}</p>
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>

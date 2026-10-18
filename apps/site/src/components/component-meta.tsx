@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { groupId } from "../lib/component-index";
 import type { ComponentGroup, ComponentStatus } from "../lib/component-taxonomy";
 import { StatusBadge } from "./status-badge";
@@ -26,18 +27,18 @@ export function ComponentMeta({
       </li>
       <li>
         Group:{" "}
-        <a
+        <Link
           href={`/docs/components#group-${groupId(group)}`}
           className="underline underline-offset-2"
         >
           {group}
-        </a>
+        </Link>
       </li>
       <li>
         Added in{" "}
-        <a href="/docs/changelog/ui" className="underline underline-offset-2">
+        <Link href="/docs/changelog/ui" className="underline underline-offset-2">
           @azmr/ui {since}
-        </a>
+        </Link>
       </li>
     </ul>
   );
