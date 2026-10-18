@@ -4,6 +4,7 @@ import { createTheme, htmlAttributes } from "@azmr/ui/theme";
 import { oklch, parse, wcagContrast } from "culori";
 import { describe, expect, it } from "vitest";
 import { parseTokens, splitArgs } from "../scripts/build-tokens";
+import { extractExamples, runExample } from "./lib/doc-examples";
 
 // The Theming guide's examples are real code. Each ```ts block with `example=NAME result=VAR` is
 // run here and the value of VAR is compared with the JSON on its `// =>` line, so the output the
@@ -16,38 +17,7 @@ const tokensCss = readFileSync(
   "utf8",
 );
 
-interface Example {
-  name: string;
-  result: string;
-  code: string;
-  expected: unknown;
-}
-
-function examples(): Example[] {
-  const out: Example[] = [];
-  for (const match of guide.matchAll(/^```ts example=(\S+) result=(\S+)\n([\s\S]*?)^```/gm)) {
-    const body = match[3] as string;
-    const expected = /^\/\/ => (.*)$/m.exec(body)?.[1];
-    out.push({
-      name: match[1] as string,
-      result: match[2] as string,
-      code: body.replace(/^import .*\n/gm, "").replace(/^\/\/ => .*$/m, ""),
-      expected: expected === undefined ? undefined : JSON.parse(expected),
-    });
-  }
-  return out;
-}
-
-function run(example: Example): unknown {
-  const fn = new Function(
-    "createTheme",
-    "htmlAttributes",
-    `${example.code}\nreturn ${example.result};`,
-  );
-  return fn(createTheme, htmlAttributes);
-}
-
-const all = examples();
+const all = extractExamples(guide);
 
 describe("the Theming guide's examples", () => {
   it("finds the examples (guards against scanning nothing)", () => {
@@ -66,7 +36,7 @@ describe("the Theming guide's examples", () => {
     "%s: shows the output the package returns",
     (_n, example) => {
       expect(example.expected, `${example.name} has no // => line`).not.toBeUndefined();
-      expect(run(example)).toEqual(example.expected);
+      expect(runExample(example, { createTheme, htmlAttributes })).toEqual(example.expected);
     },
   );
 });

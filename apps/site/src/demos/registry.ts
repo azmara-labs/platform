@@ -6,6 +6,9 @@ import ButtonIconButton from "./button/icon-button.demo";
 import ButtonIcons from "./button/icons.demo";
 import ButtonLoading from "./button/loading.demo";
 import ButtonVariants from "./button/variants.demo";
+import CustomisingClassOverride from "./customising/class-override.demo";
+import CustomisingLinkAsButton from "./customising/link-as-button.demo";
+import CustomisingWrappedButton from "./customising/wrapped-button.demo";
 import AccordionBasic from "./disclosure/accordion.demo";
 import CollapsibleBasic from "./disclosure/collapsible.demo";
 import TabsBasic from "./disclosure/tabs.demo";
@@ -65,6 +68,9 @@ import TypographyScale from "./typography/scale.demo";
 export const demos = {
   "avatar/basic": AvatarBasic,
   "breadcrumb/basic": BreadcrumbBasic,
+  "customising/class-override": CustomisingClassOverride,
+  "customising/link-as-button": CustomisingLinkAsButton,
+  "customising/wrapped-button": CustomisingWrappedButton,
   "button/group": ButtonGroupBasic,
   "button/icon-button": ButtonIconButton,
   "button/variants": ButtonVariants,
