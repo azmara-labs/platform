@@ -14,6 +14,12 @@ description: The @azmr/ui component library, built on Base UI primitives and the
   `@azmr/ui/tokens.css`, which are plain CSS for any Tailwind v4 project.
 </Callout>
 
+## All components
+
+Grouped by purpose. Each badge shows the component's maturity: stable, new or beta.
+
+<ComponentIndex />
+
 ## Set up
 
 ```css
@@ -51,16 +57,3 @@ This copies `button.tsx` and the components it needs (`spinner.tsx`) into `compo
 - **Server-safe where it can be.** Stateless components such as `Spinner` and `Icon` are Server Components; the rest carry `"use client"` on their own entry only.
 - **Tree-shakeable, with budgets.** Each entry has a size budget checked in CI.
 - **`className` merges last,** and `ref` is the real DOM element.
-
-## Components
-
-- [Layout](/docs/components/layout): Stack, Grid with responsive columns, Container, Separator, AspectRatio
-- [Display](/docs/components/display): Card, Badge, Alert, Skeleton, EmptyState
-- [Avatar](/docs/components/avatar): image with initials fallback, and a group with a labelled overflow
-- [Progress](/docs/components/progress): linear and circular, determinate and indeterminate
-- [ScrollArea](/docs/components/scroll-area): focusable, named scrollable regions with token-styled scrollbars
-- [Typography](/docs/components/typography): a type scale with semantic elements, plus Heading, Text, Link, Code, Kbd
-- [Button](/docs/components/button): variants, density-aware sizes, loading, icon-only
-- [Input](/docs/components/input): the real input element, works with react-hook-form
-- [Spinner](/docs/components/spinner): indeterminate progress, a Server Component
-- [Icon](/docs/components/icon): Lucide, Tabler or your own SVG
