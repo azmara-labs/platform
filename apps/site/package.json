@@ -4,9 +4,9 @@
   "private": true,
   "description": "Azmara Platform documentation site — Next.js, Fumadocs, and Tailwind CSS",
   "scripts": {
-    "predev": "pnpm generate:changelog && pnpm generate:registry && pnpm generate:tokens",
+    "predev": "pnpm generate:changelog && pnpm generate:registry && pnpm generate:tokens && pnpm generate:accessibility",
     "dev": "next dev",
-    "prebuild": "pnpm generate:changelog && pnpm generate:registry && pnpm generate:tokens",
+    "prebuild": "pnpm generate:changelog && pnpm generate:registry && pnpm generate:tokens && pnpm generate:accessibility",
     "build": "next build",
     "start": "next start",
     "lint": "biome check",
@@ -15,7 +15,8 @@
     "test": "vitest run",
     "generate:changelog": "tsx scripts/build-changelog.ts",
     "generate:registry": "node ../../packages/ui/scripts/build-registry.mjs --out public/r",
-    "generate:tokens": "tsx scripts/build-tokens.ts"
+    "generate:tokens": "tsx scripts/build-tokens.ts",
+    "generate:accessibility": "tsx scripts/build-accessibility.ts"
   },
   "keywords": [],
   "author": "",
