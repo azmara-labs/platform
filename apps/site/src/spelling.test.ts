@@ -45,6 +45,10 @@ describe("findAmericanSpellings", () => {
     ).toEqual([]);
   });
 
+  it("does not flag words that are fine in British and New Zealand writing too", () => {
+    expect(words("A build artifact. Do not tire the reader.")).toEqual([]);
+  });
+
   it("does not flag a word that is only a key of a plain object", () => {
     expect(
       words("The constructor, toString and valueOf are inherited, and hasOwnProperty."),
