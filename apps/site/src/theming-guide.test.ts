@@ -126,6 +126,15 @@ describe("the claims in the guide's prose", () => {
     expect(() => createTheme({ font: `Inter${"x".repeat(200)}` })).toThrow(/font/);
   });
 
+  it("accepts exactly the font characters the guide lists", () => {
+    expect(() =>
+      createTheme({ font: `Inter, "Segoe UI", my-font_2.0, 'Noto Sans'` }),
+    ).not.toThrow();
+    for (const bad of ["Inter;", "Inter{}", "Inter()", "Inter/*", "Inter\\", "Inter<"]) {
+      expect(() => createTheme({ font: bad }), bad).toThrow(/font/);
+    }
+  });
+
   it("only accepts the colour formats the guide lists", () => {
     expect(() => createTheme({ primary: "#abc" })).not.toThrow();
     expect(() => createTheme({ primary: "#aabbcc" })).not.toThrow();
