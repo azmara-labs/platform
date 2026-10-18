@@ -285,7 +285,7 @@ function packageList(): Content[] {
           paragraph(
             {
               type: "link",
-              url: `${SITE_URL}${pkg.docsUrl}.md`,
+              url: `${SITE_URL}${markdownUrl(pkg.docsUrl)}`,
               children: [code(pkg.name)],
             },
             text(`: ${pkg.description}`),
@@ -350,7 +350,7 @@ async function replace(node: Content, ctx: RenderContext, where: string): Promis
         return calloutBlock(node, children);
       }
       throw new Error(
-        `${where}: <${name}> has no Markdown form. Add one in scripts/build-llms.ts, or take it out of the page.`,
+        `${where}: <${name}> has no Markdown form. Add one in scripts/build-llms.mts, or take it out of the page.`,
       );
     }
     default:
