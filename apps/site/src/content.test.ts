@@ -35,7 +35,7 @@ const changelogRoutes = [
 
 // Pages generated at build time (scripts/build-*.ts) and not committed, so they may be absent
 // locally. Other pages may link to them; the generators have their own tests.
-const generatedRoutes = ["/docs/guide/tokens"];
+const generatedRoutes = ["/docs/guide/tokens", "/docs/guide/accessibility-reference"];
 
 function routeOf(file: string): string {
   const parts = posix(relative(contentDir, file))

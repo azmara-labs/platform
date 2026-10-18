@@ -12,6 +12,8 @@
     "tailwind",
     "theming",
     "customising",
-    "tokens"
+    "tokens",
+    "accessibility",
+    "accessibility-reference"
   ]
 }
