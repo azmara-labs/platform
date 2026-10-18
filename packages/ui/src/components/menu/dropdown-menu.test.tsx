@@ -34,17 +34,27 @@ async function open(user: ReturnType<typeof setupUser>, container: HTMLElement) 
   await vi.waitFor(() => expect(menu()).not.toBeNull());
 }
 
-// Home, then down to the "Share" sub trigger, waiting for each move: rapid keys can outrun Base UI's
-// focus handling when the whole suite is running.
-async function focusShare(user: ReturnType<typeof setupUser>) {
-  // On a slow machine the first key can arrive before the menu has taken focus, so press Home until it lands.
+// A Base UI menu opens a moment before it handles keys, so the first key after opening can be
+// ignored on a slow machine (seen in CI as focus staying on the menu after {Home}). Pressing a
+// navigation key again is harmless: Home and End land on the same item however often they are pressed.
+async function pressUntilFocused(
+  user: ReturnType<typeof setupUser>,
+  key: string,
+  expected: string,
+) {
   await vi.waitFor(
     async () => {
-      await user.keyboard("{Home}");
-      expect(focused()).toBe("New");
+      await user.keyboard(key);
+      expect(focused()).toBe(expected);
     },
     { timeout: 4000 },
   );
+}
+
+// Home, then down to the "Share" sub trigger, waiting for each move: rapid keys can outrun Base UI's
+// focus handling when the whole suite is running.
+async function focusShare(user: ReturnType<typeof setupUser>) {
+  await pressUntilFocused(user, "{Home}", "New");
   await user.keyboard("{ArrowDown}");
   await vi.waitFor(() => expect(focused()).toBe("Share"), { timeout: 4000 });
 }
@@ -146,8 +156,7 @@ describe("DropdownMenu: keyboard map", () => {
     const user = setupUser();
     const { container } = renderUi(<Basic />);
     await open(user, container);
-    await user.keyboard("{Home}");
-    await vi.waitFor(() => expect(focused()).toBe("Save ⌘S"));
+    await pressUntilFocused(user, "{Home}", "Save ⌘S");
     await user.keyboard("{ArrowDown}");
     await vi.waitFor(() => expect(focused()).toBe("Rename"));
     await user.keyboard("{ArrowDown}");
@@ -167,18 +176,15 @@ describe("DropdownMenu: keyboard map", () => {
     const user = setupUser();
     const { container } = renderUi(<Basic />);
     await open(user, container);
-    await user.keyboard("{End}");
-    await vi.waitFor(() => expect(focused()).toBe("Delete"));
-    await user.keyboard("{Home}");
-    expect(focused()).toBe("Save ⌘S");
+    await pressUntilFocused(user, "{End}", "Delete");
+    await pressUntilFocused(user, "{Home}", "Save ⌘S");
   });
 
   it("typeahead jumps to the item that starts with the typed letters", async () => {
     const user = setupUser();
     const { container } = renderUi(<Basic />);
     await open(user, container);
-    await user.keyboard("{Home}");
-    await vi.waitFor(() => expect(focused()).toBe("Save ⌘S"));
+    await pressUntilFocused(user, "{Home}", "Save ⌘S");
     await user.keyboard("d");
     await vi.waitFor(() => expect(focused()).toBe("Delete"));
   });
@@ -188,8 +194,7 @@ describe("DropdownMenu: keyboard map", () => {
     const user = setupUser();
     const { container } = renderUi(<Basic />);
     await open(user, container);
-    await user.keyboard("{Home}");
-    await vi.waitFor(() => expect(focused()).toBe("Save ⌘S"));
+    await pressUntilFocused(user, "{Home}", "Save ⌘S");
     await user.keyboard("co");
     await vi.waitFor(() => expect(focused()).toBe("Copy link"));
   });
@@ -200,8 +205,7 @@ describe("DropdownMenu: keyboard map", () => {
       const onSave = vi.fn();
       const { container, unmount } = renderUi(<Basic onSave={onSave} />);
       await open(user, container);
-      await user.keyboard("{Home}");
-      await vi.waitFor(() => expect(focused()).toBe("Save ⌘S"));
+      await pressUntilFocused(user, "{Home}", "Save ⌘S");
       await user.keyboard(key);
       await vi.waitFor(() => expect(menu()).toBeNull());
       expect(onSave).toHaveBeenCalledTimes(1);
@@ -272,8 +276,7 @@ describe("DropdownMenu: items", () => {
     const onSave = vi.fn();
     const { container } = renderUi(<Basic onSave={onSave} />);
     await open(user, container);
-    await user.keyboard("{Home}");
-    await vi.waitFor(() => expect(focused()).toBe("Save ⌘S"));
+    await pressUntilFocused(user, "{Home}", "Save ⌘S");
     await user.keyboard("{ArrowDown}");
     await vi.waitFor(() => expect(focused()).toBe("Rename"));
     await user.keyboard("{ArrowDown}");
@@ -402,8 +405,7 @@ describe("DropdownMenu: checkbox and radio items", () => {
     const user = setupUser();
     const { container } = renderUi(<Options />);
     await open(user, container);
-    await user.keyboard("{Home}");
-    await vi.waitFor(() => expect(focused()).toBe("Bold"));
+    await pressUntilFocused(user, "{Home}", "Bold");
     await user.keyboard(" ");
     await vi.waitFor(() =>
       expect(role("menuitemcheckbox")[0]?.getAttribute("aria-checked")).toBe("true"),
@@ -511,9 +513,7 @@ describe("DropdownMenu: submenus", () => {
     const user = setupUser();
     const { container } = renderUi(<WithSub />);
     await open(user, container);
-    await user.keyboard("{Home}");
-    await user.keyboard("{ArrowDown}");
-    await vi.waitFor(() => expect(focused()).toBe("Share"));
+    await focusShare(user);
     await user.keyboard("{ArrowRight}");
     await vi.waitFor(() => expect(menus()).toHaveLength(2));
     await vi.waitFor(() => expect(focused()).toBe("Email"));
