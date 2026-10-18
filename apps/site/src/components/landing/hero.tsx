@@ -1,4 +1,4 @@
-import { DynamicCodeBlock } from "fumadocs-ui/components/dynamic-codeblock";
+import { ServerCodeBlock } from "fumadocs-ui/components/codeblock.rsc";
 import Link from "next/link";
 
 export function Hero() {
@@ -15,12 +15,14 @@ export function Hero() {
       </p>
       <div className="flex flex-wrap justify-center gap-4">
         <Link
+          prefetch={false}
           href="/docs"
           className="rounded-md bg-fd-primary px-6 py-3 font-medium text-fd-primary-foreground transition-colors hover:opacity-90"
         >
           Read the docs
         </Link>
         <Link
+          prefetch={false}
           href="/docs/guide/introduction"
           className="rounded-md border border-fd-border px-6 py-3 font-medium transition-colors hover:bg-fd-accent"
         >
@@ -28,11 +30,7 @@ export function Hero() {
         </Link>
       </div>
       <div className="w-full max-w-md text-left">
-        <DynamicCodeBlock
-          lang="bash"
-          code="pnpm add @azmr/core"
-          options={{ themes: { light: "github-light", dark: "github-dark" } }}
-        />
+        <ServerCodeBlock lang="bash" code="pnpm add @azmr/core" />
       </div>
     </section>
   );

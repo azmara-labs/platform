@@ -11,12 +11,14 @@ export function CtaFooter() {
         </p>
         <div className="flex flex-wrap justify-center gap-4">
           <Link
+            prefetch={false}
             href="/docs/guide/introduction"
             className="rounded-md bg-fd-primary px-6 py-3 font-medium text-fd-primary-foreground transition-colors hover:opacity-90"
           >
             Get started
           </Link>
           <Link
+            prefetch={false}
             href="/docs"
             className="rounded-md border border-fd-border px-6 py-3 font-medium transition-colors hover:bg-fd-accent"
           >
