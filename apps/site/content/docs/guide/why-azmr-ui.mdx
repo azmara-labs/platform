@@ -1,0 +1,69 @@
+---
+title: Why @azmr/ui
+description: What @azmr/ui is, what it is not yet, how it differs from MUI, shadcn/ui and Bootstrap, and what each component costs in bundle size.
+---
+
+`@azmr/ui` is a React component library for apps that use Tailwind CSS v4. This page says what it is for, what it does not have yet, and how it differs from three libraries people usually compare it with, so you can decide before you install anything.
+
+## What it is
+
+- **Accessible components on Base UI.** Interactive components are built on [Base UI](https://base-ui.com) primitives, which handle focus, keyboard use and ARIA. Each one is tested with axe, by keyboard, and under reduced motion; the [accessibility page](/docs/guide/accessibility) says exactly what is tested and what is not.
+- **One set of design tokens.** Colour, radius, density, motion, elevation and layering are CSS variables, and every component reads them, so a theme change reaches every component. A test fails if a component uses a raw colour. See the [token reference](/docs/guide/tokens).
+- **Tailwind-native.** Components are styled with Tailwind v4 classes, and the stylesheet tells Tailwind where to find them, so there is nothing to add to a config. The token names follow shadcn/ui, so shadcn components from any registry look right next to these.
+- **Server Components aware.** Stateless components render on the server with no client JavaScript, and a Server Component can import the rest without a `"use client"` of its own. CI builds a Next.js app to check it. See [Server Components](/docs/guide/server-components).
+- **Density and a calm default.** `compact`, `comfortable` and `spacious` change control heights and spacing together, and animation follows the operating system's reduced-motion setting.
+- **Two ways to use it.** Install the package, or copy the source with the shadcn CLI ([how](/docs/guide/shadcn-registry)).
+- **Part of a data-first runtime.** It sits beside `@azmr/core` (signals) and `@azmr/query`, and components can read signals directly. You do not need them to use the components.
+
+## What it is not (yet)
+
+Be sure these gaps do not matter to you before you adopt it:
+
+- **React only.** There are no Vue, Svelte or Angular components. The design tokens are plain CSS and work in any Tailwind v4 project.
+- **Early.** The package is at version 0.x, so its API can still change between minor versions. Changes are listed in the [changelog](/docs/changelog/ui).
+- **A small component set.** The [components](/docs/components) are the ones in the library today. There is no select, combobox, checkbox, radio group, switch, slider, textarea or date picker yet, so forms use the text input and toggle buttons.
+- **No data grid.** The table is presentational: sorting, filtering, selection and editing are yours to build, as the [data table example](/docs/examples/data-table-page) does.
+- **One look.** There is no Material Design, iOS or Bootstrap look to switch to. You change the brand colour, radius, font and density; you do not change the design language.
+
+## How it compares
+
+These are broad differences, as of October 2026. Other projects change, so check their own documentation before you decide.
+
+| | `@azmr/ui` | MUI | shadcn/ui | Bootstrap |
+| --- | --- | --- | --- | --- |
+| What you adopt | A package, or copied source | A package | Source copied into your project | A stylesheet and optional scripts |
+| Styling | Tailwind CSS v4 and design tokens | Its own styling system | Tailwind CSS | Its own CSS and utility classes |
+| Look | One neutral look you theme | Material Design, themeable | One look you edit | Bootstrap's look, themeable |
+| Frameworks | React | React | React | Any, with separate React wrappers |
+| Breadth | A small, growing set | A very large set, with advanced components such as a data grid | A broad set | A broad set of components |
+| Who maintains the code | The package | The package | You, after you copy it | The package |
+
+- **Choose MUI** when you want Material Design, or a very large set of components such as data grids and date pickers, and you are happy to style with its system.
+- **Choose shadcn/ui** when you want to own and edit every component and already use Tailwind. `@azmr/ui` is compatible with it: the same token names, and a registry you can add from. The difference is that you can also take updates by changing a version.
+- **Choose Bootstrap** when you want a familiar CSS framework, or you are not using React.
+- **Choose `@azmr/ui`** when you use React and Tailwind v4, want accessibility and server rendering tested rather than assumed, want theme and density to be one set of variables, and can work with a small component set that is still growing.
+
+If you are migrating from MUI, `@azmr/ui/icons/mui-map`, `@azmr/ui/typography/mui-map` and `@azmr/ui/layout/mui-map` map MUI's icon names, typography variants and layout props to ours.
+
+## What each component costs
+
+Every entry has a size budget, and CI fails the build when an entry goes over it. The budget counts the entry's own code and its dependencies (such as the Base UI parts it uses), minified and compressed with brotli, but not peer dependencies such as React. It is what an app that imports only that entry ships for it. The stylesheet has a budget too.
+
+| Import | Budget |
+| --- | --- |
+| `@azmr/ui/button` | 14 kB |
+| `@azmr/ui/input` | 14 kB |
+| `@azmr/ui/layout` | 11 kB |
+| `@azmr/ui/table` | 10 kB |
+| `@azmr/ui/toast` | 26 kB |
+| `@azmr/ui/modal` | 42 kB |
+| `@azmr/ui/menu` | 55 kB |
+| `@azmr/ui/styles.css` and what it imports | 5.5 kB (gzip) |
+
+These are ceilings, not measurements: each entry is somewhat smaller today. The entries are separate on purpose, so a page that needs a button and an input pays for those two and not for the menu. The complete list, one budget for every entry, is in the package's `.size-limit.json`.
+
+## Try it
+
+- [Install it](/docs/guide/installation) in Next.js, Vite, React Router or plain React.
+- Look at the [examples](/docs/examples): five complete screens, tested in the states people reach.
+- Read the [components](/docs/components), each with live demos and its keyboard map.
