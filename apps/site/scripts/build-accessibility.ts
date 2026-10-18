@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { parseExpressionAt } from "acorn";
 import { parse as parseYaml } from "yaml";
 import { COMPONENT_GROUPS } from "../src/lib/component-taxonomy";
 
@@ -30,6 +31,63 @@ export interface ComponentAccessibility {
   hasAccessibilitySection: boolean;
 }
 
+/**
+ * Reads a JavaScript literal made only of arrays, objects with plain keys, strings, numbers,
+ * booleans and null. Anything else (a call, a spread, a variable, a template with an expression) is
+ * an error, so a page can never run code at build time.
+ */
+export function parseLiteral(source: string): unknown {
+  const root = parseExpressionAt(source.trim(), 0, { ecmaVersion: "latest" });
+  const read = (node: { type: string } & Record<string, unknown>): unknown => {
+    switch (node.type) {
+      case "Literal":
+        if (
+          (node as { regex?: unknown }).regex ||
+          typeof (node as { value: unknown }).value === "bigint"
+        ) {
+          throw new Error("a KeyboardMap may only contain plain values");
+        }
+        return (node as { value: unknown }).value;
+      case "TemplateLiteral": {
+        const t = node as unknown as {
+          expressions: unknown[];
+          quasis: { value: { cooked: string } }[];
+        };
+        if (t.expressions.length > 0)
+          throw new Error("a KeyboardMap may not use template expressions");
+        return t.quasis[0]?.value.cooked ?? "";
+      }
+      case "ArrayExpression":
+        return (node as unknown as { elements: ({ type: string } | null)[] }).elements.map((e) => {
+          if (!e) throw new Error("a KeyboardMap may not have holes");
+          return read(e as { type: string } & Record<string, unknown>);
+        });
+      case "ObjectExpression": {
+        const out: Record<string, unknown> = {};
+        for (const p of (node as unknown as { properties: Record<string, unknown>[] }).properties) {
+          if (p.type !== "Property" || p.computed || p.kind !== "init" || p.method || p.shorthand) {
+            throw new Error("a KeyboardMap may only have plain key: value properties");
+          }
+          const key = p.key as { type: string; name?: string; value?: unknown };
+          const name =
+            key.type === "Identifier"
+              ? key.name
+              : key.type === "Literal"
+                ? String(key.value)
+                : undefined;
+          if (name === undefined || name === "__proto__")
+            throw new Error("a KeyboardMap has an unsupported key");
+          out[name] = read(p.value as { type: string } & Record<string, unknown>);
+        }
+        return out;
+      }
+      default:
+        throw new Error(`a KeyboardMap may only contain literals, found ${node.type}`);
+    }
+  };
+  return read(root as unknown as { type: string } & Record<string, unknown>);
+}
+
 /** Every `<KeyboardMap rows={[...]} />` in a page, with the heading it sits under. */
 export function extractKeyMaps(body: string): KeyMap[] {
   const maps: KeyMap[] = [];
@@ -37,8 +95,7 @@ export function extractKeyMaps(body: string): KeyMap[] {
   for (const match of body.matchAll(pattern)) {
     const before = body.slice(0, match.index);
     const heading = [...before.matchAll(/^#{2,4} (.+)$/gm)].at(-1)?.[1] ?? "Keyboard";
-    // The rows are a JavaScript array literal written by us in the page, so evaluate it.
-    const rows = new Function(`return (${match[1] as string});`)() as unknown;
+    const rows = parseLiteral(match[1] as string);
     if (
       !Array.isArray(rows) ||
       !rows.every(

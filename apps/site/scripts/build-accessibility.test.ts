@@ -5,6 +5,7 @@ import { parse as parseYaml } from "yaml";
 import { docsFrontmatter } from "../src/lib/docs-frontmatter";
 import {
   extractKeyMaps,
+  parseLiteral,
   readComponent,
   readComponents,
   renderReference,
@@ -57,6 +58,40 @@ describe("extractKeyMaps", () => {
     expect(() => extractKeyMaps('<KeyboardMap rows={[{ keys: ["Tab"] }]} />')).toThrow(
       /does not have/,
     );
+  });
+});
+
+describe("parseLiteral never runs code", () => {
+  it("reads arrays, objects, strings, numbers, booleans, null and template strings without expressions", () => {
+    expect(
+      parseLiteral('[{ keys: ["Tab"], "action": `Moves`, n: 2, ok: true, none: null }]'),
+    ).toEqual([{ keys: ["Tab"], action: "Moves", n: 2, ok: true, none: null }]);
+  });
+
+  it.each([
+    ["a call", "[process.exit(1)]"],
+    ["a variable", "[secret]"],
+    ["a spread", "[...other]"],
+    ["a template expression", "[`${1 + 1}`]"],
+    ["a computed key", '[{ ["a" + "b"]: 1 }]'],
+    ["a method", "[{ f() {} }]"],
+    ["a function", "[() => 1]"],
+    ["a regular expression", "[/x/]"],
+    ["a hole", "[1, , 2]"],
+    ["__proto__", '[{ "__proto__": {} }]'],
+  ])("rejects %s", (_name, source) => {
+    expect(() => parseLiteral(source)).toThrow();
+  });
+
+  it("does not execute a call hidden in a page's rows", () => {
+    const g = globalThis as { __ran?: boolean };
+    g.__ran = false;
+    expect(() =>
+      extractKeyMaps(
+        '<KeyboardMap rows={[(globalThis.__ran = true, { keys: ["Tab"], action: "x" })]} />',
+      ),
+    ).toThrow();
+    expect(g.__ran).toBe(false);
   });
 });
 
