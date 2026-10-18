@@ -1,0 +1,22 @@
+---
+title: Data table page
+description: Search, sortable columns, row actions, paging and an empty state, from the Table, Pagination and menu components.
+---
+
+A customer list the way most apps need one: search it, sort it, page through it and act on a row.
+
+<Demo name="examples/data-table-page" />
+
+## What it shows
+
+- **Filter, then sort, then page.** Each step works on the result of the one before, and changing the search or the sort returns to page one so the reader is never left on a page that no longer exists.
+- **Sortable columns that say so.** Each sortable header is a [Button](/docs/components/button) inside the `th`, and the sorted column carries `aria-sort`. Only that column has it.
+- **A row header.** The name cell is a `th scope="row"`, so a screen reader announces the person's name with each value in the row. See [Table](/docs/components/table).
+- **Row actions with a name.** Each menu button is an `IconButton` labelled "Actions for" and the person's name, so the buttons are distinguishable in a list of buttons. See [Menu](/docs/components/menu).
+- **Search and paging that agree.** The search box is an [Input](/docs/components/input) with a visible label, and [Pagination](/docs/components/pagination) is told the page count of the filtered rows, so its buttons are disabled at the ends. Choosing a row action raises a [toast](/docs/components/toast).
+- **Results announced.** "Showing 1–5 of 12 customers" is in a polite live region, so the effect of a search is heard.
+- **An empty state with a way out.** A search with no matches shows [EmptyState](/docs/components/display) with a Clear search button, not an empty table.
+
+## Limits
+
+The data is a constant array and sorting happens in the browser. For a server-side table, keep the same `query`, `sort` and `page` state and fetch with it; the markup does not change. A table with many columns needs the horizontal scrolling shown on the [Table page](/docs/components/table).

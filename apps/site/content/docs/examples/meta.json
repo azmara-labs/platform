@@ -1,0 +1,11 @@
+{
+  "title": "Examples",
+  "pages": [
+    "index",
+    "settings-page",
+    "data-table-page",
+    "dashboard-shell",
+    "confirm-delete-flow",
+    "onboarding-wizard"
+  ]
+}

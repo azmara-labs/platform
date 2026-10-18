@@ -1,0 +1,4 @@
+{
+  "title": "Recipes",
+  "pages": ["index", "form-validation", "toast-on-promise", "menu-opens-dialog", "theme-per-tenant"]
+}

@@ -1,0 +1,18 @@
+---
+title: Open a dialog from a menu item
+description: Confirm something chosen from a menu, without the dialog closing when the menu does.
+---
+
+Control the dialog with state, put it next to the menu (not inside it) and open it from the menu item's `onClick`.
+
+<Demo name="menu/dialog" />
+
+## Why it is built this way
+
+A menu closes as soon as an item is chosen, and everything inside it goes with it. A dialog placed inside the menu would be removed in the same moment it opened. Keeping the dialog as a sibling, with `open` held in your own state, means it is still there when the menu closes.
+
+- The [`AlertDialog`](/docs/components/modal) starts focus on its cancel button, so Enter does not confirm by reflex.
+- Focus returns to the control that opened it when the dialog closes.
+- Name what is being changed in the title, because the person has just left the row it belonged to.
+
+A longer version, with a list, an Undo toast and focus moved after the row is removed, is the [confirm-delete flow](/docs/examples/confirm-delete-flow).

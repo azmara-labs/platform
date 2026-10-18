@@ -1,0 +1,21 @@
+---
+title: Dashboard shell
+description: A navigation list, a top bar with a user menu, stat cards with a loading state, and tabs, laid out with the grid.
+---
+
+The frame most admin screens share. It is the part to copy first, because every page of an app goes inside it.
+
+<Demo name="examples/dashboard-shell" />
+
+## What it shows
+
+- **Landmarks.** The navigation is a `nav` with a label and marks the current page with `aria-current="page"`. The content is a labelled `section`, so a screen reader user can jump straight to it. The example does not use a `main` element, because this page already has one; in an app, make the content area your `main`.
+- **A responsive layout.** The navigation is a row on a narrow screen and a column from the `md` breakpoint, with the content filling the rest. See [Layout](/docs/components/layout) for `Grid`, which also sizes the stat cards (`minItemWidth`).
+- **A trail.** [Breadcrumbs](/docs/components/breadcrumb) say where the page sits. The last item is always the current page, so it is not a link.
+- **A user menu on an avatar.** The account button has its own label, because the [Avatar](/docs/components/avatar) inside it is a picture. The [menu](/docs/components/menu) is the standard dropdown.
+- **Loading without layout shift.** Refresh swaps each figure for a [Skeleton](/docs/components/display) of about the same size and sets `aria-busy` on the grid, and a visually hidden live region says "Refreshing figures" and "Figures are up to date".
+- **Tabs for related detail.** [Tabs](/docs/components/disclosure) with arrow-key navigation, and [Progress](/docs/components/progress) bars with names.
+
+## Limits
+
+The links use `#` addresses and a state variable for the current page. In a real app, use your router's link component, set `aria-current` from the route, and replace the figures with data.

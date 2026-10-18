@@ -17,6 +17,11 @@ import DisplayAlerts from "./display/alerts.demo";
 import DisplayCards from "./display/cards.demo";
 import DisplayChips from "./display/chips.demo";
 import DisplayPlaceholders from "./display/placeholders.demo";
+import ExamplesConfirmDeleteFlow from "./examples/confirm-delete-flow.demo";
+import ExamplesDashboardShell from "./examples/dashboard-shell.demo";
+import ExamplesDataTablePage from "./examples/data-table-page.demo";
+import ExamplesOnboardingWizard from "./examples/onboarding-wizard.demo";
+import ExamplesSettingsPage from "./examples/settings-page.demo";
 import FloatingHoverCard from "./floating/hover-card.demo";
 import FloatingPopover from "./floating/popover.demo";
 import FloatingTooltip from "./floating/tooltip.demo";
@@ -45,6 +50,8 @@ import PaginationLinks from "./pagination/links.demo";
 import PaginationState from "./pagination/state.demo";
 import ProgressBasic from "./progress/basic.demo";
 import ProgressCircular from "./progress/circular.demo";
+import RecipesFormValidation from "./recipes/form-validation.demo";
+import RecipesTenantTheme from "./recipes/tenant-theme.demo";
 import ScrollAreaBasic from "./scroll-area/basic.demo";
 import SpinnerBasic from "./spinner/basic.demo";
 import SplitButtonBasic from "./split-button/basic.demo";
@@ -84,6 +91,13 @@ export const demos = {
   "display/cards": DisplayCards,
   "display/chips": DisplayChips,
   "display/placeholders": DisplayPlaceholders,
+  "examples/confirm-delete-flow": ExamplesConfirmDeleteFlow,
+  "examples/dashboard-shell": ExamplesDashboardShell,
+  "examples/data-table-page": ExamplesDataTablePage,
+  "examples/onboarding-wizard": ExamplesOnboardingWizard,
+  "examples/settings-page": ExamplesSettingsPage,
+  "recipes/form-validation": RecipesFormValidation,
+  "recipes/tenant-theme": RecipesTenantTheme,
   "floating/hover-card": FloatingHoverCard,
   "floating/popover": FloatingPopover,
   "floating/tooltip": FloatingTooltip,

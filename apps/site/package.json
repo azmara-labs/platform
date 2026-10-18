@@ -42,6 +42,8 @@
     "@azmr/db-supabase": "workspace:*",
     "@biomejs/biome": "^2.5.5",
     "@tailwindcss/postcss": "^4.3.3",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/user-event": "^14.6.8",
     "@types/culori": "^4.0.1",
     "@types/mdx": "^2.0.14",
     "@types/node": "^26.1.1",

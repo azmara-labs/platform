@@ -1,0 +1,21 @@
+---
+title: Onboarding wizard
+description: A step-by-step form with a progress indicator, per-step validation and focus that follows the step.
+---
+
+Three steps that gather a team name and size, a plan, and a confirmation.
+
+<Demo name="examples/onboarding-wizard" />
+
+## What it shows
+
+- **One source of truth.** Every answer is held in the wizard's state, so Back never loses anything and the last step can show a summary.
+- **Labelled fields.** Each [Input](/docs/components/input) has a visible label. The headcount field asks for a numeric keyboard with `inputMode="numeric"` and is still validated as text, because a number input would hide what the person typed.
+- **Validate a step before leaving it.** Continue checks the current step only. An error appears in an [Alert](/docs/components/display) and the step does not change.
+- **Focus follows the step.** When the step changes, the new step's heading takes focus. Otherwise a keyboard or screen reader user is left on a button that has just been replaced. The heading has `tabIndex={-1}`, so it can be focused but is not in the tab order.
+- **Progress that is announced.** The [Stepper](/docs/components/stepper) marks the current step with `aria-current="step"` and each step's state is in its text, not only its colour.
+- **A choice that cannot be empty.** The plan is a single-choice [ToggleGroup](/docs/components/toggle). Clicking the chosen plan again would turn it off, so the example ignores that click: a group that has to have an answer keeps one.
+
+## Limits
+
+Reloading the page loses the answers. If that matters, keep the state in the URL or in storage and read it back. The final step does not call a server.

@@ -1,3 +1,12 @@
 {
-  "pages": ["index", "guide", "components", "packages", "security", "changelog"]
+  "pages": [
+    "index",
+    "guide",
+    "components",
+    "examples",
+    "recipes",
+    "packages",
+    "security",
+    "changelog"
+  ]
 }
