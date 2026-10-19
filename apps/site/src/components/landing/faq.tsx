@@ -1,6 +1,6 @@
-import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { ChevronDownIcon } from "./landing-icons";
 
 /**
  * One question. A native <details> element: it opens and closes with no JavaScript, is keyboard
@@ -15,7 +15,7 @@ function FaqItem({ question, children }: { question: string; children: ReactNode
     >
       <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-3 font-medium [&::-webkit-details-marker]:hidden">
         {question}
-        <ChevronDown
+        <ChevronDownIcon
           aria-hidden="true"
           className="size-4 shrink-0 text-fd-muted-foreground transition-transform group-open:rotate-180"
         />

@@ -27,8 +27,21 @@ describe("landing page source", () => {
       expect(landing(file), file).not.toContain("dynamic-codeblock");
       expect(landing(file), file).not.toContain("DynamicCodeBlock");
     }
-    expect(landing("hero.tsx")).toContain("codeblock.rsc");
-    expect(landing("code-showcase.tsx")).toContain("codeblock.rsc");
+    expect(landing("hero.tsx")).toContain("StaticCodeBlock");
+    expect(landing("code-showcase.tsx")).toContain("StaticCodeBlock");
+    expect(landing("static-code-block.tsx")).toContain("fumadocs-core/highlight");
+  });
+
+  // Each of these is a client component, so importing it, even from a Server Component, sends its
+  // code to every visitor: lucide-react's Icon, and Fumadocs' code block (copy button), tabs and
+  // callout (lucide icons). The landing page draws its icons as plain SVG (landing-icons.tsx).
+  it("imports no client components", () => {
+    for (const file of landingFiles) {
+      const text = landing(file);
+      expect(text, file).not.toContain('"use client"');
+      expect(text, file).not.toContain('from "lucide-react"');
+      expect(text, file).not.toMatch(/fumadocs-ui\/components\/(codeblock|tabs|callout)/);
+    }
   });
 
   it("does not prefetch the docs from links on the landing page or in the footer", () => {
@@ -71,10 +84,11 @@ describe("landing page source", () => {
 });
 
 // After `pnpm build` the landing page's HTML lists its scripts. The sizes at the time this budget was
-// set: 10 script tags and 207 kB gzipped (it was 14 tags and 271 kB before the changes above). The
-// budget leaves some room; raise it deliberately, not by accident.
-const MAX_SCRIPT_TAGS = 12;
-const MAX_GZIP_KB = 230;
+// set: 8 script tags and 182 kB gzipped (10 tags and 207 kB before the landing page dropped its
+// client components; 14 tags and 271 kB before that). The budget leaves some room; raise it
+// deliberately, not by accident.
+const MAX_SCRIPT_TAGS = 9;
+const MAX_GZIP_KB = 195;
 const builtLanding = join(siteDir, ".next", "server", "app", "index.html");
 
 describe("landing page JavaScript budget (needs a build)", () => {
