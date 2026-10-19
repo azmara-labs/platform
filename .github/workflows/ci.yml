@@ -104,6 +104,9 @@ jobs:
           google-chrome --version
           pnpm --filter @azmr/site check:pages
 
+      - name: Search finds every component by name and the task phrases (built index)
+        run: pnpm --filter @azmr/site check:search
+
   lighthouse:
     name: Lighthouse (mobile, medians of 3 runs)
     runs-on: ubuntu-latest

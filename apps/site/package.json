@@ -19,7 +19,8 @@
     "generate:accessibility": "tsx scripts/build-accessibility.ts",
     "generate:llms": "tsx scripts/build-llms.mts",
     "check:pages": "node scripts/axe-pages.mjs",
-    "check:lighthouse": "node scripts/lighthouse-pages.mjs"
+    "check:lighthouse": "node scripts/lighthouse-pages.mjs",
+    "check:search": "tsx scripts/search-check.mts"
   },
   "keywords": [],
   "author": "",
