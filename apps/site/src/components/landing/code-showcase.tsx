@@ -1,4 +1,4 @@
-import { ServerCodeBlock } from "fumadocs-ui/components/codeblock.rsc";
+import { StaticCodeBlock } from "./static-code-block";
 
 const policyEngineCode = `const engine = createPolicyEngine({
   policies: {
@@ -20,7 +20,7 @@ export function CodeShowcase() {
           <code>@azmr/policycore</code> composes <code>@azmr/security</code>'s primitives — rate
           limit, then auth, then CORS — declared once per route.
         </p>
-        <ServerCodeBlock lang="ts" code={policyEngineCode} />
+        <StaticCodeBlock lang="ts" code={policyEngineCode} />
       </div>
     </section>
   );

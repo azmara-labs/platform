@@ -1,5 +1,5 @@
-import { ServerCodeBlock } from "fumadocs-ui/components/codeblock.rsc";
 import Link from "next/link";
+import { StaticCodeBlock } from "./static-code-block";
 
 export function Hero() {
   return (
@@ -30,7 +30,7 @@ export function Hero() {
         </Link>
       </div>
       <div className="w-full max-w-md text-left">
-        <ServerCodeBlock lang="bash" code="pnpm add @azmr/core" />
+        <StaticCodeBlock lang="bash" code="pnpm add @azmr/core" />
       </div>
     </section>
   );
