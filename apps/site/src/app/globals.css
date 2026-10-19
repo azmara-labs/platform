@@ -3,61 +3,6 @@
 @import "fumadocs-ui/css/preset.css";
 /* Our tokens only: the global body and border rules in styles.css would restyle the docs pages. */
 @import "@azmr/ui/tokens.css";
+@import "./palette.css";
 
 @source "../../node_modules/fumadocs-ui/dist/**/*.js";
-
-/* Azmara Labs "Signal Lab" palette — matches wa_azmara.io, mapped onto fumadocs' fd-* tokens */
-:root {
-  --color-fd-background: hsl(0, 0%, 98%);
-  --color-fd-foreground: #001a32;
-  --color-fd-muted: #eaf6f8;
-  --color-fd-muted-foreground: #4a6673;
-  --color-fd-popover: #ffffff;
-  --color-fd-popover-foreground: #001a32;
-  --color-fd-card: #ffffff;
-  --color-fd-card-foreground: #001a32;
-  --color-fd-border: hsla(191, 100%, 24%, 15%);
-  /* A darker cyan than the brand's #00afc7, which is 2.6:1 on white: this is 5.4:1 on white and 4.8:1 on
-     the tint behind the active sidebar item, and white text on it is 5.4:1. Dark mode keeps the brighter
-     cyan, which has plenty of contrast on the dark page. */
-  --color-fd-primary: #00748a;
-  --color-fd-primary-foreground: #ffffff;
-  --color-fd-secondary: #f2f9fa;
-  --color-fd-secondary-foreground: #001a32;
-  --color-fd-accent: #e0fdff;
-  --color-fd-accent-foreground: #00333b;
-  --color-fd-ring: #00d9f2;
-}
-
-.dark {
-  --color-fd-background: #001a32;
-  --color-fd-foreground: #e8f6fa;
-  --color-fd-muted: #0a2a48;
-  --color-fd-muted-foreground: #7c93a3;
-  --color-fd-popover: #05213d;
-  --color-fd-popover-foreground: #e8f6fa;
-  --color-fd-card: #05213d;
-  --color-fd-card-foreground: #e8f6fa;
-  --color-fd-border: #123650;
-  --color-fd-primary: #00d9f2;
-  --color-fd-primary-foreground: #001a32;
-  --color-fd-secondary: #0a2a48;
-  --color-fd-secondary-foreground: #e8f6fa;
-  --color-fd-accent: hsla(189, 100%, 46%, 15%);
-  --color-fd-accent-foreground: #e8f6fa;
-  --color-fd-ring: #00d9f2;
-}
-
-/* The code highlighter's dark theme writes comments in #6A737D, which is 3.4:1 on the dark code
-   background (WCAG AA needs 4.5:1). Lighten that one colour, in dark mode only: 6.4:1. */
-/* biome-ignore lint/complexity/noImportantStyles: the highlighter writes the colour as an inline style, which only !important beats */
-.dark pre span[style*="--shiki-dark:#6A737D"] {
-  --shiki-dark: #98a3b0 !important;
-}
-
-/* The highlighter's light theme writes variables and parameters in #E36209, which is 3.5:1 on white.
-   Darken that one colour, which also affects nothing in dark mode: 5.3:1. */
-/* biome-ignore lint/complexity/noImportantStyles: the highlighter writes the colour as an inline style, which only !important beats */
-pre span[style*="--shiki-light:#E36209"] {
-  --shiki-light: #b84700 !important;
-}

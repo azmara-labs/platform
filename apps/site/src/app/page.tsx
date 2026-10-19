@@ -1,3 +1,4 @@
+import "./landing.css";
 import type { Metadata } from "next";
 import { CodeShowcase } from "@/components/landing/code-showcase";
 import { CtaFooter } from "@/components/landing/cta-footer";

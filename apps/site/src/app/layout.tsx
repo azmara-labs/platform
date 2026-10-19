@@ -1,7 +1,11 @@
-import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { Provider } from "@/components/provider";
+import { themeScript } from "./theme-script";
+
+// No stylesheet and no client provider here: each part of the site brings its own. The landing
+// page loads the small landing.css; the docs and the playground load globals.css and the Fumadocs
+// provider (theme toggle, search) in their layouts. So the landing page, the first thing most
+// visitors load, does not block on the docs' CSS or download the docs' client code.
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -35,9 +39,11 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={inter.className} suppressHydrationWarning>
-      <body>
-        <Provider>{children}</Provider>
-      </body>
+      <head>
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: a fixed string from theme-script.ts, no user input */}
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
+      <body>{children}</body>
     </html>
   );
 }

@@ -1,0 +1,17 @@
+/*
+ * The landing page's own stylesheet. It is render-blocking, so it carries only what the landing page
+ * uses: Tailwind's utilities for the landing components (not for every docs page and every
+ * Fumadocs component, as globals.css does), Fumadocs' colour variables and code-highlight rules,
+ * our tokens and the palette. None of the four Fumadocs layout stylesheets come along.
+ */
+@import "tailwindcss" source(none);
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/lib/base.css";
+@import "fumadocs-ui/css/lib/shiki.css";
+@import "@azmr/ui/tokens.css";
+@import "./palette.css";
+
+@source "./page.tsx";
+@source "./not-found.tsx";
+@source "../components/landing";
+@source "../components/site-footer.tsx";
