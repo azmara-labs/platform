@@ -183,6 +183,23 @@ describe("the real budgets and the job that uses them", () => {
     }
   });
 
+  it("guard every target with a limit, so no metric is reported but never checked", () => {
+    for (const page of budgets.pages) {
+      expect(Object.keys(page.limits).sort(), page.path).toEqual(Object.keys(page.targets).sort());
+    }
+  });
+
+  it("keep the limits close to what the CI runner measures, not far past it", () => {
+    // Set from the medians of the first runs on the runner (landing 95 to 96, menu 86 to 87), with a
+    // margin for the runner's own variation. A limit far looser than that would let a regression through.
+    const landing = budgets.pages.find((p) => p.path === "/");
+    const menu = budgets.pages.find((p) => p.path === "/docs/components/menu");
+    expect(landing?.limits.performance).toBeGreaterThanOrEqual(85);
+    expect(menu?.limits.performance).toBeGreaterThanOrEqual(75);
+    expect(landing?.limits.lcpMs).toBeLessThanOrEqual(4000);
+    expect(menu?.limits.lcpMs).toBeLessThanOrEqual(5000);
+  });
+
   it("run in CI against the built site, and keep the results", () => {
     expect(pkg.scripts["check:lighthouse"]).toContain("lighthouse-pages.mjs");
     expect(ci).toContain("check:lighthouse");

@@ -13,7 +13,16 @@
         "cls": 0.1,
         "tbtMs": 200
       },
-      "limits": {}
+      "limits": {
+        "performance": 88,
+        "accessibility": 96,
+        "bestPractices": 96,
+        "seo": 96,
+        "fcpMs": 1500,
+        "lcpMs": 3500,
+        "cls": 0.1,
+        "tbtMs": 300
+      }
     },
     {
       "path": "/docs/components/menu",
@@ -27,7 +36,16 @@
         "cls": 0.1,
         "tbtMs": 200
       },
-      "limits": {}
+      "limits": {
+        "performance": 78,
+        "accessibility": 96,
+        "bestPractices": 96,
+        "seo": 96,
+        "fcpMs": 1500,
+        "lcpMs": 4200,
+        "cls": 0.1,
+        "tbtMs": 400
+      }
     }
   ]
 }
