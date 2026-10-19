@@ -44,6 +44,28 @@ function read(lhr) {
   };
 }
 
+// --run-all-compositor-stages-before-draw: without it, headless Chrome sometimes holds the first
+// paint for about 2 s. Lighthouse's simulated LCP counts every request finished before the paint it
+// observed, so in those runs the sidebar's link prefetches were counted too, and the menu page
+// read about 4.4 s or 7 s on the same build (CI: 3.0 s or 4.2 s). With the flag, 16 of 16 local
+// runs painted at once, against 4 of 6 without it.
+const CHROME_FLAGS = ["--headless=new", "--no-sandbox", "--run-all-compositor-stages-before-draw"];
+
+/** Chrome occasionally fails to report its debugging port on the CI runner; start it again. */
+async function launchChrome(attempts = 3) {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await launch({ chromeFlags: CHROME_FLAGS });
+    } catch (error) {
+      if (attempt >= attempts || !/debugging port/.test(String(error))) throw error;
+      console.warn(
+        `Chrome did not start (${error.message}); attempt ${attempt + 1} of ${attempts}`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+  }
+}
+
 async function measure(chrome, url) {
   const result = await lighthouse(url, {
     port: chrome.port,
@@ -59,7 +81,7 @@ async function measure(chrome, url) {
 async function main() {
   const pages = budgets.pages.filter((p) => p.path.replace(/^\//, "").startsWith(only));
   if (pages.length === 0) throw new Error(`no page in lighthouse-budgets.json matches "${only}"`);
-  const chrome = await launch({ chromeFlags: ["--headless=new", "--no-sandbox"] });
+  const chrome = await launchChrome();
   const results = [];
   try {
     for (const page of pages) {
