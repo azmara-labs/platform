@@ -1,0 +1,17 @@
+# Every text file is stored and checked out with LF line endings, whatever the machine's git
+# settings, so tools that parse files with \n (frontmatter regexes, generators) behave the same on
+# Windows, macOS, Linux and CI. Git detects binary files itself; the list below just makes the
+# common ones explicit.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.pdf binary
+*.tgz binary
