@@ -26,6 +26,11 @@ export const docsFrontmatter = frontmatterSchema.extend({
     .optional(),
   /** True when the component takes keyboard input, so the page must show a keyboard map. */
   interactive: z.boolean().optional(),
+  /**
+   * Other names people search for: the components a page documents under a different name
+   * (Modal documents Dialog). Search shows them after the title and ranks an exact match like one.
+   */
+  aliases: z.array(z.string().min(1)).optional(),
 });
 
 export const componentFrontmatter = docsFrontmatter.required({
