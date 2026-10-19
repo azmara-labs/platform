@@ -56,10 +56,22 @@ function pagesUsing(name: string): string[] {
   return pages;
 }
 
-/** The page's visible text and payload, with tags and highlighting spans removed. */
+/**
+ * The page's visible text and payload, with tags and highlighting spans removed. Only compared in
+ * this test, never rendered. Tags are stripped until none are left (one pass can leave a tag formed
+ * by the text around a removed one).
+ */
+function stripTags(html: string): string {
+  let text = html;
+  for (let previous = ""; previous !== text; ) {
+    previous = text;
+    text = text.replace(/<[^>]*>/g, "");
+  }
+  return text;
+}
+
 const textOf = (html: string) =>
-  html
-    .replace(/<[^>]+>/g, "")
+  stripTags(html)
     .replace(/\\u003c/g, "<")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
