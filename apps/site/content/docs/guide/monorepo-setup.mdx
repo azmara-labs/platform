@@ -50,7 +50,7 @@ what it demonstrates.
 
 ## Check the docs site
 
-CI checks the docs in three ways beyond the unit tests, and you can run each locally:
+CI checks the docs in four ways beyond the unit tests, and you can run each locally:
 
 - **Links, demos and entry points:** `pnpm --filter @azmr/site test` checks every link and anchor, that every demo exists and renders, and that every package entry has a page.
 - **Accessibility of the rendered pages:** build and start the site, then run axe over every page in light and dark mode in Chrome.
@@ -62,6 +62,7 @@ CI checks the docs in three ways beyond the unit tests, and you can run each loc
   ```
 
   A violation fails the check. The few we accept are listed with a reason in `apps/site/a11y-known-issues.json`, and a listed issue that stops occurring fails the check too, so remove it.
+- **Performance:** Lighthouse (mobile) runs three times on the landing page and on the menu page, and the medians are compared with `apps/site/lighthouse-budgets.json`. Each page has a **target** (the project standards: 96 on every score, FCP under 1.5 s, LCP under 2.5 s, CLS under 0.1) and a **limit**, the worst accepted for now. A page past its limit fails the check; a missed target is reported, so the check tells the truth about the gap without failing every pull request. Tighten a limit as the page improves. Run it with `pnpm --filter @azmr/site check:lighthouse` against the running site. The limits were set from runs on the CI runner, which is steadier than a laptop: a single local run can swing by 20 points, so judge a change by the CI result, or by the median of several local runs.
 - **Spelling:** the docs use New Zealand English, and a test fails on American spellings in prose (`color`, `behavior`, `organize`). Code, link targets and the generated changelogs are not checked.
 
 ## Native module note

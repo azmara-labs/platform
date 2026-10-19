@@ -1,0 +1,51 @@
+{
+  "runs": 3,
+  "pages": [
+    {
+      "path": "/",
+      "targets": {
+        "performance": 96,
+        "accessibility": 96,
+        "bestPractices": 96,
+        "seo": 96,
+        "fcpMs": 1500,
+        "lcpMs": 2500,
+        "cls": 0.1,
+        "tbtMs": 200
+      },
+      "limits": {
+        "performance": 88,
+        "accessibility": 96,
+        "bestPractices": 96,
+        "seo": 96,
+        "fcpMs": 1500,
+        "lcpMs": 3500,
+        "cls": 0.1,
+        "tbtMs": 300
+      }
+    },
+    {
+      "path": "/docs/components/menu",
+      "targets": {
+        "performance": 96,
+        "accessibility": 96,
+        "bestPractices": 96,
+        "seo": 96,
+        "fcpMs": 1500,
+        "lcpMs": 2500,
+        "cls": 0.1,
+        "tbtMs": 200
+      },
+      "limits": {
+        "performance": 78,
+        "accessibility": 96,
+        "bestPractices": 96,
+        "seo": 96,
+        "fcpMs": 1500,
+        "lcpMs": 4200,
+        "cls": 0.1,
+        "tbtMs": 400
+      }
+    }
+  ]
+}
