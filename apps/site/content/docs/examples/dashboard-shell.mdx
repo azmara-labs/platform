@@ -12,7 +12,7 @@ The frame most admin screens share. It is the part to copy first, because every 
 - **Landmarks.** The navigation is a `nav` with a label and marks the current page with `aria-current="page"`. The content is a labelled `section`, so a screen reader user can jump straight to it. The example does not use a `main` element, because this page already has one; in an app, make the content area your `main`.
 - **A responsive layout.** The navigation is a row on a narrow screen and a column from the `md` breakpoint, with the content filling the rest. See [Layout](/docs/components/layout) for `Grid`, which also sizes the stat cards (`minItemWidth`).
 - **A trail.** [Breadcrumbs](/docs/components/breadcrumb) say where the page sits. The last item is always the current page, so it is not a link.
-- **A user menu on an avatar.** The account button has its own label, because the [Avatar](/docs/components/avatar) inside it is a picture. The [menu](/docs/components/menu) is the standard dropdown.
+- **A user menu on an avatar.** The account button is named by the [Avatar](/docs/components/avatar) inside it, so it is announced with the person's name rather than with a label that ignores the initials a speech-input user can see. The [menu](/docs/components/menu) is the standard dropdown.
 - **Loading without layout shift.** Refresh swaps each figure for a [Skeleton](/docs/components/display) of about the same size and sets `aria-busy` on the grid, and a visually hidden live region says "Refreshing figures" and "Figures are up to date".
 - **Tabs for related detail.** [Tabs](/docs/components/disclosure) with arrow-key navigation, and [Progress](/docs/components/progress) bars with names.
 

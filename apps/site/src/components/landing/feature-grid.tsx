@@ -5,6 +5,7 @@ export function FeatureGrid() {
   return (
     <section className="w-full">
       <div className="mx-auto max-w-5xl px-8 py-16">
+        <h2 className="sr-only">What the platform gives you</h2>
         <div className="grid gap-4 md:grid-cols-3">
           <LandingCard
             icon={<Zap />}

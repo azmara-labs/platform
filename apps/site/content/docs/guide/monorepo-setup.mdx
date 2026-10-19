@@ -48,6 +48,22 @@ Then open `/playground` — a live, interactive demo of `@azmr/core`, `@azmr/que
 working together, no separate app to run. See the [Playground](/docs/guide/playground) guide for
 what it demonstrates.
 
+## Check the docs site
+
+CI checks the docs in three ways beyond the unit tests, and you can run each locally:
+
+- **Links, demos and entry points:** `pnpm --filter @azmr/site test` checks every link and anchor, that every demo exists and renders, and that every package entry has a page.
+- **Accessibility of the rendered pages:** build and start the site, then run axe over every page in light and dark mode in Chrome.
+
+  ```bash
+  pnpm turbo run build --filter=@azmr/site
+  pnpm --filter @azmr/site start &
+  pnpm --filter @azmr/site check:pages
+  ```
+
+  A violation fails the check. The few we accept are listed with a reason in `apps/site/a11y-known-issues.json`, and a listed issue that stops occurring fails the check too, so remove it.
+- **Spelling:** the docs use New Zealand English, and a test fails on American spellings in prose (`color`, `behavior`, `organize`). Code, link targets and the generated changelogs are not checked.
+
 ## Native module note
 
 `@azmr/ai` uses `isolated-vm` which requires native compilation.

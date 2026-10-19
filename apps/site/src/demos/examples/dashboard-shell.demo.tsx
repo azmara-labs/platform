@@ -110,7 +110,7 @@ export default function DashboardShell() {
               <DropdownMenu>
                 <DropdownMenuTrigger
                   render={
-                    <button type="button" aria-label="Account menu" className="rounded-full">
+                    <button type="button" className="rounded-full">
                       <Avatar name="Aroha Ngata" size="sm" />
                     </button>
                   }

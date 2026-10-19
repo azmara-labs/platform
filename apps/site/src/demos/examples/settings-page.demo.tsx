@@ -103,7 +103,7 @@ export default function SettingsPage() {
     <form onSubmit={submit} noValidate aria-label="Account settings" className="max-w-xl">
       <Card>
         <CardHeader>
-          <CardTitle>Account</CardTitle>
+          <CardTitle as="h2">Account</CardTitle>
           <CardDescription>How we address you and where we send things.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-5">

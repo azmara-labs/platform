@@ -308,14 +308,14 @@ function colourSection(group: Group): string {
     code(token.dark ?? ""),
     token.utilities.map(code).join(", "),
   ]);
-  return table(["", "Token", "Light", "Dark", "Tailwind"], rows);
+  return table(["Swatch", "Token", "Light", "Dark", "Tailwind"], rows);
 }
 
 function valueSection(group: Group): string {
   const hasReduced = group.tokens.some((t) => t.reduced !== undefined);
   const hasShadow = group.title === "Elevation";
   const headings = [
-    ...(hasShadow ? [""] : []),
+    ...(hasShadow ? ["Sample"] : []),
     "Token",
     "Value",
     "Tailwind",

@@ -211,7 +211,7 @@ function highlight(code: string): string {
 }
 
 // ── CodeBlock ──────────────────────────────────────────────────────────────
-function CodeBlock({ code, open }: { code: string; open: boolean }) {
+function CodeBlock({ code, open, label }: { code: string; open: boolean; label: string }) {
   const [copied, setCopied] = useState(false);
 
   const copy = useCallback(() => {
@@ -229,8 +229,14 @@ function CodeBlock({ code, open }: { code: string; open: boolean }) {
           {copied ? "✓ copied" : "copy"}
         </button>
       </div>
+      {/* A scrollable region has to be reachable by keyboard, and a region needs its own name. */}
+      {/* biome-ignore lint/a11y/useSemanticElements: the element is a <pre> (it must keep its whitespace), and a region role names it */}
       <pre
         className="code-pre"
+        role="region"
+        aria-label={label}
+        // biome-ignore lint/a11y/noNoninteractiveTabindex: a scrollable code block must take focus so the keyboard can scroll it
+        tabIndex={0}
         // Safe: highlight() only produces span/esc output from our own code strings
         // biome-ignore lint/security/noDangerouslySetInnerHtml: content is developer-authored, not user input
         dangerouslySetInnerHTML={{ __html: highlight(code) }}
@@ -349,7 +355,7 @@ function SignalPanel() {
         </div>
       </div>
 
-      <CodeBlock code={CODE_SIGNALS} open={showCode} />
+      <CodeBlock code={CODE_SIGNALS} open={showCode} label="Reactive engine source" />
     </div>
   );
 }
@@ -391,6 +397,7 @@ function QueryPanel() {
           </div>
           <input
             type="range"
+            aria-label="Minimum balance"
             min={-100}
             max={350}
             step={10}
@@ -432,7 +439,7 @@ function QueryPanel() {
         )}
       </div>
 
-      <CodeBlock code={CODE_QUERY} open={showCode} />
+      <CodeBlock code={CODE_QUERY} open={showCode} label="Query builder source" />
     </div>
   );
 }
@@ -527,7 +534,7 @@ function GridPanel() {
         </div>
       </div>
 
-      <CodeBlock code={CODE_GRID} open={showCode} />
+      <CodeBlock code={CODE_GRID} open={showCode} label="Grid source" />
     </div>
   );
 }
@@ -546,6 +553,7 @@ export function App() {
     <div className="playground-root">
       <div className="app">
         <header className="header">
+          <h1 className="sr-only">Azmara playground</h1>
           <div className="header-logo">
             <div className="logo-mark" />
             <span className="logo-text">Azmara</span>

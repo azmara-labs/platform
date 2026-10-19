@@ -66,6 +66,44 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: pnpm audit:deps
 
+  docs-pages:
+    name: Docs pages (axe in a real browser)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build the docs site
+        run: pnpm turbo run build --filter=@azmr/site
+
+      - name: Start the site
+        run: |
+          pnpm --filter @azmr/site start > site.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -sf http://127.0.0.1:3000/sitemap.xml > /dev/null && exit 0
+            sleep 2
+          done
+          cat site.log
+          exit 1
+
+      - name: Axe over every rendered page, light and dark (Chrome)
+        run: |
+          google-chrome --version
+          pnpm --filter @azmr/site check:pages
+
   changeset:
     name: Changeset check
     runs-on: ubuntu-latest

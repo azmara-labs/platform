@@ -174,7 +174,9 @@ export function renderReference(components: ComponentAccessibility[]): string {
 
   const maps = interactive
     .map((c) => {
-      const heading = `### [${c.title}](/docs/components/${c.slug}#accessibility)`;
+      // A plain heading, with the link on its own line: a link inside a heading is nested inside the
+      // table of contents' link to that heading, and a link cannot contain a link.
+      const heading = `### ${c.title}\n\n[${c.title} accessibility section](/docs/components/${c.slug}#accessibility)`;
       const body = c.keyMaps
         .map((map) => {
           const label = c.keyMaps.length > 1 ? `#### ${map.label}\n\n` : "";
