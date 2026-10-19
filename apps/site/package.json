@@ -18,7 +18,8 @@
     "generate:tokens": "tsx scripts/build-tokens.ts",
     "generate:accessibility": "tsx scripts/build-accessibility.ts",
     "generate:llms": "tsx scripts/build-llms.mts",
-    "check:pages": "node scripts/axe-pages.mjs"
+    "check:pages": "node scripts/axe-pages.mjs",
+    "check:lighthouse": "node scripts/lighthouse-pages.mjs"
   },
   "keywords": [],
   "author": "",
@@ -55,9 +56,11 @@
     "acorn": "^8.16.0",
     "autoprefixer": "^10.5.4",
     "axe-core": "^4.14.0",
+    "chrome-launcher": "^1.2.2",
     "culori": "^4.0.2",
     "github-slugger": "^2.0.0",
     "jsdom": "^29.1.1",
+    "lighthouse": "^13.5.0",
     "mdast-util-mdx-jsx": "^3.2.0",
     "playwright-core": "^1.64.1",
     "postcss": "^8.5.23",

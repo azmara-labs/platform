@@ -1,1 +1,4 @@
 .vercel
+
+# Output of the Lighthouse check (pnpm check:lighthouse)
+lighthouse-results.json
