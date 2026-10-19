@@ -102,7 +102,11 @@ export function table(page, runs, evaluation) {
   return lines.join("\n");
 }
 
-/** Checks the budgets file: every page has a path, and every number is a finite number. */
+/**
+ * Checks the budgets file: every page has a path, and every number is a finite number.
+ * @param {any} file
+ * @returns {{ runs: number, pages: PageBudget[] }}
+ */
 export function validateBudgets(file) {
   if (!file || typeof file !== "object") throw new Error("the budgets file must be an object");
   if (!Number.isInteger(file.runs) || file.runs < 1)
