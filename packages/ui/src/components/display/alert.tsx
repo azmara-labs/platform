@@ -1,5 +1,5 @@
-import { CircleAlert, CircleCheck, Info, TriangleAlert, X } from "lucide-react";
 import { forwardRef, type HTMLAttributes, type ReactNode } from "react";
+import { CircleAlert, CircleCheck, Info, TriangleAlert, X } from "../../icons/glyphs.js";
 import { Icon } from "../../icons/icon.js";
 import { cn } from "../../lib/cn.js";
 import { STATUS, type StatusVariant } from "./status.js";

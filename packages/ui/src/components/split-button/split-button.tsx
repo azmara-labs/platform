@@ -1,5 +1,5 @@
-import { ChevronDown } from "lucide-react";
 import { forwardRef, type ReactNode } from "react";
+import { ChevronDown } from "../../icons/glyphs.js";
 import { Icon } from "../../icons/icon.js";
 import { cn } from "../../lib/cn.js";
 import type { ButtonProps as ButtonPrimitiveProps } from "../../primitives/button.js";

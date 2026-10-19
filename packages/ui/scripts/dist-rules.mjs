@@ -61,10 +61,25 @@ function reactNamedImports(code) {
   return names;
 }
 
+// Libraries whose components are client components ("use client" inside the package). Importing
+// one from a Server Component entry compiles, but every page that renders it ships the library's
+// runtime: lucide-react 1.x's icons all go through a client `Icon` (PAZM-142). Use the glyphs in
+// src/icons/glyphs.ts instead.
+const CLIENT_PACKAGES = ["lucide-react"];
+
+/** Client-component libraries a file imports (static, re-export or dynamic), by package name. */
+export function clientPackageImports(code) {
+  return CLIENT_PACKAGES.filter((name) =>
+    new RegExp(`(?:from|import)\\s*\\(?\\s*["']${name}(?:/[^"']*)?["']`).test(code),
+  );
+}
+
 /** Server Component entries: stateless React is fine, anything stateful is not. */
 export function serverComponentProblems(code) {
   const problems = [];
   if (importsReactDom(code)) problems.push("imports react-dom");
+  for (const name of clientPackageImports(code))
+    problems.push(`imports ${name}, whose components are client components`);
   for (const name of reactNamedImports(code)) {
     if (STATEFUL.test(name)) problems.push(`imports "${name}" from react`);
   }

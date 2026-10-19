@@ -1,4 +1,3 @@
-import { X } from "lucide-react";
 import {
   type ComponentPropsWithoutRef,
   type ComponentType,
@@ -8,6 +7,7 @@ import {
   type ReactNode,
   useContext,
 } from "react";
+import { X } from "../../icons/glyphs.js";
 import { Icon } from "../../icons/icon.js";
 import { cn } from "../../lib/cn.js";
 import { buttonVariants } from "../button/button.js";

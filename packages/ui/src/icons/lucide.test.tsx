@@ -1,6 +1,7 @@
 import * as lucide from "lucide-react";
 import { describe, expect, it } from "vitest";
 import { expectNoA11yViolations, renderUi } from "../test-utils/index.js";
+import * as glyphs from "./glyphs.js";
 import { Icon, iconNames, lucideIcons } from "./lucide.js";
 
 const pascal = (kebab: string) =>
@@ -45,11 +46,13 @@ describe("curated Lucide set", () => {
     expect(iconNames.length).toBeGreaterThanOrEqual(40);
   });
 
-  it("uses Lucide's own kebab-case names, each tied to a real Lucide export", () => {
+  it("uses Lucide's own kebab-case names, each a glyph of a real Lucide icon", () => {
     for (const [name, component] of Object.entries(lucideIcons)) {
       expect(name, name).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
-      const exported = (lucide as unknown as Record<string, unknown>)[pascal(name)];
-      expect(exported, `${name} -> ${pascal(name)}`).toBe(component);
+      // The set holds server-safe glyphs (glyph.test.tsx proves they render what lucide-react
+      // renders), and each name is one lucide-react exports.
+      expect((glyphs as Record<string, unknown>)[pascal(name)], name).toBe(component);
+      expect((lucide as unknown as Record<string, unknown>)[pascal(name)], name).toBeDefined();
     }
   });
 

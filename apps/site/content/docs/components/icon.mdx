@@ -26,7 +26,7 @@ An icon is **decorative by default** (`aria-hidden`). Give it `aria-label` or `a
 
 <Demo name="icon/named" />
 
-The curated set at `@azmr/ui/icons/lucide` gives about 60 everyday icons by Lucide's own kebab-case names, with the names type-checked. For your own typed set use `createIconSet`, and for custom SVGs `registerIcons`:
+The curated set at `@azmr/ui/icons/lucide` gives about 60 everyday icons by Lucide's own kebab-case names, with the names type-checked. They render the same markup as `lucide-react`'s icons, but as plain SVG on the server: `lucide-react`'s icons are client components, so each page that uses one also loads Lucide's runtime. See [Server Components](/docs/guide/server-components). For your own typed set use `createIconSet`, and for custom SVGs `registerIcons`:
 
 ```tsx
 import { createIconSet, registerIcons } from "@azmr/ui/icons";

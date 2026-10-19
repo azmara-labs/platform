@@ -51,6 +51,10 @@ These have no client code and no hooks, so they render on the server and cost no
 | `@azmr/ui/stepper` |
 | `@azmr/ui/presets` |
 
+This is checked, not assumed: a test builds a Next.js page that renders every entry above and fails if its client manifest gains anything from `@azmr/ui` or Lucide. The icons these components draw (the chevrons in `Breadcrumb`, the tick in `Stepper`, the alert icons) are plain SVG rendered on the server.
+
+The icon you pass in yourself is another matter. Every icon from `lucide-react` is a client component, so `<Icon icon={Search} />` with `Search` from `lucide-react` sends Lucide's runtime (about 44 KB before compression) to that page. The named icons in `@azmr/ui/icons/lucide` draw the same shapes with the same markup on the server, so in a Server Component prefer `<Icon name="search" />` when the icon is in that set.
+
 ### Server-safe modules
 
 These are plain functions with no React rendering and no browser globals, so they work anywhere: Server Components, layouts, route handlers and middleware.

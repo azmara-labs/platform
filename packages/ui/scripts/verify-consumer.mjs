@@ -7,7 +7,7 @@
 //   - the server renders data-theme / data-density from cookies;
 //   - the package's exports map resolves from a real install.
 //
-// Usage:  node scripts/verify-consumer.mjs [--keep] [--sabotage=no-source|no-client-directive]
+// Usage:  node scripts/verify-consumer.mjs [--keep] [--sabotage=no-source|no-client-directive|lucide-react-icon]
 // Requires the packages to be built first (pnpm build). With --sabotage the run MUST fail in the
 // expected place; the script exits 0 only when it does, proving the check can detect that fault.
 import { spawn, spawnSync } from "node:child_process";
@@ -52,6 +52,18 @@ function run(command, args, cwd, label) {
   return { ok: result.status === 0, output, label };
 }
 const tail = (text, lines = 40) => text.trim().split("\n").slice(-lines).join("\n");
+
+/** The client modules a built route needs, read from its client-reference manifest. */
+function clientModules(app, route) {
+  const file = join(app, ".next", "server", "app", route, "page_client-reference-manifest.js");
+  if (!existsSync(file)) return new Set();
+  const scope = {};
+  new Function("globalThis", "self", readFileSync(file, "utf8"))(scope, scope);
+  const manifest = Object.values(scope.__RSC_MANIFEST ?? {})[0];
+  return new Set(
+    Object.keys(manifest?.clientModules ?? {}).map((id) => id.replace(/ <module evaluation>$/, "")),
+  );
+}
 
 for (const dir of [UI, CORE]) {
   if (!existsSync(join(dir, "dist"))) {
@@ -194,6 +206,17 @@ async function main() {
     );
   }
 
+  if (sabotage === "lucide-react-icon") {
+    const page = join(app, "app", "server-safe", "page.tsx");
+    writeFileSync(
+      page,
+      readFileSync(page, "utf8")
+        .replace(/^/, 'import { Bell } from "lucide-react";\n')
+        .replace("<Spinner ", "<Bell />\n        <Spinner "),
+    );
+    log("SABOTAGE: rendered a lucide-react icon (a client component) on the server-safe page");
+  }
+
   // 4. Build: fails if a Server Component cannot import the package.
   const build = run("pnpm", ["exec", "next", "build"], app, "build");
   check(
@@ -202,6 +225,20 @@ async function main() {
     build.ok ? "" : tail(build.output),
   );
   if (!build.ok) return;
+
+  // The guide promises the server-safe entries cost no JavaScript in the browser. Next lists every
+  // client module a route needs in its client-reference manifest; /server-safe renders only those
+  // entries, /baseline nothing, under the same layout, so the difference is what they cost.
+  const baseline = clientModules(app, "baseline");
+  const serverSafe = clientModules(app, "server-safe");
+  const added = [...serverSafe].filter(
+    (id) => !baseline.has(id) && /@azmr[\\/+]ui|lucide-react/.test(id),
+  );
+  check(
+    "a page of only server-safe entries adds no client modules from @azmr/ui or lucide-react",
+    serverSafe.size > 0 && added.length === 0,
+    serverSafe.size === 0 ? "could not read the /server-safe manifest" : added.join("\n         "),
+  );
 
   // 5. Serve and inspect.
   server = spawn("pnpm", ["exec", "next", "start", "-p", String(PORT)], {

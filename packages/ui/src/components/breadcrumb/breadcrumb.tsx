@@ -1,4 +1,3 @@
-import { ChevronRight, Ellipsis } from "lucide-react";
 import {
   type AnchorHTMLAttributes,
   Fragment,
@@ -9,6 +8,7 @@ import {
   type ReactElement,
   type ReactNode,
 } from "react";
+import { ChevronRight, Ellipsis } from "../../icons/glyphs.js";
 import { Icon } from "../../icons/icon.js";
 import { cn } from "../../lib/cn.js";
 import { renderElement } from "../shared/render-element.js";

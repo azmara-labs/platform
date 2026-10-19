@@ -1,5 +1,5 @@
-import { ChevronDown } from "lucide-react";
 import { type ComponentPropsWithoutRef, createElement, forwardRef } from "react";
+import { ChevronDown } from "../../icons/glyphs.js";
 import { Icon } from "../../icons/icon.js";
 import { cn } from "../../lib/cn.js";
 import { Accordion as AccordionPrimitive } from "../../primitives/accordion.js";
