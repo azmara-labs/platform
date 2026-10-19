@@ -1,4 +1,4 @@
-import { CircleAlert, CircleCheck, Info, TriangleAlert, X } from "lucide-react";
+import { CircleAlert, CircleCheck, Info, TriangleAlert, X } from "../../icons/glyphs.js";
 import { Icon } from "../../icons/icon.js";
 import { cn } from "../../lib/cn.js";
 import { Toast as ToastPrimitive } from "../../primitives/toast.js";

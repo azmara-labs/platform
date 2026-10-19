@@ -1,3 +1,4 @@
+import { createIconSet } from "./create-icon-set.js";
 import {
   ArrowDown,
   ArrowLeft,
@@ -58,8 +59,7 @@ import {
   User,
   Users,
   X,
-} from "lucide-react";
-import { createIconSet } from "./create-icon-set.js";
+} from "./glyphs.js";
 
 /**
  * A small, curated set of Lucide icons (ISC licence): the ones components and everyday UI need.

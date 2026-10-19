@@ -1,5 +1,5 @@
-import { X } from "lucide-react";
 import { forwardRef } from "react";
+import { X } from "../../icons/glyphs.js";
 import { Icon } from "../../icons/icon.js";
 import { cn } from "../../lib/cn.js";
 import { Badge, type BadgeProps } from "./badge.js";

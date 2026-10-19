@@ -1,5 +1,5 @@
-import { Check, X } from "lucide-react";
 import { forwardRef, type OlHTMLAttributes, type ReactNode } from "react";
+import { Check, X } from "../../icons/glyphs.js";
 import { Icon } from "../../icons/icon.js";
 import { cn } from "../../lib/cn.js";
 

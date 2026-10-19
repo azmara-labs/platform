@@ -1,5 +1,5 @@
-import { Check, ChevronRight, Circle } from "lucide-react";
 import { type ComponentPropsWithoutRef, forwardRef, type HTMLAttributes } from "react";
+import { Check, ChevronRight, Circle } from "../../icons/glyphs.js";
 import { Icon } from "../../icons/icon.js";
 import { cn } from "../../lib/cn.js";
 import { Menu as MenuPrimitive } from "../../primitives/menu.js";

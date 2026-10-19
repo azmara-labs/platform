@@ -72,6 +72,23 @@ describe("serverPureProblems (no React at all)", () => {
   });
 });
 
+describe("serverComponentProblems: client-component libraries", () => {
+  it.each([
+    ['import { Check } from "lucide-react";'],
+    ['export { X } from "lucide-react";'],
+    ['import { Icon } from "lucide-react/dist/esm/Icon.mjs";'],
+    ['const l = await import("lucide-react");'],
+  ])("rejects %s", (code) => {
+    expect(serverComponentProblems(code)).toEqual([
+      "imports lucide-react, whose components are client components",
+    ]);
+  });
+
+  it("accepts the plain lucide package (shape data, no React)", () => {
+    expect(serverComponentProblems('import { Check } from "lucide";')).toEqual([]);
+  });
+});
+
 describe("serverComponentProblems (stateless React only)", () => {
   it("accepts forwardRef, createElement and the JSX runtime", () => {
     const code = [
