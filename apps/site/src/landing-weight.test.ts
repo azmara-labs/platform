@@ -76,6 +76,23 @@ describe("landing page source", () => {
     expect(read("app", "docs", "layout.tsx")).toContain("<Toaster />");
   });
 
+  // The landing page's stylesheet is render-blocking, so it must not be the docs' stylesheet: that
+  // one scans every Fumadocs component and loads all four Fumadocs layouts. The root layout loads no
+  // stylesheet and no client provider; the docs and playground layouts bring their own.
+  it("gives the landing page its own small stylesheet and no docs provider", () => {
+    const root = read("app", "layout.tsx");
+    expect(root).not.toMatch(/import\s+["'][^"']*\.css["']/);
+    expect(root).not.toContain("Provider");
+    expect(read("app", "page.tsx")).toContain('import "./landing.css"');
+    const landingCss = read("app", "landing.css");
+    expect(landingCss).toContain('@import "tailwindcss" source(none)');
+    expect(landingCss).not.toMatch(/@import[^;]*preset\.css/);
+    expect(landingCss).not.toContain("fumadocs-ui/dist");
+    expect(landingCss).not.toMatch(/@import[^;]*globals\.css/);
+    expect(read("app", "docs", "layout.tsx")).toContain('import "../globals.css"');
+    expect(read("app", "docs", "layout.tsx")).toContain("<Provider>");
+  });
+
   it("generates the package cards from the packages, not a hand-written list", () => {
     const showcase = landing("package-showcase.tsx");
     expect(showcase).toContain("readPackages");
