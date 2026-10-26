@@ -73,7 +73,7 @@ describe("landing page source", () => {
   it("mounts the docs toaster in the docs layout, not the root layout", () => {
     expect(read("app", "layout.tsx")).not.toContain("@azmr/ui");
     expect(read("app", "layout.tsx")).not.toContain("Toaster");
-    expect(read("app", "docs", "layout.tsx")).toContain("<Toaster />");
+    expect(read("app", "docs", "layout.tsx")).toContain("<LazyToaster />");
   });
 
   // The landing page's stylesheet is render-blocking, so it must not be the docs' stylesheet: that
