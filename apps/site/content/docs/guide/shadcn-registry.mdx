@@ -52,7 +52,7 @@ Only these three are in the registry so far. The package has every component; th
 
 ## How this is verified
 
-CI builds the registry, serves it, creates a standard shadcn app with no `@azmr/ui` dependency, runs `shadcn add @azmr/button` against it, and then builds the app and checks the page. It checks that the files and dependencies landed, that no relative import is left, that the Button renders and is busy when loading, that Tailwind generated the Button's classes, and that the tokens were added without changing existing ones. That check uses the shadcn CLI version pinned in the package (4.21.4); `npx shadcn@latest` is not run against it, so a newer CLI is the likeliest source of a surprise. If one appears, [open an issue](https://github.com/azmara-labs/platform/issues).
+CI builds the registry, serves it, creates a standard shadcn app with no `@azmr/ui` dependency, runs `shadcn add @azmr/button` against it, and then builds the app and checks the page. It checks that the files and dependencies landed, that no relative import is left, that the Button renders and is busy when loading, that Tailwind generated the Button's classes, and that the tokens were added without changing existing ones. That check uses the shadcn CLI version pinned in the package (4.22.1); `npx shadcn@latest` is not run against it, so a newer CLI is the likeliest source of a surprise. If one appears, [open an issue](https://github.com/azmara-labs/platform/issues).
 
 ## Next steps
 
