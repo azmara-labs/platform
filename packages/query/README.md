@@ -64,7 +64,7 @@ String-based predicates are rejected at both type and runtime level — only Typ
 
 ## Documentation
 
-Full docs at [docs.azmara.io](https://docs.azmara.io)
+Full docs at [platform.azmara.io](https://platform.azmara.io/docs/packages/query)
 
 ## License
 

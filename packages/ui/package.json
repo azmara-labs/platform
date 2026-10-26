@@ -1,11 +1,14 @@
 {
   "name": "@azmr/ui",
   "version": "0.4.0",
-  "description": "React UI components wired to reactive Signals — Grid, useSignal",
+  "description": "Accessible React design system on Base UI and Tailwind v4 tokens — buttons, menus, modals, tables, toasts and more, with Signal-aware hooks",
   "type": "module",
   "license": "MIT",
   "author": "Alshafaraz Gazi <alshafaraz.gazi@gmail.com>",
-  "homepage": "https://docs.azmara.io",
+  "homepage": "https://platform.azmara.io/docs/packages/ui",
+  "bugs": {
+    "url": "https://github.com/azmara-labs/platform/issues"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/azmara-labs/platform.git",
@@ -18,7 +21,10 @@
     "reactive",
     "signals",
     "data-table",
-    "azmara"
+    "azmara",
+    "design-system",
+    "base-ui",
+    "tailwindcss"
   ],
   "engines": {
     "node": ">=18.0.0"
