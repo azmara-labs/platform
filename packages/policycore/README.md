@@ -1,6 +1,6 @@
 # @azmr/policycore
 
-Standalone security layer for the Azmara platform: a policy engine (rate limits, auth requirements, and CORS as code), HMAC request signing for service-to-service calls, a local-env secrets manager, in-memory API key lifecycle management, a policy-aware static scan check, and OWASP Top 10 compliance report generation. Built on top of [`@azmr/security`](https://docs.azmara.io)'s `createRateLimiter`, `createAccessControl`, and `createAuditLogger` rather than reimplementing them.
+Standalone security layer for the Azmara platform: a policy engine (rate limits, auth requirements, and CORS as code), HMAC request signing for service-to-service calls, a local-env secrets manager, in-memory API key lifecycle management, a policy-aware static scan check, and OWASP Top 10 compliance report generation. Built on top of [`@azmr/security`](https://platform.azmara.io/docs/packages/security)'s `createRateLimiter`, `createAccessControl`, and `createAuditLogger` rather than reimplementing them.
 
 ## Install
 
@@ -152,7 +152,7 @@ console.log(formatOwaspReportMarkdown(report));
 
 ## Documentation
 
-Full docs at [docs.azmara.io](https://docs.azmara.io)
+Full docs at [platform.azmara.io](https://platform.azmara.io/docs/packages/policycore)
 
 ## License
 

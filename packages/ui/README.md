@@ -1,6 +1,6 @@
 # @azmr/ui
 
-React components wired to reactive Signals. The `Grid` component re-renders automatically when its Signal changes — no state management needed.
+Accessible React design system built on Base UI and Tailwind v4 tokens: buttons, menus, modals, tables, toasts and more. Components that take a Signal, such as `Grid`, re-render when it changes, with no state management needed.
 
 ## Install
 
@@ -237,7 +237,7 @@ All cell values are rendered through React's JSX escaping — `dangerouslySetInn
 
 ## Documentation
 
-Full docs at [docs.azmara.io](https://docs.azmara.io)
+Full docs at [platform.azmara.io](https://platform.azmara.io/docs/packages/ui)
 
 ## License
 

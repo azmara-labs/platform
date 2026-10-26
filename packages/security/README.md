@@ -56,7 +56,7 @@ audit.log("user:login", { userId: "123" });
 
 ## Documentation
 
-Full docs at [docs.azmara.io](https://docs.azmara.io)
+Full docs at [platform.azmara.io](https://platform.azmara.io/docs/packages/security)
 
 ## License
 

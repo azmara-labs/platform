@@ -63,7 +63,7 @@ Earlier versions (0.2.1 and before) depended on `@azmr/db` for the interface, wh
 
 ## Documentation
 
-Full docs at [docs.azmara.io](https://docs.azmara.io)
+Full docs at [platform.azmara.io](https://platform.azmara.io/docs/packages/db-supabase)
 
 ## License
 

@@ -134,7 +134,7 @@ pnpm --filter @azmr/site dev
 
 ## Documentation
 
-Full documentation at **[docs.azmara.io](https://docs.azmara.io)**
+Full documentation at **[platform.azmara.io](https://platform.azmara.io/docs)**
 
 ---
 

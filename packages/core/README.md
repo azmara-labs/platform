@@ -170,7 +170,7 @@ If no handler is registered, the error is rethrown asynchronously (so it isn't s
 
 ## Documentation
 
-Full docs at [docs.azmara.io](https://docs.azmara.io)
+Full docs at [platform.azmara.io](https://platform.azmara.io/docs/packages/core)
 
 ## License
 

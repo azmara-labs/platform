@@ -86,7 +86,7 @@ import { DbAdapterError } from "@azmr/db-core-interface";
 
 ## Documentation
 
-Full docs at [docs.azmara.io](https://docs.azmara.io)
+Full docs at [platform.azmara.io](https://platform.azmara.io/docs/packages/db)
 
 ## License
 

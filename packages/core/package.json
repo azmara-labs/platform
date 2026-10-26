@@ -5,7 +5,10 @@
   "type": "module",
   "license": "MIT",
   "author": "Alshafaraz Gazi <alshafaraz.gazi@gmail.com>",
-  "homepage": "https://docs.azmara.io",
+  "homepage": "https://platform.azmara.io/docs/packages/core",
+  "bugs": {
+    "url": "https://github.com/azmara-labs/platform/issues"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/azmara-labs/platform.git",
