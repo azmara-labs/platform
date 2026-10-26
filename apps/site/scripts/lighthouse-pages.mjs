@@ -44,6 +44,34 @@ function read(lhr) {
   };
 }
 
+// --run-all-compositor-stages-before-draw: without it, headless Chrome sometimes holds the first
+// paint for about 2 s. Lighthouse's simulated LCP counts every request finished before the paint it
+// observed, so in those runs the sidebar's link prefetches were counted too, and the menu page
+// read about 4.4 s or 7 s on the same build. With the flag, 16 of 16 local runs painted at once,
+// against 4 of 6 without it.
+//
+// On the CI runner the menu page still has two modes (about 3.1 to 3.5 s, or 4.37 to 4.39 s): there
+// the race is between the first paint and the docs page's own JavaScript (about 470 kB gzipped).
+// The slow mode counts all of it, is the same number every time, and is the honest one, so the
+// menu page's LCP limit is set from it (lighthouse-budgets.json). The fix is less JavaScript on the
+// docs pages, not a looser limit.
+const CHROME_FLAGS = ["--headless=new", "--no-sandbox", "--run-all-compositor-stages-before-draw"];
+
+/** Chrome occasionally fails to report its debugging port on the CI runner; start it again. */
+async function launchChrome(attempts = 3) {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await launch({ chromeFlags: CHROME_FLAGS });
+    } catch (error) {
+      if (attempt >= attempts || !/debugging port/.test(String(error))) throw error;
+      console.warn(
+        `Chrome did not start (${error.message}); attempt ${attempt + 1} of ${attempts}`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+  }
+}
+
 async function measure(chrome, url) {
   const result = await lighthouse(url, {
     port: chrome.port,
@@ -59,7 +87,7 @@ async function measure(chrome, url) {
 async function main() {
   const pages = budgets.pages.filter((p) => p.path.replace(/^\//, "").startsWith(only));
   if (pages.length === 0) throw new Error(`no page in lighthouse-budgets.json matches "${only}"`);
-  const chrome = await launch({ chromeFlags: ["--headless=new", "--no-sandbox"] });
+  const chrome = await launchChrome();
   const results = [];
   try {
     for (const page of pages) {
