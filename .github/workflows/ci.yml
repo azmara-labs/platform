@@ -29,6 +29,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "24"
+          # The newest 24.x, not the runner's cached one, so Node security releases
+          # apply the day they ship (October 2026: cache was 24.21.0, fix is 24.22.1).
+          check-latest: true
           cache: "pnpm"
 
       - name: Install dependencies
@@ -81,6 +84,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "24"
+          # The newest 24.x, not the runner's cached one, so Node security releases
+          # apply the day they ship (October 2026: cache was 24.21.0, fix is 24.22.1).
+          check-latest: true
           cache: "pnpm"
 
       - name: Install dependencies
@@ -122,6 +128,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "24"
+          # The newest 24.x, not the runner's cached one, so Node security releases
+          # apply the day they ship (October 2026: cache was 24.21.0, fix is 24.22.1).
+          check-latest: true
           cache: "pnpm"
 
       - name: Install dependencies
@@ -170,6 +179,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "24"
+          # The newest 24.x, not the runner's cached one, so Node security releases
+          # apply the day they ship (October 2026: cache was 24.21.0, fix is 24.22.1).
+          check-latest: true
           cache: "pnpm"
 
       - name: Install dependencies
