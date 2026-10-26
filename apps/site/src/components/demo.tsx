@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ServerCodeBlock } from "fumadocs-ui/components/codeblock.rsc";
 import { LazyDemo } from "../demos/lazy";
+import { demoNames } from "../demos/names";
 import type { DemoName } from "../demos/registry";
 import { demoSourcePath, isDemoName } from "../lib/demo-name";
 import { demoPreview } from "../lib/demo-preview";
@@ -17,7 +18,7 @@ import { DemoSource } from "./demo-source";
  * from MDX, so it is validated before it becomes a file path.
  */
 export async function Demo({ name }: { name: DemoName }) {
-  if (!isDemoName(name)) {
+  if (!isDemoName(name) || !demoNames.has(name)) {
     throw new Error(`Unknown demo ${JSON.stringify(name)}. Register it in src/demos/registry.ts.`);
   }
   const source = await readFile(demoSourcePath(join(process.cwd(), "src", "demos"), name), "utf8");

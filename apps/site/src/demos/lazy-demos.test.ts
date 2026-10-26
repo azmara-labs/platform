@@ -19,6 +19,11 @@ describe("lazy demo loaders", () => {
     for (const [, name, path] of lazyNames) expect(path).toBe(name);
   });
 
+  it("lists the same names in names.ts, which Demo checks on the server", async () => {
+    const { demoNames } = await import("./names");
+    expect([...demoNames].sort()).toEqual(Object.keys(demos).sort());
+  });
+
   it("is a client module, so the dynamic imports split per demo", () => {
     expect(lazySource.startsWith('"use client";')).toBe(true);
   });

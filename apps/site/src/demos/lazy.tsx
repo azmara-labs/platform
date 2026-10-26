@@ -79,5 +79,3 @@ export function LazyDemo({ name }: { name: DemoName }) {
   const Demo = lazyDemos[name];
   return <Demo />;
 }
-
-export const lazyDemoNames = Object.keys(lazyDemos);
