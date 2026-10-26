@@ -1,6 +1,4 @@
 ---
-"@azmr/ai": patch
-"@azmr/cli": patch
 "@azmr/core": patch
 "@azmr/db": patch
 "@azmr/db-core-interface": patch
