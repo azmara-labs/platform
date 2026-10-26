@@ -1,7 +1,8 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ServerCodeBlock } from "fumadocs-ui/components/codeblock.rsc";
-import { type DemoName, demos } from "../demos/registry";
+import { LazyDemo } from "../demos/lazy";
+import type { DemoName } from "../demos/registry";
 import { demoSourcePath, isDemoName } from "../lib/demo-name";
 import { demoPreview } from "../lib/demo-preview";
 import { DemoFrame } from "./demo-frame";
@@ -16,10 +17,9 @@ import { DemoSource } from "./demo-source";
  * from MDX, so it is validated before it becomes a file path.
  */
 export async function Demo({ name }: { name: DemoName }) {
-  if (!isDemoName(name) || !Object.hasOwn(demos, name)) {
+  if (!isDemoName(name)) {
     throw new Error(`Unknown demo ${JSON.stringify(name)}. Register it in src/demos/registry.ts.`);
   }
-  const Component = demos[name];
   const source = await readFile(demoSourcePath(join(process.cwd(), "src", "demos"), name), "utf8");
   // A long demo shows an excerpt; the full file is fetched on request (see demo-preview.ts).
   const preview = demoPreview(source);
@@ -35,7 +35,8 @@ export async function Demo({ name }: { name: DemoName }) {
   return (
     <>
       <DemoFrame>
-        <Component />
+        {/* One demo's JavaScript, loaded by the pages that show it (see demos/lazy.tsx). */}
+        <LazyDemo name={name} />
       </DemoFrame>
       {preview.collapsed ? (
         <DemoSource name={name} totalLines={preview.totalLines}>
