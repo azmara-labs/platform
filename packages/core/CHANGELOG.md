@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+### Patch Changes
+
+- ea59e9b: Package metadata: `homepage` now points at each package's page on platform.azmara.io (docs.azmara.io never resolved), `bugs` links to the GitHub issues, and README doc links follow. `@azmr/ui` gets a description that matches the design system it now is.
+
 ## 0.1.0
 
 ### Minor Changes

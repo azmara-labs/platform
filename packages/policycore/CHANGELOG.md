@@ -1,5 +1,13 @@
 # @azmr/policycore
 
+## 0.2.2
+
+### Patch Changes
+
+- ea59e9b: Package metadata: `homepage` now points at each package's page on platform.azmara.io (docs.azmara.io never resolved), `bugs` links to the GitHub issues, and README doc links follow. `@azmr/ui` gets a description that matches the design system it now is.
+- Updated dependencies [ea59e9b]
+  - @azmr/security@0.3.2
+
 ## 0.2.1
 
 ### Patch Changes

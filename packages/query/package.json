@@ -1,6 +1,6 @@
 {
   "name": "@azmr/query",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Chainable, data-first query engine over reactive data sources",
   "type": "module",
   "license": "MIT",
