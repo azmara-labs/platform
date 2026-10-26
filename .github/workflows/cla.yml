@@ -17,7 +17,14 @@ permissions:
 jobs:
   cla-check:
     runs-on: ubuntu-latest
-    if: (github.event.comment.body == 'I have read the CLA Document and I hereby sign the CLA' || github.event_name == 'pull_request_target') && !github.event.pull_request.draft
+    # The action locks a PR on every `closed` event (lock-pullrequest-aftermerge defaults to true)
+    # without checking that it was merged. Closing and reopening an open PR, which is how a
+    # bot-opened PR gets its checks, then locked it: on Version Packages PR #155 that left
+    # claude-review and every comment unable to post. Run on `closed` only for a merge.
+    if: >-
+      (github.event.comment.body == 'I have read the CLA Document and I hereby sign the CLA' || github.event_name == 'pull_request_target')
+      && !github.event.pull_request.draft
+      && !(github.event.action == 'closed' && !github.event.pull_request.merged)
 
     steps:
       - name: Generate bot token
