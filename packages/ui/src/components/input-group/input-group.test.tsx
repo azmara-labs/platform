@@ -122,6 +122,28 @@ describe("InputGroup: addons", () => {
     expect(input(container).hasAttribute("aria-describedby")).toBe(false);
   });
 
+  it("reads addons in the order they appear, even one that mounts later", () => {
+    function Late() {
+      const [currency, setCurrency] = useState(false);
+      return (
+        <>
+          <button type="button" onClick={() => setCurrency(true)}>
+            show
+          </button>
+          <InputGroup>
+            {currency ? <InputGroupAddon>NZD</InputGroupAddon> : null}
+            <InputGroupInput aria-label="Price" />
+            <InputGroupAddon>per month</InputGroupAddon>
+          </InputGroup>
+        </>
+      );
+    }
+    const { container } = renderUi(<Late />);
+    expect(describedBy(input(container))).toEqual(["per month"]);
+    act(() => (container.querySelector("button") as HTMLButtonElement).click());
+    expect(describedBy(input(container))).toEqual(["NZD", "per month"]);
+  });
+
   it("focuses the input when an addon is pressed, but not when a button is", async () => {
     const user = setupUser();
     const { container } = renderUi(
