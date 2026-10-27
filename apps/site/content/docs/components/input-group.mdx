@@ -1,0 +1,83 @@
+---
+title: Input group
+description: Text, icons and buttons inside an input's border, such as a currency, a unit, a search icon or a clear or copy button.
+group: Inputs
+status: new
+since: 0.6.0
+interactive: true
+aliases: [adornment, prefix, suffix, addon, input addon, search input]
+---
+
+## Usage
+
+```tsx
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@azmr/ui/input-group";
+```
+
+<Demo name="input-group/money" />
+
+`InputGroup` draws one border around an `InputGroupInput` and the addons and buttons beside it. The focus ring wraps the whole group, the height follows the density tokens, and the border turns red when the input is invalid. Put addons and buttons before or after the input, in the order they appear.
+
+Addons are not part of the input's value: the `NZ$` above is shown, not submitted. Pressing an addon focuses the input, as pressing a label would.
+
+## Text and icon addons
+
+A text addon carries meaning, so it is added to the input's accessible description: a screen reader hears "Hourly rate, NZ$, per hour, Excluding GST". It comes ahead of the field's own description and error.
+
+An icon is decoration, so an addon that holds anything other than plain text is hidden from screen readers. Set `describe` to change either default, for example `describe` on an addon that wraps its text in `<abbr>`, or `describe={false}` on text that only repeats the label.
+
+## Buttons
+
+<Demo name="input-group/search" />
+
+`InputGroupButton` is a [Button](/docs/components/button) in the ghost style, small enough to fit inside the border. It is `type="button"`, so it never submits the form, and it comes after the input in the tab order. An icon-only button needs an `aria-label`, such as "Clear search".
+
+After a clear button empties the input, move focus back to the input, as the demo does, so keyboard users don't lose their place.
+
+<Demo name="input-group/buttons" />
+
+## In a Field and with react-hook-form
+
+Put the `InputGroup` inside a [Field](/docs/components/field). The label, description and error are wired to the input as they are for a bare `Input`, and the `aria-required` and `aria-errormessage` that `Field` sets reach the input, not the group. `InputGroupInput`'s `ref` is the real `<input>`, so `register()` works without a `Controller`:
+
+```tsx
+<Field label="Amount" required error={errors.amount?.message}>
+  <InputGroup>
+    <InputGroupAddon>NZ$</InputGroupAddon>
+    <InputGroupInput
+      inputMode="decimal"
+      {...register("amount", { required: "Enter an amount" })}
+    />
+  </InputGroup>
+</Field>
+```
+
+For amounts, the formatted `MoneyField` (coming in a later release) will take the same addons.
+
+## Props
+
+### InputGroupAddon
+
+<AutoTypeTable
+  path="../../packages/ui/src/components/input-group/index.ts"
+  name="InputGroupAddonDocProps"
+  type={`import type { InputGroupAddonProps } from "./input-group.js"
+export type InputGroupAddonDocProps = Pick<InputGroupAddonProps, "describe" | "className" | "children">`}
+/>
+
+`InputGroupInput` takes every [Input](/docs/components/input) prop, and `InputGroupButton` takes every [Button](/docs/components/button) prop, with `variant="ghost"`, `size="sm"` and `type="button"` as defaults. `InputGroup` takes `className` and the props of a `<div>`.
+
+## Accessibility
+
+- The input keeps its label, description and error wiring; text addons join its description, and icon addons are hidden from screen readers.
+- Buttons are real `<button type="button">` elements in the tab order after the input; an icon-only button needs an `aria-label`.
+- The focus ring wraps the whole group when the input has focus, and each button shows its own ring.
+- Invalid state is shown by the border colour and by the field's error text, never by colour alone.
+
+<KeyboardMap
+  rows={[
+    { keys: ["Tab"], action: "Moves focus to the input, then to each button in the group." },
+    { keys: ["Shift", "Tab"], action: "Moves focus back through the buttons to the input." },
+    { keys: ["Enter"], action: "On a button, activates it without submitting the form." },
+  ]}
+/>

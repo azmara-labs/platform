@@ -36,6 +36,9 @@ import IconNamed from "./icon/named.demo";
 import InputBasic from "./input/basic.demo";
 import InputStates from "./input/states.demo";
 import InputTextarea from "./input/textarea.demo";
+import InputGroupButtons from "./input-group/buttons.demo";
+import InputGroupMoney from "./input-group/money.demo";
+import InputGroupSearch from "./input-group/search.demo";
 import LayoutContainer from "./layout/container.demo";
 import LayoutGrid from "./layout/grid.demo";
 import LayoutStack from "./layout/stack.demo";
@@ -141,6 +144,9 @@ export const demos = {
   "layout/stack": LayoutStack,
   "input/states": InputStates,
   "input/textarea": InputTextarea,
+  "input-group/money": InputGroupMoney,
+  "input-group/search": InputGroupSearch,
+  "input-group/buttons": InputGroupButtons,
   "field/basic": FieldBasic,
   "field/parts": FieldParts,
   "field/validation": FieldValidation,
