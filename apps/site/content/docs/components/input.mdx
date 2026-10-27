@@ -1,6 +1,6 @@
 ---
 title: Input
-description: A text input whose ref is the real input element, so react-hook-form works without a Controller.
+description: Text inputs and a textarea whose ref is the real element, so react-hook-form works without a Controller.
 group: Inputs
 status: stable
 since: 0.2.0
@@ -10,18 +10,24 @@ interactive: true
 ## Usage
 
 ```tsx
-import { Input } from "@azmr/ui/input";
+import { Input, Textarea } from "@azmr/ui/input";
 ```
 
 <Demo name="input/basic" />
 
-Always pair an input with a visible `<label htmlFor>` (or `aria-label` when the design has no label). `Input` does not add one for you, because the label belongs to the form layout.
+Every input needs a visible label. Wrap it in a [`Field`](/docs/components/field), which adds the label, description and error and wires them up, or use your own `<label htmlFor>` (or `aria-label` when the design has no label).
 
 ## States
 
 <Demo name="input/states" />
 
-`aria-invalid="true"` styles the error state and is what assistive technology announces; point `aria-describedby` at the message so it is read with the field. A read-only input stays focusable and can be selected and copied, while a disabled one is skipped by Tab.
+Inside a [`Field`](/docs/components/field), pass `error` and this is done for you. On its own, `aria-invalid="true"` styles the error state and is what assistive technology announces; point `aria-describedby` at the message so it is read with the field. A read-only input stays focusable and can be selected and copied, while a disabled one is skipped by Tab.
+
+## Textarea
+
+<Demo name="input/textarea" />
+
+`Textarea` is a real `<textarea>` with the same styling, states and value API as `Input`. It shows three rows by default and resizes vertically; `autoResize` makes it grow with its content instead (CSS `field-sizing: content`; browsers without it keep the fixed height).
 
 ## With react-hook-form
 
@@ -37,7 +43,7 @@ function EmailField() {
 }
 ```
 
-Native `onChange` and a typed `onValueChange(value)` both fire.
+Native `onChange` and a typed `onValueChange(value)` both fire. `Textarea` works the same way. To show the error from `formState.errors`, see [Field with react-hook-form](/docs/components/field#with-react-hook-form).
 
 ## Props
 

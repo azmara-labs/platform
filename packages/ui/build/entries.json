@@ -5,6 +5,7 @@
     "react": "src/react/index.ts",
     "button": "src/components/button/index.ts",
     "input": "src/components/input/index.ts",
+    "field": "src/components/field/index.ts",
     "scroll-area": "src/components/scroll-area/index.ts",
     "progress": "src/components/progress/index.ts",
     "avatar": "src/components/avatar/index.ts",
