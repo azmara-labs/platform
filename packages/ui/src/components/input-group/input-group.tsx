@@ -21,7 +21,7 @@ import { Input, type InputProps } from "../input/input.js";
 type ForwardedAria = Pick<AriaAttributes, "aria-required" | "aria-errormessage" | "aria-invalid">;
 
 interface InputGroupContextValue extends ForwardedAria {
-  /** Ids of the addons that describe the input, in the order they mounted. */
+  /** Ids of the addons that describe the input, in the order they appear on screen. */
   describedBy: string | undefined;
   register: (id: string) => () => void;
 }
@@ -56,7 +56,16 @@ export const InputGroup = forwardRef<HTMLDivElement, InputGroupProps>(function I
 ) {
   const [ids, setIds] = useState<string[]>([]);
   const register = useCallback((id: string) => {
-    setIds((current) => [...current, id]);
+    // In document order, so an addon rendered later (a conditional one) is still read in the
+    // order people see it.
+    setIds((current) =>
+      [...current, id].sort((a, b) => {
+        const first = document.getElementById(a);
+        const second = document.getElementById(b);
+        if (!first || !second) return 0;
+        return first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
+      }),
+    );
     return () => setIds((current) => current.filter((existing) => existing !== id));
   }, []);
   const value = useMemo<InputGroupContextValue>(
