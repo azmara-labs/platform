@@ -28,6 +28,9 @@ import FieldValidation from "./field/validation.demo";
 import FloatingHoverCard from "./floating/hover-card.demo";
 import FloatingPopover from "./floating/popover.demo";
 import FloatingTooltip from "./floating/tooltip.demo";
+import FormErrorSummary from "./form/error-summary.demo";
+import FormFieldset from "./form/fieldset.demo";
+import FormSettings from "./form/settings.demo";
 import IconBasic from "./icon/basic.demo";
 import IconNamed from "./icon/named.demo";
 import InputBasic from "./input/basic.demo";
@@ -141,6 +144,9 @@ export const demos = {
   "field/basic": FieldBasic,
   "field/parts": FieldParts,
   "field/validation": FieldValidation,
+  "form/fieldset": FormFieldset,
+  "form/error-summary": FormErrorSummary,
+  "form/settings": FormSettings,
   "scroll-area/basic": ScrollAreaBasic,
   "progress/basic": ProgressBasic,
   "progress/circular": ProgressCircular,

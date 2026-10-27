@@ -1,0 +1,139 @@
+---
+title: Form layout
+description: Fieldset, FormSection and ErrorSummary structure long forms and help people fix every error after a failed submit.
+group: Inputs
+status: new
+since: 0.6.0
+interactive: true
+aliases: [fieldset, form section, error summary, validation summary, legend]
+---
+
+## Usage
+
+```tsx
+import { ErrorSummary, Fieldset, FormSection } from "@azmr/ui/form";
+```
+
+These three build on [Field](/docs/components/field): `Fieldset` groups related fields, `FormSection` splits a long form into titled parts, and `ErrorSummary` lists every error at the top of the form after a failed submit.
+
+## Fieldset
+
+<Demo name="form/fieldset" />
+
+`Fieldset` renders a real `<fieldset>`, named by its `legend`. Use it when the fields only make sense together, such as the parts of an address or the options in a group of checkboxes or radios. Screen readers read the legend before the label of each control inside it.
+
+`description` and `error` are read with the legend through `aria-describedby`. `error` is for a problem with the group as a whole, such as "Choose a delivery option"; errors that belong to one field go on its `Field`. Like on `Field`, the error sits in a polite live region, and `undefined`, `null`, `false` and `""` all mean no error. `disabled` disables every control inside.
+
+Use `FieldsetRoot` and `FieldsetLegend` for a layout `Fieldset` doesn't cover.
+
+## Error summary
+
+<Demo name="form/error-summary" />
+
+`ErrorSummary` follows the [GOV.UK error summary](https://design-system.service.gov.uk/components/error-summary/). Put it at the top of the form. After a failed submit it takes focus, so keyboard and screen reader users start from the list of problems, and each error is a link that moves focus to its field and scrolls its label into view. It renders nothing while there are no errors. Submit the form above while it is empty.
+
+Pass `errors` in any of these shapes:
+
+- an object keyed by field name, such as `{ email: "Enter an email address" }`;
+- React Hook Form's `formState.errors`, including nested groups (`address.city`) and field arrays (`lines.1.amount`);
+- Base UI Form's `errors`, where each field has a list of messages (the first is shown);
+- a list of `{ name, message, targetId? }`, when you need to control the order or link to a control by `id`.
+
+Links find their field by `name` inside the same form. Hidden inputs are skipped, so a radio group or select whose `name` sits on a hidden input still gets focus on its visible control. An error with no message can't be listed, so give every rule a message. A `root` error (React Hook Form's form-level errors, such as `errors.root.server`) is listed as plain text, since there is no field to go to.
+
+Pass `submitCount` to bring focus back to the summary on every failed submit. Without it the summary takes focus only the first time it shows errors. Either way it never takes focus while someone is fixing a field and the errors change under them.
+
+Keep each field's own `error` as well: the summary says what is wrong across the form, and the message beside the field says it again where it is fixed.
+
+### With react-hook-form
+
+```tsx
+import { useForm } from "react-hook-form";
+import { Button } from "@azmr/ui/button";
+import { Field } from "@azmr/ui/field";
+import { ErrorSummary } from "@azmr/ui/form";
+import { Input } from "@azmr/ui/input";
+
+type Values = { name: string; email: string };
+
+export function ProfileForm({ onSave }: { onSave: (values: Values) => void }) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, submitCount },
+  } = useForm<Values>({ shouldFocusError: false });
+
+  return (
+    <form noValidate onSubmit={handleSubmit(onSave)}>
+      <ErrorSummary errors={errors} submitCount={submitCount} />
+      <Field label="Name" required error={errors.name?.message}>
+        <Input {...register("name", { required: "Enter your name" })} />
+      </Field>
+      <Field label="Email" required error={errors.email?.message}>
+        <Input type="email" {...register("email", { required: "Enter your email address" })} />
+      </Field>
+      <Button type="submit">Save</Button>
+    </form>
+  );
+}
+```
+
+`shouldFocusError: false` stops React Hook Form moving focus to the first field, so focus lands on the summary instead. The summary would take focus anyway, but turning it off avoids a second focus move.
+
+## A long settings form
+
+<Demo name="form/settings" />
+
+`FormSection` gives each part of a long form a heading and an optional description, and lays out its fields:
+
+- `columns={2}` puts the fields in two columns once the section is about 32rem wide. Give a field `className="@lg:col-span-2"` to span both.
+- `layout="aside"` puts the heading and description beside the fields once the section is about 48rem wide.
+
+Both respond to the section's own width (a container query), not the viewport, so a section in a narrow card or side panel stays in one column. Each section is a region named by its heading; set `headingLevel` (2, 3 or 4) to fit the page's outline.
+
+## Props
+
+### Fieldset
+
+<AutoTypeTable
+  path="../../packages/ui/src/components/form/index.ts"
+  name="FieldsetDocProps"
+  type={`import type { FieldsetProps } from "./fieldset.js"
+export type FieldsetDocProps = Pick<FieldsetProps, "legend" | "description" | "error" | "disabled" | "className" | "children">`}
+/>
+
+### FormSection
+
+<AutoTypeTable
+  path="../../packages/ui/src/components/form/index.ts"
+  name="FormSectionDocProps"
+  type={`import type { FormSectionProps } from "./form-section.js"
+export type FormSectionDocProps = Pick<FormSectionProps, "title" | "description" | "columns" | "layout" | "headingLevel" | "className" | "children">`}
+/>
+
+### ErrorSummary
+
+<AutoTypeTable
+  path="../../packages/ui/src/components/form/index.ts"
+  name="ErrorSummaryDocProps"
+  type={`import type { ErrorSummaryProps } from "./error-summary.js"
+export type ErrorSummaryDocProps = Pick<ErrorSummaryProps, "errors" | "title" | "description" | "submitCount" | "className">`}
+/>
+
+`toErrorSummaryItems(errors)` turns any of the supported shapes into the list the summary shows, for a custom summary or a count in the page title.
+
+## Accessibility
+
+- `Fieldset` is a native `<fieldset>` named by its legend; its description and group error are read through `aria-describedby`, and group errors are announced through a polite live region.
+- `FormSection` is a `<section>` named by its heading, so it shows up in screen readers' landmark and heading lists.
+- `ErrorSummary` has `role="alert"`, is named by its heading and takes focus after a failed submit, helping meet WCAG 3.3.1 (Error Identification) and 3.3.3 (Error Suggestion).
+- Each summary link moves focus to its field and scrolls the field's label, or a group's legend, into view.
+- Errors are never shown by colour alone: each is text, linked from the summary and repeated beside its field.
+
+<KeyboardMap
+  rows={[
+    { keys: ["Tab"], action: "From the focused summary, moves through its error links, then on into the form." },
+    { keys: ["Enter"], action: "On an error link, moves focus to that field." },
+    { keys: ["Shift", "Tab"], action: "Moves focus to the previous link or control." },
+  ]}
+/>

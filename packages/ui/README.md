@@ -174,6 +174,7 @@ An unknown name renders nothing and logs one development warning; it never crash
 | `@azmr/ui/button` | `Button`, `buttonVariants` | `"use client"` |
 | `@azmr/ui/input` | `Input`, `Textarea` | `"use client"` |
 | `@azmr/ui/field` | `Field`, `FieldRoot`, `FieldLabel`, `FieldDescription`, `FieldError` | `"use client"` |
+| `@azmr/ui/form` | `Fieldset`, `FieldsetRoot`, `FieldsetLegend`, `FormSection`, `ErrorSummary`, `toErrorSummaryItems` | `"use client"` |
 | `@azmr/ui/spinner` | `Spinner` | none, importable from Server Components |
 | `@azmr/ui/icons` | `Icon`, `createIconSet`, `registerIcons` | none, importable from Server Components |
 | `@azmr/ui/icons/lucide` | `Icon` bound to the curated Lucide set, `lucideIcons` | none, importable from Server Components |
