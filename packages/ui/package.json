@@ -67,6 +67,10 @@
       "types": "./dist/field.d.ts",
       "import": "./dist/field.js"
     },
+    "./form": {
+      "types": "./dist/form.d.ts",
+      "import": "./dist/form.js"
+    },
     "./spinner": {
       "types": "./dist/spinner.d.ts",
       "import": "./dist/spinner.js"

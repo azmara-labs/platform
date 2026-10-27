@@ -57,6 +57,11 @@
     "limit": "16 kB"
   },
   {
+    "name": "@azmr/ui/form",
+    "path": "dist/form.js",
+    "limit": "12 kB"
+  },
+  {
     "name": "@azmr/ui/icons (Icon core, no icon set)",
     "path": "dist/icons.js",
     "limit": "10 kB"
