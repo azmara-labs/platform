@@ -58,6 +58,8 @@ import MotionReorder from "./motion/reorder.demo";
 import MotionStagger from "./motion/stagger.demo";
 import PaginationLinks from "./pagination/links.demo";
 import PaginationState from "./pagination/state.demo";
+import PasswordInputNewPassword from "./password-input/new-password.demo";
+import PasswordInputSignIn from "./password-input/sign-in.demo";
 import ProgressBasic from "./progress/basic.demo";
 import ProgressCircular from "./progress/circular.demo";
 import RecipesFormValidation from "./recipes/form-validation.demo";
@@ -147,6 +149,8 @@ export const demos = {
   "input-group/money": InputGroupMoney,
   "input-group/search": InputGroupSearch,
   "input-group/buttons": InputGroupButtons,
+  "password-input/sign-in": PasswordInputSignIn,
+  "password-input/new-password": PasswordInputNewPassword,
   "field/basic": FieldBasic,
   "field/parts": FieldParts,
   "field/validation": FieldValidation,
