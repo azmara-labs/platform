@@ -22,6 +22,9 @@ import ExamplesDashboardShell from "./examples/dashboard-shell.demo";
 import ExamplesDataTablePage from "./examples/data-table-page.demo";
 import ExamplesOnboardingWizard from "./examples/onboarding-wizard.demo";
 import ExamplesSettingsPage from "./examples/settings-page.demo";
+import FieldBasic from "./field/basic.demo";
+import FieldParts from "./field/parts.demo";
+import FieldValidation from "./field/validation.demo";
 import FloatingHoverCard from "./floating/hover-card.demo";
 import FloatingPopover from "./floating/popover.demo";
 import FloatingTooltip from "./floating/tooltip.demo";
@@ -29,6 +32,7 @@ import IconBasic from "./icon/basic.demo";
 import IconNamed from "./icon/named.demo";
 import InputBasic from "./input/basic.demo";
 import InputStates from "./input/states.demo";
+import InputTextarea from "./input/textarea.demo";
 import LayoutContainer from "./layout/container.demo";
 import LayoutGrid from "./layout/grid.demo";
 import LayoutStack from "./layout/stack.demo";
@@ -133,6 +137,10 @@ export const demos = {
   "layout/grid": LayoutGrid,
   "layout/stack": LayoutStack,
   "input/states": InputStates,
+  "input/textarea": InputTextarea,
+  "field/basic": FieldBasic,
+  "field/parts": FieldParts,
+  "field/validation": FieldValidation,
   "scroll-area/basic": ScrollAreaBasic,
   "progress/basic": ProgressBasic,
   "progress/circular": ProgressCircular,

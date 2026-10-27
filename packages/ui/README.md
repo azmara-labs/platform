@@ -172,7 +172,8 @@ An unknown name renders nothing and logs one development warning; it never crash
 | `@azmr/ui/theme` | server-safe theme helpers: `createTheme`, cookies, `htmlAttributes`, `createLocale` | none, importable from Server Components and middleware |
 | `@azmr/ui/react` | `ThemeProvider`, `useTheme`, `LocaleProvider`, `useLocale` | `"use client"` |
 | `@azmr/ui/button` | `Button`, `buttonVariants` | `"use client"` |
-| `@azmr/ui/input` | `Input` | `"use client"` |
+| `@azmr/ui/input` | `Input`, `Textarea` | `"use client"` |
+| `@azmr/ui/field` | `Field`, `FieldRoot`, `FieldLabel`, `FieldDescription`, `FieldError` | `"use client"` |
 | `@azmr/ui/spinner` | `Spinner` | none, importable from Server Components |
 | `@azmr/ui/icons` | `Icon`, `createIconSet`, `registerIcons` | none, importable from Server Components |
 | `@azmr/ui/icons/lucide` | `Icon` bound to the curated Lucide set, `lucideIcons` | none, importable from Server Components |

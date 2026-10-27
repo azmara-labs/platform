@@ -1,0 +1,107 @@
+---
+title: Field
+description: A label, description, error and required marker around any control, with the ids and aria attributes wired for you.
+group: Inputs
+status: new
+since: 0.5.0
+interactive: true
+---
+
+## Usage
+
+```tsx
+import { Field } from "@azmr/ui/field";
+import { Input, Textarea } from "@azmr/ui/input";
+```
+
+<Demo name="field/basic" />
+
+`Field` wraps one control. It gives the control an `id`, points `aria-labelledby` at the label and `aria-describedby` at the description, and keeps an `id` you set yourself. It works with `Input`, `Textarea` and any Base UI control.
+
+## Errors
+
+<Demo name="field/validation" />
+
+Pass the message as `error`. The field is then invalid: the control gets `aria-invalid="true"`, `aria-errormessage` and `aria-describedby` point at the message, and the border turns red. `undefined`, `null`, `false` and `""` all mean no error.
+
+The message sits in a polite live region that is in the page before any error arrives, so screen readers announce it when it appears without moving focus. Submit the form above while it is empty, then type a valid address.
+
+`required` shows a marker after the label and sets `aria-required` on the control. The marker is hidden from screen readers, which hear "required" from the control instead. It doesn't turn on the browser's own validation, so add `noValidate` to the form and validate it yourself, or use the field's `validate` prop.
+
+## With react-hook-form
+
+`Input` and `Textarea` forward the real element's `ref`, so `register()` works without a `Controller`. Pass `errors.<name>?.message` as `error`:
+
+```tsx
+import { useForm } from "react-hook-form";
+import { Button } from "@azmr/ui/button";
+import { Field } from "@azmr/ui/field";
+import { Input, Textarea } from "@azmr/ui/input";
+
+type Values = { email: string; notes: string };
+
+export function InvoiceForm({ onSave }: { onSave: (values: Values) => void }) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<Values>();
+
+  return (
+    <form noValidate onSubmit={handleSubmit(onSave)}>
+      <Field label="Email" required error={errors.email?.message}>
+        <Input type="email" {...register("email", { required: "Enter your email address" })} />
+      </Field>
+      <Field label="Notes" description="Printed on the invoice.">
+        <Textarea {...register("notes")} />
+      </Field>
+      <Button type="submit">Save</Button>
+    </form>
+  );
+}
+```
+
+## Built-in validation
+
+Without an `error` prop, the field shows its own messages: the result of `validate`, or the browser's message for constraints such as `type="email"`. `validationMode` sets when it checks (`onSubmit` by default, or `onBlur` or `onChange`).
+
+```tsx
+<Field
+  label="Discount code"
+  validationMode="onBlur"
+  validate={(value) => (String(value).length < 4 ? "Codes are at least 4 characters" : null)}
+>
+  <Input />
+</Field>
+```
+
+## Custom layouts
+
+<Demo name="field/parts" />
+
+For a layout `Field` doesn't cover, compose the parts: `FieldRoot`, `FieldLabel`, `FieldDescription` and `FieldError`. The wiring is the same. Pass `match` to `FieldError` to show it whenever the field is invalid, for example when another library owns validation.
+
+## Props
+
+<AutoTypeTable
+  path="../../packages/ui/src/components/field/index.ts"
+  name="FieldDocProps"
+  type={`import type { FieldProps } from "./field.js"
+export type FieldDocProps = Pick<FieldProps, "label" | "description" | "error" | "required" | "invalid" | "disabled" | "name" | "validate" | "validationMode" | "className" | "children">`}
+/>
+
+`disabled` on the field disables its control. `name` takes precedence over the control's own `name` when the form is submitted.
+
+## Accessibility
+
+- The label is a real `<label>`, so clicking it focuses the control.
+- Errors are exposed through `aria-invalid` and `aria-errormessage`, and read with the field through `aria-describedby`, never by colour alone.
+- New errors are announced politely through a live region, without moving focus.
+- The required marker is decorative; the control itself carries `aria-required`.
+
+<KeyboardMap
+  rows={[
+    { keys: ["Tab"], action: "Moves focus to the control. The label, description and error are not focusable." },
+    { keys: ["Shift", "Tab"], action: "Moves focus to the previous control." },
+  ]}
+/>

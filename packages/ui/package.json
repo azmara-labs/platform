@@ -63,6 +63,10 @@
       "types": "./dist/input.d.ts",
       "import": "./dist/input.js"
     },
+    "./field": {
+      "types": "./dist/field.d.ts",
+      "import": "./dist/field.js"
+    },
     "./spinner": {
       "types": "./dist/spinner.d.ts",
       "import": "./dist/spinner.js"
