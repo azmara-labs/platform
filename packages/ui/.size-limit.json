@@ -19,7 +19,7 @@
   {
     "name": "@azmr/ui/hooks",
     "path": "dist/hooks.js",
-    "limit": "700 B"
+    "limit": "1 kB"
   },
   {
     "name": "@azmr/ui/lib",

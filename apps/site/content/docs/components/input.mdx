@@ -31,6 +31,21 @@ Inside a [`Field`](/docs/components/field), pass `error` and this is done for yo
 
 For a currency, a unit, a search icon or a clear button inside the border, use [Input group](/docs/components/input-group).
 
+## Debounce and commit
+
+<Demo name="input/debounce" />
+
+`debounceMs` makes `onValueChange` wait until typing stops, for a search or a filter. `onCommit` fires when the person is done with the value: when they leave the field or press Enter. Use it for autosave.
+
+- On blur or Enter, a waiting `onValueChange` is sent straight away, then `onCommit`.
+- An unchanged value is never reported twice: typing a letter and deleting it within the wait sends nothing, and leaving the field again doesn't commit again.
+- `data-pending` is set while a value is waiting, for styling (`data-[pending]:…`).
+- A waiting value is dropped if the input unmounts.
+- The native `onChange` still fires on every keystroke, so `register()` from React Hook Form keeps the form state current.
+- Enter doesn't commit while an input method is composing (Japanese, Chinese or Korean input), where Enter picks a candidate.
+
+The same behaviour comes as hooks from `@azmr/ui/hooks` for your own components: `useDebouncedCallback(callback, delayMs)` returns a stable function with `flush()`, `cancel()` and `isPending()`, and `useDebouncedValue(value, delayMs)` returns the value once it has settled.
+
 ## With react-hook-form
 
 The `ref` is the real `<input>`, so `register()` works directly:
@@ -53,7 +68,7 @@ Native `onChange` and a typed `onValueChange(value)` both fire. `Textarea` works
   path="../../packages/ui/src/components/input/index.ts"
   name="InputDocProps"
   type={`import type { InputProps } from "./input.js"
-export type InputDocProps = Pick<InputProps, "className" | "value" | "defaultValue" | "onValueChange">`}
+export type InputDocProps = Pick<InputProps, "className" | "value" | "defaultValue" | "onValueChange" | "debounceMs" | "onCommit">`}
 />
 
 All native `<input>` attributes pass through. `className` is merged last, so it can override the defaults, and `onValueChange` gives you the new value directly instead of `event.target.value`.
