@@ -6,6 +6,7 @@
     "button": "src/components/button/index.ts",
     "input": "src/components/input/index.ts",
     "input-group": "src/components/input-group/index.ts",
+    "password-input": "src/components/password-input/index.ts",
     "field": "src/components/field/index.ts",
     "form": "src/components/form/index.ts",
     "scroll-area": "src/components/scroll-area/index.ts",
