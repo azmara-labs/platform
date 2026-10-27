@@ -122,6 +122,22 @@ describe("PasswordInput: show and hide", () => {
     expect(toggle(container).getAttribute("aria-pressed")).toBe("false");
   });
 
+  it("doesn't report a visibility change on submit when the password is already hidden", async () => {
+    const user = setupUser();
+    const onVisibleChange = vi.fn();
+    const { container } = renderUi(
+      <form onSubmit={(event) => event.preventDefault()}>
+        <PasswordInput aria-label="Password" onVisibleChange={onVisibleChange} />
+        <Button type="submit">Sign in</Button>
+      </form>,
+    );
+    await user.click(container.querySelector("button[type=submit]") as HTMLButtonElement);
+    expect(onVisibleChange).not.toHaveBeenCalled();
+    await user.click(toggle(container));
+    await user.click(container.querySelector("button[type=submit]") as HTMLButtonElement);
+    expect(onVisibleChange.mock.calls).toEqual([[true], [false]]);
+  });
+
   it("disables the toggle with the input", () => {
     const { container } = renderUi(<PasswordInput aria-label="Password" disabled />);
     expect(input(container).disabled).toBe(true);

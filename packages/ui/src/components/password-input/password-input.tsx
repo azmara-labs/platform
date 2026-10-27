@@ -28,7 +28,11 @@ export interface PasswordInputProps extends Omit<InputProps, "type"> {
   toggleLabel?: string;
   /** Whether the password starts shown. */
   defaultVisible?: boolean;
-  /** Whether the password is shown, for a controlled toggle. */
+  /**
+   * Whether the password is shown, for a controlled toggle. The password is hidden when its form
+   * submits and `onVisibleChange(false)` is called: update `visible` from it, or the toggle will
+   * still read as pressed.
+   */
   visible?: boolean;
   onVisibleChange?: (visible: boolean) => void;
   /**
@@ -134,7 +138,9 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
       const form = element.current?.form;
       if (!form) return;
       const hide = () => {
-        if (element.current) element.current.type = "password";
+        // Only when shown, so onVisibleChange doesn't fire on every submit.
+        if (element.current?.type !== "text") return;
+        element.current.type = "password";
         setVisible(false);
       };
       form.addEventListener("submit", hide, true);
