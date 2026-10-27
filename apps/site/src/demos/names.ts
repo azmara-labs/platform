@@ -58,6 +58,8 @@ export const demoNames: ReadonlySet<string> = new Set([
   "motion/reduced",
   "motion/reorder",
   "motion/stagger",
+  "number-field/basic",
+  "number-field/money",
   "pagination/links",
   "pagination/state",
   "password-input/new-password",

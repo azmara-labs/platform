@@ -62,6 +62,11 @@
     "limit": "17 kB"
   },
   {
+    "name": "@azmr/ui/number-field",
+    "path": "dist/number-field.js",
+    "limit": "22 kB"
+  },
+  {
     "name": "@azmr/ui/field",
     "path": "dist/field.js",
     "limit": "16 kB"

@@ -57,6 +57,8 @@ import MotionGallery from "./motion/gallery.demo";
 import MotionReduced from "./motion/reduced.demo";
 import MotionReorder from "./motion/reorder.demo";
 import MotionStagger from "./motion/stagger.demo";
+import NumberFieldBasic from "./number-field/basic.demo";
+import NumberFieldMoney from "./number-field/money.demo";
 import PaginationLinks from "./pagination/links.demo";
 import PaginationState from "./pagination/state.demo";
 import PasswordInputNewPassword from "./password-input/new-password.demo";
@@ -148,6 +150,8 @@ export const demos = {
   "input/states": InputStates,
   "input/textarea": InputTextarea,
   "input/debounce": InputDebounce,
+  "number-field/basic": NumberFieldBasic,
+  "number-field/money": NumberFieldMoney,
   "input-group/money": InputGroupMoney,
   "input-group/search": InputGroupSearch,
   "input-group/buttons": InputGroupButtons,
