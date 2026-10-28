@@ -64,11 +64,18 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     { onPendingChange: setPending },
   );
 
-  // A controlled value set from outside counts as reported.
+  // The last value the person typed, to tell their edits from a value set from outside.
+  const typed = useRef(initial);
+
+  // A controlled value set from outside counts as reported and committed: only edits are.
   useEffect(() => {
     if (value === undefined) return;
-    if (!debounced.isPending()) emitted.current = String(value);
-  }, [value, debounced]);
+    const next = String(value);
+    if (next === typed.current) return;
+    typed.current = next;
+    emitted.current = next;
+    committed.current = next;
+  }, [value]);
 
   const commit = useCallback(() => {
     debounced.flush();
@@ -79,6 +86,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 
   function handleValueChange(next: string, details: ValueChangeDetails) {
     current.current = next;
+    typed.current = next;
     if (debounceMs && debounceMs > 0) debounced(next, details);
     else {
       emitted.current = next;
