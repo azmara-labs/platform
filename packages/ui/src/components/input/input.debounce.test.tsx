@@ -1,4 +1,4 @@
-import { act } from "react";
+import { act, useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { describeDebounceContract, renderUi, setupUser } from "../../test-utils/index.js";
 import { Input } from "./input.js";
@@ -76,5 +76,22 @@ describe("Input: debounce details", () => {
     expect(onCommit).not.toHaveBeenCalled();
     rerender(<Input aria-label="n" value="b" onValueChange={onValueChange} onCommit={onCommit} />);
     expect(onValueChange).not.toHaveBeenCalled();
+    act(() => input.focus());
+    act(() => input.blur());
+    expect(onCommit).not.toHaveBeenCalled();
+  });
+
+  it("commits a controlled value the person typed", async () => {
+    const user = setupUser();
+    const onCommit = vi.fn();
+    function Controlled() {
+      const [value, setValue] = useState("");
+      return <Input aria-label="n" value={value} onValueChange={setValue} onCommit={onCommit} />;
+    }
+    const { container } = renderUi(<Controlled />);
+    const input = container.querySelector("input") as HTMLInputElement;
+    await user.type(input, "kia ora");
+    act(() => input.blur());
+    expect(onCommit.mock.calls).toEqual([["kia ora"]]);
   });
 });
