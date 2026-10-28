@@ -1,0 +1,104 @@
+name: Dependency Review
+
+# CI proves an update still builds and passes the tests. This reads each Dependabot update's release
+# notes for breaking changes (removed or renamed APIs, new defaults, Node or peer requirements) and
+# checks whether this repo uses anything affected, before anyone merges it.
+#
+# Dependabot PRs cannot read Actions secrets: CLAUDE_CODE_OAUTH_TOKEN must also be set as a
+# Dependabot secret (Settings → Secrets and variables → Dependabot).
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  dependency-review:
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Read the update metadata
+        id: meta
+        uses: dependabot/fetch-metadata@v2
+
+      - name: Record start time
+        id: started
+        run: echo "at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+
+      # The review's shell access is limited to commenting and labelling, so hand it everything
+      # as files to Read and Grep.
+      - name: Save the update details
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          DEPS: ${{ steps.meta.outputs.updated-dependencies-json }}
+        run: |
+          printf '%s\n' "$DEPS" > deps.json
+          gh pr view "$PR" --json body --jq .body > pr-body.md
+          gh pr diff "$PR" > pr.diff
+          gh label create breaking-change --color B60205 \
+            --description "A dependency update with breaking changes that affect this repo" 2>/dev/null || true
+
+      - name: Run Claude dependency review
+        id: claude-review
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          allowed_bots: "dependabot"
+          # Synchronous on purpose: background or subagent work never finishes in a single-shot run.
+          prompt: |
+            You are checking Dependabot pull request ${{ github.repository }}#${{ github.event.pull_request.number }} ("${{ github.event.pull_request.title }}") for breaking changes before it is merged.
+
+            IMPORTANT: This is a single-shot, non-interactive session. Do NOT use the Task/Agent tool or start any background work; do everything directly in your own turns.
+
+            Files in the working directory:
+            - `deps.json`: each updated dependency, with its previous and new version, update type, dependency type and directory.
+            - `pr-body.md`: Dependabot's release notes, changelog and commits. It can be truncated.
+            - `pr.diff`: the PR diff (manifests and lockfile).
+
+            For each updated dependency:
+            1. List every breaking or behaviour-changing item between the previous and the new version: removed or renamed APIs, changed defaults, new Node, engine or peer requirements, config format changes, deprecations that now warn or throw. Treat any major bump, and any minor bump of a 0.x version, as potentially breaking. If `pr-body.md` is truncated or has no notes for a version in the range, fetch the release notes, CHANGELOG or migration guide from the package's repository with WebFetch.
+            2. Search this repo with Grep and Glob for uses of each affected API, option or config, leaving out node_modules, lockfiles and build output. Cite `file:line` for each use you find.
+            3. Check new Node, engine and peer requirements against this repo: `engines` in package.json files, `.nvmrc`, and `node-version` in .github/workflows.
+
+            Then post exactly one comment:
+            - One row per dependency: `name | from → to | verdict`. The verdict is **Safe**, **Needs code changes** or **Check manually** (for example, a behaviour change you cannot confirm from the code).
+            - For each dependency that is not Safe: each breaking item that affects this repo, its `file:line` uses, and the change needed.
+            - One line listing the breaking items that do not apply here. Do not describe unaffected changes in detail, and do not invent risks you cannot tie to the release notes.
+
+            Post it with a quoted heredoc, exactly in this shape (END alone at the start of its line):
+
+            gh pr comment ${{ github.event.pull_request.number }} --body-file - <<'END'
+            (comment text)
+            END
+
+            Do not use `--body "..."`, and do not pipe, redirect or chain shell commands: those are rejected.
+
+            If any dependency is **Needs code changes**, or is a major or 0.x-minor update, also run exactly:
+
+            gh pr edit ${{ github.event.pull_request.number }} --add-label breaking-change
+          claude_args: '--allowedTools "Read,Grep,Glob,WebFetch(domain:github.com),WebFetch(domain:raw.githubusercontent.com),Bash(gh pr comment:*),Bash(gh pr edit ${{ github.event.pull_request.number }} --add-label breaking-change)"'
+
+      - name: Flag a review that posted nothing
+        if: steps.claude-review.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          STARTED: ${{ steps.started.outputs.at }}
+        run: |
+          posted=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --paginate \
+            --jq ".[] | select(.user.login == \"claude[bot]\" and .created_at >= \"$STARTED\") | .id" | wc -l)
+          if [ "$posted" -eq 0 ]; then
+            echo "::warning::dependency-review finished without posting a comment"
+            gh pr comment "$PR" --body "The dependency review finished without posting, so this update has not been checked for breaking changes. Re-run the check before merging."
+          fi

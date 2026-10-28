@@ -12,6 +12,8 @@ on:
 
 jobs:
   claude-review:
+    # Dependabot updates get the breaking-change review in dependency-review.yml instead.
+    if: github.event.pull_request.user.login != 'dependabot[bot]'
     # Optional: Filter by PR author
     # if: |
     #   github.event.pull_request.user.login == 'external-contributor' ||
