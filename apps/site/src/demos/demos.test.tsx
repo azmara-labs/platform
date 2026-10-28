@@ -75,7 +75,14 @@ describe("demos are referenced from the docs", () => {
 });
 
 describe("demo sources show the public API", () => {
-  const allowed = [/^react$/, /^@azmr\/(ui|core)(\/[\w./-]+)?$/, /^lucide-react$/];
+  // react-hook-form and zod are optional peers of @azmr/ui, used by the form adapter demos.
+  const allowed = [
+    /^react$/,
+    /^@azmr\/(ui|core)(\/[\w./-]+)?$/,
+    /^lucide-react$/,
+    /^react-hook-form$/,
+    /^zod$/,
+  ];
 
   it.each(demoFiles.map((f) => [relative(demosDir, f).replaceAll("\\", "/"), f]))(
     "%s imports only public packages",

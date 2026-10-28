@@ -1,0 +1,134 @@
+---
+title: Forms with React Hook Form and Zod
+description: Build validated forms with @azmr/ui/rhf and @azmr/ui/zod, with register() and no Controller, schema validation, async checks and an accessible error summary.
+---
+
+## Install
+
+The adapters use React Hook Form 7 and Zod 4, which are optional peer dependencies of `@azmr/ui`:
+
+```bash
+pnpm add react-hook-form zod
+```
+
+```tsx
+import { Form, FormErrorSummary, FormField } from "@azmr/ui/rhf";
+import { fieldsFromSchema, zodResolver } from "@azmr/ui/zod";
+```
+
+## A complete form
+
+<Demo name="forms/signup" />
+
+Submit it empty to see the summary take focus and list each error; each link moves to its field. Then try `northline` as the web address: the schema checks it asynchronously, as a real server lookup would.
+
+```tsx
+const schema = z.object({
+  business: z.string().trim().min(2, "Enter your business name"),
+  slug: z.string().regex(/^[a-z0-9-]{3,30}$/, "Use 3 to 30 letters, numbers or hyphens")
+    .refine(isFree, "That web address is taken; try another"),
+  email: z.email("Enter an email address like aroha@example.co.nz"),
+  budget: z.number("Enter a monthly budget").min(0),
+});
+
+export function Signup() {
+  const form = useForm<z.input<typeof schema>, unknown, z.output<typeof schema>>({
+    resolver: zodResolver(schema),
+    shouldFocusError: false,
+  });
+
+  return (
+    <Form form={form} onSubmit={createAccount}>
+      <FormErrorSummary />
+      <FormField name="business" label="Business name" required>
+        <Input autoComplete="organization" />
+      </FormField>
+      <FormField name="slug" label="Web address" required>
+        <Input />
+      </FormField>
+      <FormField name="email" label="Email" required>
+        <Input type="email" autoComplete="email" />
+      </FormField>
+      <FormField name="budget" label="Monthly budget" required rules={{ setValueAs: numberOrNull }}>
+        <MoneyField min={0} />
+      </FormField>
+      <Button type="submit">Create account</Button>
+    </Form>
+  );
+}
+```
+
+## `Form`
+
+`Form` renders `<form noValidate>`, provides the form to everything inside it, and submits through `handleSubmit`. Pass what `useForm()` returned as `form`, the success handler as `onSubmit`, and optionally `onInvalid`. The browser's own validation bubbles are off, so the form's messages are the only ones people see.
+
+## `FormField`
+
+`FormField` is a [Field](/docs/components/field) bound to the form by `name`:
+
+- It calls `register(name, rules)` on its one control, so the control's real `ref` is used and there is no `Controller`. This works for `Input`, `Textarea`, `PasswordInput`, `NumberField` and `MoneyField`. A control's own `onChange` and `onBlur` still run.
+- It shows the field's error, marks the control invalid, and reads `required` from the prop or from a `required` rule.
+- `rules` takes React Hook Form's register options. With a schema resolver you only need `setValueAs`, such as `numberOrNull` for a number field.
+- Dirty and touched state come from the real input, so `formState.dirtyFields` and `touchedFields` work as usual.
+
+For a control without an input ref, such as a toggle, a select or a date picker, set `controlled`: the field uses `useController` and passes `value`, `onValueChange` and `onBlur` to the child. Or render the control yourself:
+
+```tsx
+<FormField
+  name="terms"
+  label="Terms"
+  rules={{ validate: (value) => value || "Accept the terms to continue" }}
+  render={({ value, onChange, invalid }) => (
+    <input
+      type="checkbox"
+      checked={value}
+      aria-invalid={invalid || undefined}
+      onChange={(event) => onChange(event.target.checked)}
+    />
+  )}
+/>
+```
+
+## `FormErrorSummary`
+
+The form's [ErrorSummary](/docs/components/form#error-summary). It reads the errors and the submit count from the form, takes focus after every failed submit and links each error to its field, listed in the order the fields appear on the page, even when an async check finishes last. Set `shouldFocusError: false` in `useForm` so focus lands on the summary, not on the first field.
+
+## `zodResolver`
+
+`zodResolver(schema)` validates the form with a Zod 4 schema; you don't need `@hookform/resolvers`.
+
+- It runs `safeParseAsync`, so async refinements work.
+- On success, `onSubmit` gets the parsed output: trimmed strings, defaults and transforms applied. Type the form with `useForm<z.input<typeof schema>, unknown, z.output<typeof schema>>`.
+- Each issue lands on its field path, nested objects and arrays included (`address.city`, `lines.1.amount`). An issue on the whole object, from an object-level `refine`, goes to `errors.root`, which the summary shows without a link.
+- With `criteriaMode: "all"`, every message per field is kept in `types`.
+
+## `fieldsFromSchema`
+
+`fieldsFromSchema(schema)` describes each field of a `z.object`: its name, a label, the kind of control it needs, whether it is required, and its limits. It is the start of the generated forms that come later.
+
+```ts
+fieldsFromSchema(
+  z.object({
+    fullName: z.string().min(2).describe("Full name"),
+    creditLimit: z.number().min(0).meta({ fieldType: "money" }),
+    tier: z.enum(["bronze", "silver", "gold"]),
+    notes: z.string().optional(),
+  }),
+);
+// [
+//   { name: "fullName", label: "Full name", type: "text", required: true, min: 2 },
+//   { name: "creditLimit", label: "Credit limit", type: "money", required: true, min: 0 },
+//   { name: "tier", label: "Tier", type: "enum", required: true, options: ["bronze", "silver", "gold"] },
+//   { name: "notes", label: "Notes", type: "text", required: false },
+// ]
+```
+
+Labels come from `.describe()`, `.meta({ label })`, or the key in sentence case. Types are `text`, `email`, `url`, `number`, `money` (from `.meta({ fieldType: "money" })`), `date`, `boolean`, `enum` or `custom`. Optional, nullable and defaulted fields are not required. Other `.meta()` keys are passed through as `meta`.
+
+`@azmr/ui/zod` has no React in it, so a schema module that uses it can be shared with server code.
+
+## Accessibility
+
+- Every field is labelled, described and wired by `Field`; errors are announced politely and linked with `aria-errormessage`.
+- After a failed submit the summary takes focus and lists every problem as a link, in page order (WCAG 3.3.1 and 3.3.3).
+- Keep each rule's message specific and actionable: say what to enter, not only what is wrong.

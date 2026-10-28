@@ -101,12 +101,15 @@ describe("@azmr/ui entry points have docs", () => {
   ) as Record<string, Record<string, string>>;
   const entryNames = Object.values(entries).flatMap((group) => Object.keys(group));
 
-  // Entries documented on a page with a different name.
+  // Entries documented on a page with a different name: a component page slug, or a full docs path
+  // for entries documented in a guide.
   const pageFor: Record<string, string> = {
     transition: "motion",
     presets: "motion",
     icons: "icon",
     "icons/lucide": "icon",
+    rhf: "/docs/guide/forms",
+    zod: "/docs/guide/forms",
   };
 
   // Entries with no page of their own, each with the reason. Remove a line when its page lands.
@@ -139,14 +142,15 @@ describe("@azmr/ui entry points have docs", () => {
     for (const name of entryNames) {
       if (name in undocumented) continue;
       const slug = pageFor[name] ?? name;
-      const source = pages.get(`/docs/components/${slug}`);
+      const page = slug.startsWith("/docs/") ? slug : `/docs/components/${slug}`;
+      const source = pages.get(page);
       if (source === undefined) {
-        problems.push(`@azmr/ui/${name}: no page at /docs/components/${slug}`);
+        problems.push(`@azmr/ui/${name}: no page at ${page}`);
         continue;
       }
       const importPath = new RegExp(`@azmr/ui/${name.replace("/", "\\/")}(?![\\w/-])`);
       if (!importPath.test(source)) {
-        problems.push(`@azmr/ui/${name}: /docs/components/${slug} never shows this import path`);
+        problems.push(`@azmr/ui/${name}: ${page} never shows this import path`);
       }
     }
     expect(problems).toEqual([]);

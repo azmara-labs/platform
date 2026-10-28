@@ -176,6 +176,8 @@ An unknown name renders nothing and logs one development warning; it never crash
 | `@azmr/ui/input-group` | `InputGroup`, `InputGroupInput`, `InputGroupAddon`, `InputGroupButton` | `"use client"` |
 | `@azmr/ui/password-input` | `PasswordInput`, `passwordRequirements`, `defaultPasswordScorer` | `"use client"` |
 | `@azmr/ui/number-field` | `NumberField`, `MoneyField`, `numberOrNull` | `"use client"` |
+| `@azmr/ui/rhf` | `Form`, `FormField`, `FormErrorSummary` (React Hook Form 7, optional peer) | `"use client"` |
+| `@azmr/ui/zod` | `zodResolver`, `fieldsFromSchema`, `fieldFromSchema`, `toFieldErrors` (Zod 4, optional peer) | none, server-safe |
 | `@azmr/ui/field` | `Field`, `FieldRoot`, `FieldLabel`, `FieldDescription`, `FieldError` | `"use client"` |
 | `@azmr/ui/form` | `Fieldset`, `FieldsetRoot`, `FieldsetLegend`, `FormSection`, `ErrorSummary`, `toErrorSummaryItems` | `"use client"` |
 | `@azmr/ui/spinner` | `Spinner` | none, importable from Server Components |
