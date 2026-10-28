@@ -163,8 +163,9 @@ jobs:
   changeset:
     name: Changeset check
     runs-on: ubuntu-latest
-    # Only check on PRs — not on direct pushes to main or the Changesets release branch
-    if: github.event_name == 'pull_request' && github.head_ref != 'changeset-release/main'
+    # Only check on PRs — not on direct pushes to main, the Changesets release branch, or
+    # Dependabot (add a changeset by hand when a runtime dependency bump needs a release)
+    if: github.event_name == 'pull_request' && github.head_ref != 'changeset-release/main' && github.actor != 'dependabot[bot]'
 
     steps:
       - name: Checkout
