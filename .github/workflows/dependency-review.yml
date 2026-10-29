@@ -31,7 +31,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
           # The model reads third-party release notes; keep the token out of .git/config.
@@ -39,7 +39,7 @@ jobs:
 
       - name: Read the update metadata
         id: meta
-        uses: dependabot/fetch-metadata@v2
+        uses: dependabot/fetch-metadata@v3
 
       - name: Record start time
         if: steps.meta.outputs.package-ecosystem != 'github_actions'
