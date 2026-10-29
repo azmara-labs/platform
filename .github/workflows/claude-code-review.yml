@@ -12,6 +12,9 @@ on:
 
 jobs:
   claude-review:
+    # Dependabot's own pushes get the breaking-change review in dependency-review.yml instead
+    # (they cannot read this secret). A person's fix commit on a Dependabot PR is reviewed here.
+    if: github.actor != 'dependabot[bot]'
     # Optional: Filter by PR author
     # if: |
     #   github.event.pull_request.user.login == 'external-contributor' ||

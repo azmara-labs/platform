@@ -1,0 +1,44 @@
+# Weekly version updates. Security updates are enabled in the repo settings and still open
+# straight away, one PR per advisory, outside these groups.
+version: 2
+updates:
+  - package-ecosystem: npm
+    # The pnpm workspace: the root plus every package and app manifest.
+    directories: ["/", "/packages/*", "/apps/*"]
+    schedule:
+      interval: weekly
+      day: monday
+      time: "08:00"
+      timezone: Pacific/Auckland
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore(deps)
+      prefix-development: chore(deps-dev)
+    groups:
+      # Next and React move together; keep them in one PR.
+      next-react:
+        patterns: ["next", "react", "react-dom", "@types/react", "@types/react-dom"]
+        update-types: [minor, patch]
+      production:
+        dependency-type: production
+        update-types: [minor, patch]
+      development:
+        dependency-type: development
+        update-types: [minor, patch]
+    # Workspace packages are versioned by Changesets, not Dependabot.
+    ignore:
+      - dependency-name: "@azmr/*"
+    # Majors still arrive one per PR, since each needs its own migration.
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "08:00"
+      timezone: Pacific/Auckland
+    commit-message:
+      prefix: ci
+    groups:
+      actions:
+        patterns: ["*"]
