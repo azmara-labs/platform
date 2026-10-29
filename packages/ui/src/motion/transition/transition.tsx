@@ -20,8 +20,9 @@ export interface TransitionProps {
 type ViewTransitionComponent = ComponentType<TransitionProps>;
 
 /**
- * React's `ViewTransition`, if this React has it. It is not in a stable React yet (the spec expects
- * 19.3), so it is looked up by name at render time, under both the stable and the experimental name.
+ * React's `ViewTransition`, if this React has it: stable from React 19.3, missing before. The peer
+ * range still allows React 18 and older 19s, so it is looked up by name at render time, under both
+ * the stable and the experimental name.
  */
 export function findViewTransition(
   react: Record<string, unknown> = React as unknown as Record<string, unknown>,
@@ -43,9 +44,9 @@ export function createTransition(find: () => ViewTransitionComponent | undefined
 }
 
 /**
- * Animates a route change, a list change or a shared element with React's `ViewTransition`. Where
- * React does not have it yet, or the person prefers reduced motion, it renders its children and
- * nothing else, so it is safe to add today and switches on when you upgrade React. The cross-fade
- * itself is in `@azmr/ui/styles.css` (opacity only).
+ * Animates a route change, a list change or a shared element with React's `ViewTransition` (React
+ * 19.3 and later). On an older React, or when the person prefers reduced motion, it renders its
+ * children and nothing else, so it switches on when you upgrade React, with no code change. The
+ * cross-fade itself is in `@azmr/ui/styles.css` (opacity only).
  */
 export const Transition = createTransition(findViewTransition);

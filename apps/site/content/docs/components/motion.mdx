@@ -98,7 +98,9 @@ import { Transition } from "@azmr/ui/transition";
 <Transition name="hero">…</Transition>
 ```
 
-`Transition` wraps React's `<ViewTransition>` for route changes, list changes and shared-element morphs. **That component is not in a stable React yet** (the spec expects React 19.3; React 19.2 does not have it). So `Transition` looks it up when it renders, under both its stable and experimental names, and where it is missing it renders its children and nothing else. It is safe to add today, and starts working the day you upgrade React, with no code change. It also renders nothing extra when the person prefers reduced motion. The cross-fade (opacity only) is in `styles.css`.
+`Transition` wraps React's `<ViewTransition>` for route changes, list changes and shared-element morphs. **That component is stable from React 19.3**; React 19.2 and earlier do not have it. So `Transition` looks it up when it renders, under both its stable and experimental names, and where it is missing it renders its children and nothing else. It is safe to use on any supported React, and starts working when you upgrade, with no code change. It also renders nothing extra when the person prefers reduced motion. The cross-fade (opacity only) is in `styles.css`.
+
+In a Next.js App Router app, the React that runs is the one Next bundles, not the `react` in your `package.json`. Next 16.4 bundles a React 19.3 build that has `ViewTransition`, so there it depends on your Next version.
 
 <AutoTypeTable path="../../packages/ui/src/motion/transition/transition.tsx" name="TransitionProps" />
 

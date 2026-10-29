@@ -22,8 +22,17 @@ afterEach(() => {
 });
 
 describe("Transition: feature detection", () => {
-  it("finds no ViewTransition in the React we ship against (it is not stable yet)", () => {
-    expect(findViewTransition()).toBeUndefined();
+  it("finds the stable ViewTransition in the React we ship against (19.3 and later)", () => {
+    expect(findViewTransition()).toBeDefined();
+  });
+
+  it("with the real React, renders the children and adds no element of its own", () => {
+    const { container } = renderUi(
+      <Transition name="page">
+        <p>Content</p>
+      </Transition>,
+    );
+    expect(container.innerHTML).toBe("<p>Content</p>");
   });
 
   it("recognises ViewTransition under its stable name and its experimental name", () => {
@@ -37,11 +46,12 @@ describe("Transition: feature detection", () => {
     expect(findViewTransition({})).toBeUndefined();
   });
 
-  it("without it, renders its children and nothing else (a no-op)", () => {
+  it("without it (React before 19.3), renders its children and nothing else (a no-op)", () => {
+    const NoSupport = createTransition(() => undefined);
     const { container } = renderUi(
-      <Transition name="page">
+      <NoSupport name="page">
         <p>Content</p>
-      </Transition>,
+      </NoSupport>,
     );
     expect(container.innerHTML).toBe("<p>Content</p>");
   });

@@ -39,8 +39,8 @@
     "motion": "^14.2.0",
     "next": "^16.4.3",
     "next-themes": "^0.4.6",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "react-hook-form": "^7.91.0"
   },
   "devDependencies": {
@@ -54,7 +54,7 @@
     "@types/mdast": "^4.0.4",
     "@types/mdx": "^2.0.14",
     "@types/node": "^26.1.1",
-    "@types/react": "^19.2.17",
+    "@types/react": "^19.3.0",
     "@types/react-dom": "^19.2.3",
     "acorn": "^8.16.0",
     "autoprefixer": "^10.5.4",
