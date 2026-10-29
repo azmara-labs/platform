@@ -234,6 +234,15 @@ export const NumberFieldBase = forwardRef<HTMLInputElement, BaseProps>(function 
     { onPendingChange: setPending },
   );
 
+  // A controlled value set from outside counts as reported and committed, and replaces a waiting
+  // edit, which is dropped. (Base UI keeps the typed text itself, so no draft is needed here.)
+  useEffect(() => {
+    if (value === undefined || Object.is(value, emitted.current)) return;
+    emitted.current = value;
+    committed.current = value;
+    debounced.cancel();
+  }, [value, debounced]);
+
   const update = useCallback(
     (next: number | null) => {
       current.current = next;
