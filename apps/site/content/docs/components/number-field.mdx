@@ -1,0 +1,111 @@
+---
+title: Number field
+description: NumberField and MoneyField format numbers and currency for the locale, clamp to min and max, and report real numbers, never formatted strings.
+group: Inputs
+status: new
+since: 0.8.0
+interactive: true
+aliases: [number input, money, currency, amount, price, quantity, stepper, MoneyField]
+---
+
+## Usage
+
+```tsx
+import { MoneyField, NumberField, numberOrNull } from "@azmr/ui/number-field";
+```
+
+<Demo name="number-field/basic" />
+
+`NumberField` formats with `Intl.NumberFormat` for the locale from [`LocaleProvider`](/docs/guide/theming) (en-NZ without one): grouping separators, a fixed number of decimals, percentages, units. `onValueChange` gets a `number`, or `null` when the field is emptied, never the formatted text.
+
+- `min`, `max` and `step` work with the arrow keys and, with `stepper`, the − and + buttons. Hold Shift for a step of 10, or Alt for a step of 0.1.
+- With `clamp` (on by default), an out-of-range number is moved to the nearest limit as it is typed. The text catches up when the field loses focus.
+- `allowNegative={false}` blocks the minus key and clamps at 0.
+- `decimalScale` sets the most digits after the point; the number is rounded to it.
+- `grouping={false}` turns off thousands separators, for codes and years.
+- `format` takes any further `Intl.NumberFormat` options, such as `{ style: "percent" }` or `{ style: "unit", unit: "kilogram" }`.
+- Pasted text is parsed for the locale, so pasting `$2,499.99` gives `2499.99`.
+- The mouse wheel doesn't change a focused field unless you set `allowWheelScrub`, so scrolling the page past it is safe.
+
+## Money
+
+<Demo name="number-field/money" />
+
+`MoneyField` is a `NumberField` formatted as currency: `$1,234.50` for NZD in en-NZ. The currency comes from `LocaleProvider` (NZD without one) or the `currency` prop. Amounts are rounded to the currency's minor unit (2 decimals for NZD, none for JPY) unless `decimalScale` says otherwise. `currencyDisplay="code"` shows `NZD 1,234.50`. The value is a plain number in dollars, not cents.
+
+Do money arithmetic on the server or in integer cents; the demo above multiplies floats only to show a running total.
+
+`NumberField` and `MoneyField` also fit inside an [Input group](/docs/components/input-group), for a unit or a currency code as an addon. The addon text joins the field's description, as it does for `InputGroupInput`.
+
+## Debounce and commit
+
+They follow the same contract as [Input](/docs/components/input#debounce-and-commit): `debounceMs` makes `onValueChange` wait, `onCommit` fires when the person is done (on blur, on Enter, or after a step with the keyboard, buttons or wheel), `data-pending` marks a waiting value, and the same number is never reported twice.
+
+## With react-hook-form
+
+`register()` works without a `Controller`. Base UI keeps the raw number in a hidden `<input type="number">` that carries the `name`; `ref` points at it, and focusing it focuses the visible field, so React Hook Form's focus-on-error lands in the right place. The `onChange` and `onBlur` from `register()` get real DOM events on that input once the new number is in it. Add `setValueAs: numberOrNull` to get a `number | null` rather than text:
+
+```tsx
+import { useForm } from "react-hook-form";
+import { Field } from "@azmr/ui/field";
+import { MoneyField, NumberField, numberOrNull } from "@azmr/ui/number-field";
+
+type Line = { quantity: number | null; price: number | null };
+
+export function LineItem({ onSave }: { onSave: (line: Line) => void }) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<Line>({ defaultValues: { quantity: 1, price: null } });
+
+  return (
+    <form noValidate onSubmit={handleSubmit(onSave)}>
+      <Field label="Quantity">
+        <NumberField stepper min={1} {...register("quantity", { setValueAs: numberOrNull })} />
+      </Field>
+      <Field label="Unit price" error={errors.price?.message}>
+        <MoneyField
+          {...register("price", {
+            setValueAs: numberOrNull,
+            validate: (value) => (value === null ? "Enter a price" : true),
+          })}
+        />
+      </Field>
+    </form>
+  );
+}
+```
+
+`defaultValues` show up in the field. After `reset()` with new values, remount the field (for example with a `key`) so it reads them.
+
+## Props
+
+<AutoTypeTable
+  path="../../packages/ui/src/components/number-field/index.ts"
+  name="NumberFieldDocProps"
+  type={`import type { NumberFieldProps } from "./number-field.js"
+export type NumberFieldDocProps = Pick<NumberFieldProps, "value" | "defaultValue" | "onValueChange" | "onCommit" | "debounceMs" | "min" | "max" | "step" | "clamp" | "allowNegative" | "decimalScale" | "grouping" | "locale" | "format" | "stepper" | "stepperLabels" | "allowWheelScrub" | "name" | "id" | "placeholder" | "disabled" | "readOnly" | "required" | "className" | "onChange" | "onBlur" | "children" | "aria-label" | "aria-labelledby" | "aria-describedby" | "aria-required" | "aria-errormessage" | "aria-invalid">`}
+/>
+
+`MoneyField` takes the same props, plus `currency` and `currencyDisplay`.
+
+## Accessibility
+
+- The visible input is a text field with `inputmode="numeric"`, so phones show a number keypad. On iOS, whose number pad has no decimal point or minus key, it uses `decimal` when `min` is 0 or more and the full keyboard when negatives are allowed. It is labelled and described by its `Field`.
+- The stepper buttons are named "Decrease" and "Increase" (change them with `stepperLabels`) and stay out of the way of typing.
+- The raw number lives in a hidden input that screen readers skip; only the formatted field is announced.
+- Values are shown with the locale's own separators and currency symbol.
+
+<KeyboardMap
+  rows={[
+    { keys: ["ArrowUp"], action: "Increases the value by step." },
+    { keys: ["ArrowDown"], action: "Decreases the value by step." },
+    { keys: ["Shift", "ArrowUp"], action: "Increases the value by 10." },
+    { keys: ["Shift", "ArrowDown"], action: "Decreases the value by 10." },
+    { keys: ["Alt", "ArrowUp"], action: "Increases the value by 0.1." },
+    { keys: ["Home"], action: "Sets the minimum, when there is one." },
+    { keys: ["End"], action: "Sets the maximum, when there is one." },
+    { keys: ["Enter"], action: "Commits the value." },
+  ]}
+/>

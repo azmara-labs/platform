@@ -71,6 +71,10 @@
       "types": "./dist/password-input.d.ts",
       "import": "./dist/password-input.js"
     },
+    "./number-field": {
+      "types": "./dist/number-field.d.ts",
+      "import": "./dist/number-field.js"
+    },
     "./field": {
       "types": "./dist/field.d.ts",
       "import": "./dist/field.js"
