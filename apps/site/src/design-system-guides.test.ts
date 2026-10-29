@@ -67,10 +67,15 @@ describe("Tailwind CSS setup", () => {
   const tokens = ui("src", "styles", "tokens.css");
   const consumer = ui("scripts", "verify-consumer.mjs");
 
-  it("describes a stylesheet that uses the v4 directives and the @source rule it quotes", () => {
+  it("describes the class lists that replaced the @source scan, as the package ships them", () => {
     expect(tokens).toContain("@theme inline");
-    expect(tokens).toContain('@source "./**/*.js";');
-    expect(guide("tailwind")).toContain('@source "./**/*.js";');
+    expect(tokens).not.toContain('@source "./**/*.js";');
+    expect(guide("tailwind")).not.toContain('@source "./**/*.js";');
+    expect(guide("tailwind")).toContain('@import "@azmr/ui/classes.css";');
+    expect(guide("tailwind")).toContain('@import "@azmr/ui/classes/button.css";');
+    const pkg = JSON.parse(ui("package.json")) as { exports: Record<string, unknown> };
+    expect(pkg.exports["./classes.css"]).toBe("./dist/classes.css");
+    expect(pkg.exports["./classes/*"]).toBe("./dist/classes/*");
   });
 
   it("has no Tailwind dependency of its own (the app provides it)", () => {
@@ -92,11 +97,11 @@ describe("Tailwind CSS setup", () => {
     );
   });
 
-  it("is backed by a consumer test that checks the @source rule and proves it can fail", () => {
+  it("is backed by a consumer test that checks the class lists and proves it can fail", () => {
     expect(consumer).toContain("OUTSIDE the workspace");
     expect(consumer).toContain("--sabotage=no-source");
     expect(consumer).toContain("h-(--density-control-height)");
-    expect(consumer).toMatch(/Tailwind v4 scans the package's classes inside node_modules/);
+    expect(consumer).toMatch(/Tailwind v4 generates the package's classes from node_modules/);
   });
 
   it("is backed by a test that keeps the responsive class tables spelled out", () => {

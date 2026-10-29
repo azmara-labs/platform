@@ -23,7 +23,7 @@ Tailwind v4 runs through PostCSS in Next.js. Install it if `create-next-app` did
 
 ## 3. Import the stylesheet
 
-In your global CSS, import Tailwind and then the package's stylesheet:
+In your global CSS, import Tailwind, the package's stylesheet, and the class lists for the components you use (here Button and Input; [Tailwind CSS setup](/docs/guide/tailwind#how-tailwind-finds-the-packages-classes) explains them):
 
 <FixtureFile file="next/app/globals.css" />
 
@@ -58,7 +58,7 @@ Density works the same way: `useTheme()` also returns `density` and `setDensity`
 The files above are the files of an app that CI builds. On every change it packs `@azmr/ui` into a tarball, installs it into that app, type-checks and builds it, starts the server and checks that:
 
 - the page renders the Button and the label on the server;
-- Tailwind found the package's classes inside `node_modules`, with nothing added to the config;
+- Tailwind generated the Button's and Input's classes from the two class lists the stylesheet imports, and nothing else from the package;
 - the colour tokens are in the stylesheet;
 - a `dark` cookie renders `data-theme="dark"` on `<html>`, and no cookie renders no attribute.
 

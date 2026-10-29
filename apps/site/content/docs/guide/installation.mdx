@@ -53,7 +53,7 @@ The page follows the operating system's light or dark setting with no setup and 
 
 ## How these guides stay correct
 
-Each framework guide shows the real files of a small app, not snippets written for the page. CI packs `@azmr/ui` into a tarball, installs it into each of those apps as a new project would, type-checks and builds them, and then checks the output: the Button is rendered, the colour tokens are there, and Tailwind found the package's classes inside `node_modules`. A change that breaks a guide fails the build, and the guide always shows the files that were tested.
+Each framework guide shows the real files of a small app, not snippets written for the page. CI packs `@azmr/ui` into a tarball, installs it into each of those apps as a new project would, type-checks and builds them, and then checks the output: the Button is rendered, the colour tokens are there, and Tailwind generated the package's classes from the class lists the app imports. A change that breaks a guide fails the build, and the guide always shows the files that were tested.
 
 ## Working on the packages themselves
 

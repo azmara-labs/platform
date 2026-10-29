@@ -9,6 +9,10 @@
 @import "fumadocs-ui/css/lib/base.css";
 @import "fumadocs-ui/css/lib/shiki.css";
 @import "@azmr/ui/tokens.css";
+/* Only the @azmr/ui components the landing page renders. */
+@import "@azmr/ui/classes/display.css";
+@import "@azmr/ui/classes/stepper.css";
+@import "@azmr/ui/classes/table.css";
 @import "./palette.css";
 
 @source "./page.tsx";

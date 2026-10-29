@@ -7,6 +7,14 @@
  * or, to also get our body colours and default border colour:
  *   @import "@azmr/ui/styles.css";
  *
+ * Then tell Tailwind which components' classes to generate, either the ones the app uses:
+ *   @import "@azmr/ui/classes/button.css";
+ *   @import "@azmr/ui/classes/input.css";
+ * or every component's:
+ *   @import "@azmr/ui/classes.css";
+ * Each list holds exactly the classes that entry's JS uses (generated at build time), so an app
+ * only pays for the components it imports.
+ *
  * Token names follow shadcn/ui so components from any shadcn registry fit
  * alongside ours. Colours are OKLCH and use light-dark(), so the page follows
  * the system by default and can be forced with `.dark` / `.light` or
@@ -20,9 +28,8 @@
    its own global styles. */
 @import "./motion.css";
 
-/* Scan the distributed JS for Tailwind class names. Resolved relative to this
-   file, so it works from node_modules. */
-@source "./**/*.js";
+/* No @source here: scanning every file in dist made an app using two components generate CSS for
+   all of them. The class lists above (dist/classes/*.css) replace it. */
 
 :root {
   color-scheme: light dark;

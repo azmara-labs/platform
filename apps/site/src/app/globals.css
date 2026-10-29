@@ -3,6 +3,8 @@
 @import "fumadocs-ui/css/preset.css";
 /* Our tokens only: the global body and border rules in styles.css would restyle the docs pages. */
 @import "@azmr/ui/tokens.css";
+/* Every component's classes: the docs demo all of them. */
+@import "@azmr/ui/classes.css";
 @import "./palette.css";
 
 @source "../../node_modules/fumadocs-ui/dist/**/*.js";

@@ -26,9 +26,10 @@ Grouped by purpose. Each badge shows the component's maturity: stable, new or be
 /* global.css */
 @import "tailwindcss";
 @import "@azmr/ui/styles.css";
+@import "@azmr/ui/classes.css";   /* or one list per component: @azmr/ui/classes/button.css */
 ```
 
-Use `@azmr/ui/tokens.css` instead if the app already has global styles. See the [package page](/docs/packages/ui) for the tokens, theming and locale.
+Use `@azmr/ui/tokens.css` instead of `styles.css` if the app already has global styles. Importing only the class lists for the components you use keeps the CSS small; [Tailwind CSS setup](/docs/guide/tailwind#how-tailwind-finds-the-packages-classes) explains them. See the [package page](/docs/packages/ui) for the tokens, theming and locale.
 
 ## Or copy the source with the shadcn CLI
 

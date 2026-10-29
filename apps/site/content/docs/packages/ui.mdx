@@ -18,18 +18,20 @@ pnpm add @azmr/ui @azmr/core react react-dom
 ```css
 @import "tailwindcss";
 @import "@azmr/ui/styles.css";   /* tokens + global base rules (new app) */
+@import "@azmr/ui/classes.css";  /* or one list per component you use */
 ```
 
 ```css
 @import "tailwindcss";
 @import "@azmr/ui/tokens.css";   /* tokens only (app that already has global styles) */
+@import "@azmr/ui/classes/button.css";
 ```
 
 - **`styles.css`** is `tokens.css` plus two global base rules: the page background and text colour on `body`, and our border and outline colours as the default for every element. Use it in a new app.
 - **`tokens.css`** has the same tokens, themes, density, motion and utilities and **changes nothing outside our own classes**. Use it when the app already has global styles: another UI library mid-migration, or a documentation site. Components look right either way.
 
 - **Token names follow shadcn/ui** (`--background`, `--primary`, `--ring`, `--radius`, `--sidebar-*`, ...), so shadcn components from any registry look right next to ours. Azmara adds `--success`, `--warning`, `--info`, `--chart-1` to `--chart-8`, `--motion-*`, `--elevation-*`, `--z-*` and `--density-*`.
-- **Utilities** such as `bg-background`, `text-muted-foreground`, `rounded-lg`, `shadow-elevation-2` and `ease-standard` work out of the box. The stylesheets include an `@source` rule, so Tailwind scans the package's classes inside `node_modules`.
+- **Utilities** such as `bg-background`, `text-muted-foreground`, `rounded-lg`, `shadow-elevation-2` and `ease-standard` work out of the box. Import the class list for each entry you use (`@azmr/ui/classes/button.css`), or `@azmr/ui/classes.css` for all of them, and Tailwind generates the package's classes; see [Tailwind CSS setup](/docs/guide/tailwind#how-tailwind-finds-the-packages-classes).
 - **Light and dark** use OKLCH colours with `light-dark()`. The page follows the system by default; force a mode with `class="dark"` / `class="light"` or `data-theme="dark|light"` on any ancestor. No JavaScript, no flash.
 - **Density:** set `data-density="compact"` or `"spacious"` on any ancestor to change control heights, padding and row height.
 - **Reduced motion:** with `prefers-reduced-motion: reduce`, every `--motion-duration-*` token collapses to `0.01ms` and a safety net shortens other animations. Mark genuinely essential motion with `data-motion="essential"`.

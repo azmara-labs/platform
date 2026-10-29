@@ -1,2 +1,4 @@
 @import "tailwindcss";
 @import "@azmr/ui/styles.css";
+@import "@azmr/ui/classes/button.css";
+@import "@azmr/ui/classes/input.css";

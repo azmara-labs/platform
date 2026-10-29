@@ -68,16 +68,17 @@ for (const kind of KINDS) {
   }
 }
 
-// The stylesheets are copied, not bundled. tokens.css must exist and carry the @source rule that
-// lets Tailwind v4 scan our classes from node_modules, and no global rules; styles.css must exist
-// and import it (so an app that takes styles.css still gets the @source rule).
+// The stylesheets are copied, not bundled. tokens.css must exist with no global rules and no
+// file-scanning @source (that made every app generate every component's CSS); styles.css must
+// exist and import it. The class lists replace the scan: every entry has dist/classes/<entry>.css
+// and dist/classes.css holds them all, each as `@source inline(...)`.
 const tokensUrl = new URL("../dist/tokens.css", import.meta.url);
 const stylesUrl = new URL("../dist/styles.css", import.meta.url);
 if (!existsSync(tokensUrl)) problems.push("dist/tokens.css is missing");
 else {
   const tokens = readFileSync(tokensUrl, "utf8");
-  if (!/@source\s+["'][^"']+["']/.test(tokens)) {
-    problems.push('dist/tokens.css has no @source rule (Tailwind would not scan "node_modules")');
+  if (/@source\s+["'][^"']+["']/.test(tokens)) {
+    problems.push("dist/tokens.css scans files with @source; apps pick class lists instead");
   }
   if (tokens.includes("@layer base")) {
     problems.push("dist/tokens.css must not contain global base rules (they belong in styles.css)");
@@ -88,9 +89,23 @@ else if (!/@import\s+["']\.\/tokens\.css["']/.test(readFileSync(stylesUrl, "utf8
   problems.push('dist/styles.css does not import "./tokens.css"');
 }
 
+const classesUrl = new URL("../dist/classes.css", import.meta.url);
+if (!existsSync(classesUrl) || !readFileSync(classesUrl, "utf8").includes("@source inline(")) {
+  problems.push("dist/classes.css is missing or lists no classes");
+}
+for (const kind of KINDS) {
+  for (const name of Object.keys(entries[kind] ?? {})) {
+    if (!existsSync(new URL(`../dist/classes/${name}.css`, import.meta.url))) {
+      problems.push(`dist/classes/${name}.css is missing`);
+    }
+  }
+}
+
 const expected = new Set(KINDS.flatMap((kind) => Object.keys(entries[kind] ?? {})).map(subpath));
 expected.add("./styles.css");
 expected.add("./tokens.css");
+expected.add("./classes.css");
+expected.add("./classes/*");
 const actual = new Set(Object.keys(pkg.exports));
 for (const s of expected)
   if (!actual.has(s)) problems.push(`package.json exports is missing "${s}"`);

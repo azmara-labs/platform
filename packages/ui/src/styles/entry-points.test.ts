@@ -26,8 +26,8 @@ describe("tokens.css", () => {
     expect(tokens).toContain('[data-theme="dark"]');
   });
 
-  it("carries the @source rule so Tailwind scans the package's classes", () => {
-    expect(tokens).toMatch(/@source\s+["'][^"']+["']/);
+  it("scans no files with @source, so an app only generates the components it lists", () => {
+    expect(tokens).not.toMatch(/@source\s+["'][^"']+["']/);
   });
 
   it("contains no global base rules", () => {
