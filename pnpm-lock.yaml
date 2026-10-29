@@ -101,6 +101,9 @@ importers:
       react-dom:
         specifier: ^19.2.8
         version: 19.2.8(react@19.2.8)
+      react-hook-form:
+        specifier: ^7.91.0
+        version: 7.91.0(@types/react@19.2.17)(react@19.2.8)
     devDependencies:
       '@azmr/db-core-interface':
         specifier: workspace:*
@@ -469,8 +472,8 @@ importers:
         specifier: ^19.2.8
         version: 19.2.8(react@19.2.8)
       react-hook-form:
-        specifier: ^7.90.0
-        version: 7.90.0(@types/react@19.2.17)(react@19.2.8)
+        specifier: ^7.91.0
+        version: 7.91.0(@types/react@19.2.17)(react@19.2.8)
       shadcn:
         specifier: 4.22.1
         version: 4.22.1(supports-color@8.1.1)
@@ -489,6 +492,9 @@ importers:
       vitest:
         specifier: ^4.1.11
         version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(jsdom@29.1.1)(msw@2.13.1(@types/node@26.1.1)(typescript@5.9.3))(vite@8.3.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.46.1)(tsx@4.23.1)(yaml@2.9.0))
+      zod:
+        specifier: ^4.6.7
+        version: 4.6.7
 
 packages:
 
@@ -5228,8 +5234,8 @@ packages:
     peerDependencies:
       react: ^19.2.8
 
-  react-hook-form@7.90.0:
-    resolution: {integrity: sha512-+NdG0FLzCPhFOp2NNxaUYLF9fyZhNjx9FTBBSYWF71/l6BBlmIc/j6xlp3DbaHWLJbIG7Zd8oznA19xJClU97w==}
+  react-hook-form@7.91.0:
+    resolution: {integrity: sha512-5BEBUnCBwa28AFXYTYmOaB/+CSpJ/+CWVASHEvIGUzFdHyUiPHeRhG7r5hOZ8nZi0yP7pbHdFNXO/p31EKTJFQ==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       '@types/react': '*'
@@ -11016,7 +11022,7 @@ snapshots:
       react: 19.2.8
       scheduler: 0.27.0
 
-  react-hook-form@7.90.0(@types/react@19.2.17)(react@19.2.8):
+  react-hook-form@7.91.0(@types/react@19.2.17)(react@19.2.8):
     dependencies:
       react: 19.2.8
     optionalDependencies:

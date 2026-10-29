@@ -7,7 +7,9 @@ import {
   useEffect,
   useId,
   useImperativeHandle,
+  useLayoutEffect,
   useRef,
+  useState,
 } from "react";
 import { cn } from "../../lib/cn.js";
 
@@ -146,6 +148,38 @@ function captionFor(target: HTMLElement, doc: Document): HTMLElement | null {
 
 const NOT_YET = Symbol("not yet focused");
 
+// useLayoutEffect warns during server rendering in React 18; it only matters in the browser.
+const useBrowserLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
+
+/**
+ * The items in the order their fields appear in the document, with form-level (`root`) errors
+ * first and anything without a field last. Errors can arrive in another order, for example when
+ * an async check finishes after the rest.
+ */
+function inDocumentOrder(
+  items: readonly ErrorSummaryItem[],
+  summary: HTMLElement,
+): ErrorSummaryItem[] {
+  const doc = summary.ownerDocument;
+  const scope = summary.closest("form") ?? doc;
+  const placed = items.map((item, index) => ({
+    item,
+    index,
+    root: isRootName(item.name),
+    target: isRootName(item.name) ? null : findTarget(scope, doc, item),
+  }));
+  placed.sort((a, b) => {
+    if (a.root !== b.root) return a.root ? -1 : 1;
+    if (a.target && b.target && a.target !== b.target) {
+      return a.target.compareDocumentPosition(b.target) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
+    }
+    if (a.target && !b.target) return -1;
+    if (!a.target && b.target) return 1;
+    return a.index - b.index;
+  });
+  return placed.map(({ item }) => item);
+}
+
 /**
  * Lists a form's errors after a failed submit, each one a link that moves focus to its field
  * (the GOV.UK error summary pattern, for WCAG 3.3.1 and 3.3.3). Place it at the top of the form.
@@ -160,8 +194,26 @@ export const ErrorSummary = forwardRef<HTMLDivElement, ErrorSummaryProps>(functi
   const titleId = useId();
   const element = useRef<HTMLDivElement>(null);
   useImperativeHandle(ref, () => element.current as HTMLDivElement, []);
-  const items = toErrorSummaryItems(errors);
-  const shown = items.length > 0;
+  const given = toErrorSummaryItems(errors);
+  const shown = given.length > 0;
+
+  // Reorder to match the fields on the page, before paint, so the list never jumps.
+  const givenKey = given.map((item) => `${item.name}\u0000${String(item.message)}`).join("\u0001");
+  const [order, setOrder] = useState<{ key: string; names: string[] } | null>(null);
+  useBrowserLayoutEffect(() => {
+    const summary = element.current;
+    if (!summary || given.length < 2) return;
+    const names = inDocumentOrder(given, summary).map((item) => item.name);
+    if (names.join("\u0000") !== given.map((item) => item.name).join("\u0000")) {
+      setOrder({ key: givenKey, names });
+    }
+  }, [givenKey]);
+  const items =
+    order && order.key === givenKey
+      ? order.names
+          .map((name) => given.find((item) => item.name === name))
+          .filter((item): item is ErrorSummaryItem => item !== undefined)
+      : given;
   const focusedFor = useRef<number | undefined | typeof NOT_YET>(NOT_YET);
 
   useEffect(() => {

@@ -38,6 +38,7 @@ const lazyDemos: Record<DemoName, ComponentType> = {
   "form/error-summary": dynamic(() => import("./form/error-summary.demo")),
   "form/fieldset": dynamic(() => import("./form/fieldset.demo")),
   "form/settings": dynamic(() => import("./form/settings.demo")),
+  "forms/signup": dynamic(() => import("./forms/signup.demo")),
   "icon/basic": dynamic(() => import("./icon/basic.demo")),
   "icon/named": dynamic(() => import("./icon/named.demo")),
   "input-group/buttons": dynamic(() => import("./input-group/buttons.demo")),
