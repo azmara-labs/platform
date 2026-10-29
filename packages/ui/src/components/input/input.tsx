@@ -51,11 +51,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   const current = useRef(initial);
   const emitted = useRef(initial);
   const committed = useRef(initial);
-  if (value !== undefined) current.current = String(value);
 
   const [pending, setPending] = useState(false);
+  // Controlled and debounced: the parent's value only changes when the wait ends, so show what
+  // was typed until then. Without it, React puts the old value back after every keystroke.
+  const [draft, setDraft] = useState<string | undefined>(undefined);
+  if (value !== undefined) current.current = draft ?? String(value);
   const debounced = useDebouncedCallback(
     (next: string, details: ValueChangeDetails) => {
+      setDraft(undefined);
       if (next === emitted.current) return;
       emitted.current = next;
       onValueChange?.(next, details);
@@ -68,14 +72,18 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   const typed = useRef(initial);
 
   // A controlled value set from outside counts as reported and committed: only edits are.
+  // It also replaces a waiting edit, which is dropped.
   useEffect(() => {
     if (value === undefined) return;
     const next = String(value);
     if (next === typed.current) return;
     typed.current = next;
+    current.current = next;
     emitted.current = next;
     committed.current = next;
-  }, [value]);
+    debounced.cancel();
+    setDraft(undefined);
+  }, [value, debounced]);
 
   const commit = useCallback(() => {
     debounced.flush();
@@ -87,8 +95,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   function handleValueChange(next: string, details: ValueChangeDetails) {
     current.current = next;
     typed.current = next;
-    if (debounceMs && debounceMs > 0) debounced(next, details);
-    else {
+    if (debounceMs && debounceMs > 0) {
+      if (value !== undefined) setDraft(next);
+      debounced(next, details);
+    } else {
+      // debounceMs was just turned off: drop anything still waiting from before.
+      debounced.cancel();
+      setDraft(undefined);
       emitted.current = next;
       onValueChange?.(next, details);
     }
@@ -109,7 +122,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     <InputPrimitive
       ref={ref}
       type={type}
-      value={value}
+      value={value === undefined ? undefined : (draft ?? value)}
       defaultValue={defaultValue}
       onValueChange={handleValueChange}
       onBlur={handleBlur}

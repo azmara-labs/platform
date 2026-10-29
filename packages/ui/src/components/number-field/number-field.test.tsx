@@ -1,6 +1,6 @@
 import { act, createRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LocaleProvider } from "../../react/LocaleProvider.js";
 import {
   describeDebounceContract,
@@ -98,6 +98,80 @@ describe("NumberField: value", () => {
     const { container } = renderUi(<Controlled />);
     await user.type(visible(container), "0");
     expect(container.querySelector("output")?.textContent).toBe("50");
+  });
+});
+
+describe("NumberField: controlled with debounceMs", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const user = () => setupUser({ advanceTimers: vi.advanceTimersByTime, delay: null });
+  const tick = (ms: number) =>
+    act(() => {
+      vi.advanceTimersByTime(ms);
+    });
+
+  // The parent only learns the number when the wait ends.
+  function Guests({ onChange }: { onChange: (n: number | null) => void }) {
+    const [n, setN] = useState<number | null>(1);
+    return (
+      <>
+        <NumberField
+          aria-label="Guests"
+          value={n}
+          stepper
+          debounceMs={300}
+          onValueChange={(next) => {
+            setN(next);
+            onChange(next);
+          }}
+        />
+        <Button onClick={() => setN(null)}>Clear</Button>
+      </>
+    );
+  }
+  const increase = (container: HTMLElement) =>
+    container.querySelector('button[aria-label="Increase"]') as HTMLButtonElement;
+
+  it("shows what the person types while the parent's update waits", async () => {
+    const onChange = vi.fn();
+    const { container } = renderUi(<Guests onChange={onChange} />);
+    await user().type(visible(container), "2");
+    expect(visible(container).value).toBe("12");
+    tick(300);
+    expect(onChange.mock.calls).toEqual([[12]]);
+    expect(visible(container).value).toBe("12");
+  });
+
+  it("steps from the shown number; each step is a commit, so it is sent at once", async () => {
+    const onChange = vi.fn();
+    const { container } = renderUi(<Guests onChange={onChange} />);
+    const u = user();
+    await u.click(increase(container));
+    await u.click(increase(container));
+    await u.click(increase(container));
+    expect(visible(container).value).toBe("4");
+    expect(onChange.mock.calls).toEqual([[2], [3], [4]]);
+  });
+
+  it("drops a waiting edit when the parent sets a value from outside", async () => {
+    const onChange = vi.fn();
+    const { container } = renderUi(<Guests onChange={onChange} />);
+    await user().type(visible(container), "5");
+    expect(visible(container).value).toBe("15");
+    // Press Clear without moving focus, which would commit the waiting number first.
+    const clear = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Clear",
+    ) as HTMLButtonElement;
+    act(() => clear.click());
+    // Base UI keeps the focused field's text; what matters is that 15 never reaches the parent.
+    tick(300);
+    expect(onChange).not.toHaveBeenCalled();
+    expect(hiddenInput(container).value).toBe("");
   });
 });
 
