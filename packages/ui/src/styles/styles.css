@@ -3,6 +3,9 @@
  *
  *   @import "tailwindcss";
  *   @import "@azmr/ui/styles.css";
+ *   @import "@azmr/ui/classes/button.css";   (one class list per entry you use)
+ * or `@import "@azmr/ui/classes.css"` for every component's classes. Without a class list, Tailwind
+ * generates none of the components' classes and they render unstyled (see tokens.css).
  *
  * Importing this changes the page itself: the body gets our background and text colours, and every
  * element's default border and outline colour become our tokens. For an app that already has global
