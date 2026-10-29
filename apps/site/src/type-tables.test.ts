@@ -99,8 +99,10 @@ describe("props tables on the component pages", () => {
           {
             basePath: siteDir,
             transform(entry, _type, symbol) {
-              const declaredHere = symbol.getDeclarations().some((declaration) => {
-                const file = declaration.getSourceFile().getFilePath().replaceAll("\\", "/");
+              // TypeScript 7's API (fumadocs-typescript 5.6): each declaration is a handle whose
+              // `path` is the declaring file's normalised path.
+              const declaredHere = symbol.declarations.some((declaration) => {
+                const file = String(declaration.path).replaceAll("\\", "/");
                 return file.includes("/packages/ui/src/") && !file.includes("node_modules");
               });
               if (declaredHere) own.push(entry.name);
