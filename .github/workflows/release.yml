@@ -52,7 +52,9 @@ jobs:
           private-key: ${{ secrets.CLA_BOT_PRIVATE_KEY }}
 
       - name: Create release PR or publish
-        uses: changesets/action@v2
+        # v2 needs Changesets CLI v3 and renames every input below; dependabot.yml keeps this on v1
+        # until that migration is done.
+        uses: changesets/action@v1
         with:
           # When changesets are present: opens a "Version Packages" PR
           # When that PR is merged: publishes to npm
