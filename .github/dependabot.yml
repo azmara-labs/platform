@@ -42,3 +42,9 @@ updates:
     groups:
       actions:
         patterns: ["*"]
+    ignore:
+      # changesets/action v2 requires Changesets CLI v3 (we are on v2) and renames the inputs
+      # release.yml uses. Only the release workflow runs it, on main, so CI on a Dependabot PR
+      # cannot catch the break. Lift this when the Changesets v3 migration lands.
+      - dependency-name: changesets/action
+        update-types: ["version-update:semver-major"]
