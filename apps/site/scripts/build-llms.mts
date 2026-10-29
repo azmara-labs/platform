@@ -195,12 +195,21 @@ async function propsTables(node: Jsx, ctx: RenderContext, where: string): Promis
       basePath: SITE_DIR,
       // A union of literals that has a name (ButtonVariant) is shown by name; list the members
       // instead, which is what a reader needs to write a valid value.
+      // fumadocs-typescript 5.6 hands over TypeScript 7's API types (`typescript/sync`), not
+      // ts-morph's. The site's own TypeScript has no `typescript/sync` export, so check the shape:
+      // getTypes() returns members only for unions and intersections (undefined otherwise), and
+      // literal types carry their `value`. An intersection never has two literal members.
       transform(entry, propertyType) {
-        if (!propertyType.isUnion()) return;
-        const members = propertyType.getUnionTypes();
-        const literals = members.filter((t) => t.isStringLiteral() || t.isNumberLiteral());
+        type Member = typeof propertyType & { value?: unknown };
+        const members = (
+          propertyType as Member & { getTypes?: () => readonly Member[] | undefined }
+        ).getTypes?.();
+        if (!members) return;
+        const literals = members.filter(
+          (t) => typeof t.value === "string" || typeof t.value === "number",
+        );
         if (literals.length >= 2) {
-          const names = members.map((t) => t.getText());
+          const names = members.map((t) => this.checker.typeToString(t));
           entry.type = [
             ...names.filter((n) => n !== "undefined"),
             ...names.filter((n) => n === "undefined"),
