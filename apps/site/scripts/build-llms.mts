@@ -209,7 +209,12 @@ async function propsTables(node: Jsx, ctx: RenderContext, where: string): Promis
           (t) => typeof t.value === "string" || typeof t.value === "number",
         );
         if (literals.length >= 2) {
-          const names = members.map((t) => this.checker.typeToString(t));
+          // TS7 keeps union members sorted by value ("icon" | "lg" | "md" | "sm"). Type ids follow
+          // creation order, which for a literal union is the order it was written in, so sort by
+          // id to list the values the way the source does ("sm" | "md" | "lg" | "icon").
+          const names = [...members]
+            .sort((a, b) => a.id - b.id)
+            .map((t) => this.checker.typeToString(t));
           entry.type = [
             ...names.filter((n) => n !== "undefined"),
             ...names.filter((n) => n === "undefined"),
