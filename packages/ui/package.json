@@ -217,8 +217,8 @@
     "@base-ui/react": "^1.9.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "lucide": "^1.59.0",
-    "lucide-react": "^1.59.0",
+    "lucide": "^1.61.0",
+    "lucide-react": "^1.61.0",
     "tailwind-merge": "^3.7.0"
   },
   "peerDependencies": {
@@ -246,7 +246,7 @@
     "culori": "^4.0.2",
     "esbuild": "^0.28.1",
     "jsdom": "^29.1.1",
-    "motion": "^14.2.0",
+    "motion": "^14.6.0",
     "postcss": "^8.5.30",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
