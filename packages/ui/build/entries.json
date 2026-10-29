@@ -7,8 +7,10 @@
     "input": "src/components/input/index.ts",
     "input-group": "src/components/input-group/index.ts",
     "password-input": "src/components/password-input/index.ts",
+    "number-field": "src/components/number-field/index.ts",
     "field": "src/components/field/index.ts",
     "form": "src/components/form/index.ts",
+    "rhf": "src/components/rhf/index.ts",
     "scroll-area": "src/components/scroll-area/index.ts",
     "progress": "src/components/progress/index.ts",
     "avatar": "src/components/avatar/index.ts",
@@ -37,6 +39,7 @@
   },
   "server": {
     "lib": "src/lib/index.ts",
+    "zod": "src/components/zod/index.ts",
     "theme": "src/theme/index.ts",
     "icons/mui-map": "src/icons/mui-map.ts",
     "typography/mui-map": "src/components/typography/mui-map.ts",

@@ -1,7 +1,6 @@
 import {
   type AriaAttributes,
   type ComponentPropsWithoutRef,
-  createContext,
   type ForwardRefExoticComponent,
   forwardRef,
   type MouseEvent,
@@ -18,15 +17,7 @@ import { cn } from "../../lib/cn.js";
 import { Button, type ButtonProps } from "../button/button.js";
 import { Input, type InputProps } from "../input/input.js";
 
-type ForwardedAria = Pick<AriaAttributes, "aria-required" | "aria-errormessage" | "aria-invalid">;
-
-interface InputGroupContextValue extends ForwardedAria {
-  /** Ids of the addons that describe the input, in the order they appear on screen. */
-  describedBy: string | undefined;
-  register: (id: string) => () => void;
-}
-
-const InputGroupContext = createContext<InputGroupContextValue | null>(null);
+import { type ForwardedAria, InputGroupContext, type InputGroupContextValue } from "./context.js";
 
 export interface InputGroupProps extends Omit<ComponentPropsWithoutRef<"div">, "className"> {
   className?: string;

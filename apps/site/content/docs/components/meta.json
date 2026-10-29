@@ -11,6 +11,7 @@
     "input",
     "input-group",
     "password-input",
+    "number-field",
     "field",
     "form",
     "toggle",

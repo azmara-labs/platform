@@ -31,9 +31,11 @@ import FloatingTooltip from "./floating/tooltip.demo";
 import FormErrorSummary from "./form/error-summary.demo";
 import FormFieldset from "./form/fieldset.demo";
 import FormSettings from "./form/settings.demo";
+import FormsSignup from "./forms/signup.demo";
 import IconBasic from "./icon/basic.demo";
 import IconNamed from "./icon/named.demo";
 import InputBasic from "./input/basic.demo";
+import InputDebounce from "./input/debounce.demo";
 import InputStates from "./input/states.demo";
 import InputTextarea from "./input/textarea.demo";
 import InputGroupButtons from "./input-group/buttons.demo";
@@ -56,6 +58,8 @@ import MotionGallery from "./motion/gallery.demo";
 import MotionReduced from "./motion/reduced.demo";
 import MotionReorder from "./motion/reorder.demo";
 import MotionStagger from "./motion/stagger.demo";
+import NumberFieldBasic from "./number-field/basic.demo";
+import NumberFieldMoney from "./number-field/money.demo";
 import PaginationLinks from "./pagination/links.demo";
 import PaginationState from "./pagination/state.demo";
 import PasswordInputNewPassword from "./password-input/new-password.demo";
@@ -146,6 +150,10 @@ export const demos = {
   "layout/stack": LayoutStack,
   "input/states": InputStates,
   "input/textarea": InputTextarea,
+  "input/debounce": InputDebounce,
+  "number-field/basic": NumberFieldBasic,
+  "number-field/money": NumberFieldMoney,
+  "forms/signup": FormsSignup,
   "input-group/money": InputGroupMoney,
   "input-group/search": InputGroupSearch,
   "input-group/buttons": InputGroupButtons,

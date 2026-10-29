@@ -19,7 +19,7 @@
   {
     "name": "@azmr/ui/hooks",
     "path": "dist/hooks.js",
-    "limit": "700 B"
+    "limit": "1 kB"
   },
   {
     "name": "@azmr/ui/lib",
@@ -60,6 +60,23 @@
     "name": "@azmr/ui/password-input",
     "path": "dist/password-input.js",
     "limit": "17 kB"
+  },
+  {
+    "name": "@azmr/ui/number-field",
+    "path": "dist/number-field.js",
+    "limit": "22 kB"
+  },
+  {
+    "name": "@azmr/ui/rhf (react-hook-form is a peer, not counted)",
+    "path": "dist/rhf.js",
+    "ignore": ["react-hook-form"],
+    "limit": "17 kB"
+  },
+  {
+    "name": "@azmr/ui/zod (zod is a peer, not counted)",
+    "path": "dist/zod.js",
+    "ignore": ["zod"],
+    "limit": "1.2 kB"
   },
   {
     "name": "@azmr/ui/field",
