@@ -1,6 +1,6 @@
-import { createRef } from "react";
+import { act, createRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { expectNoA11yViolations, renderUi, setupUser } from "../../test-utils/index.js";
 import { Button } from "../button/button.js";
 import { Input } from "./input.js";
@@ -129,6 +129,107 @@ describe("Input: behaviour", () => {
     const { container } = renderUi(<Input aria-label="n" aria-invalid="true" />);
     expect(q(container).className).toContain("aria-invalid:border-destructive");
     expect(q(container).getAttribute("aria-invalid")).toBe("true");
+  });
+});
+
+describe("Input: controlled with debounceMs", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const user = () => setupUser({ advanceTimers: vi.advanceTimersByTime, delay: null });
+  const tick = (ms: number) =>
+    act(() => {
+      vi.advanceTimersByTime(ms);
+    });
+
+  // The usual search box: the parent only learns the value when the wait ends.
+  function Search({ onSearch }: { onSearch: (q: string) => void }) {
+    const [q, setQ] = useState("");
+    return (
+      <>
+        <Input
+          aria-label="Search"
+          value={q}
+          debounceMs={300}
+          onValueChange={(next) => {
+            setQ(next);
+            onSearch(next);
+          }}
+        />
+        <Button onClick={() => setQ("")}>Clear</Button>
+      </>
+    );
+  }
+
+  it("shows what the person types while the parent's update waits", async () => {
+    const onSearch = vi.fn();
+    const { container } = renderUi(<Search onSearch={onSearch} />);
+    await user().type(q(container), "kiwi");
+    expect(q(container).value).toBe("kiwi");
+    expect(onSearch).not.toHaveBeenCalled();
+    tick(300);
+    expect(onSearch.mock.calls).toEqual([["kiwi"]]);
+    expect(q(container).value).toBe("kiwi");
+  });
+
+  it("on blur, sends and commits the waiting edit", async () => {
+    const onSearch = vi.fn();
+    const onCommit = vi.fn();
+    function Field() {
+      const [q, setQ] = useState("");
+      return (
+        <Input
+          aria-label="Search"
+          value={q}
+          debounceMs={300}
+          onCommit={onCommit}
+          onValueChange={(next) => {
+            setQ(next);
+            onSearch(next);
+          }}
+        />
+      );
+    }
+    const { container } = renderUi(<Field />);
+    await user().type(q(container), "kiwi");
+    act(() => q(container).blur());
+    expect(onSearch.mock.calls).toEqual([["kiwi"]]);
+    expect(onCommit.mock.calls).toEqual([["kiwi"]]);
+    expect(q(container).value).toBe("kiwi");
+    tick(600);
+    expect(onSearch).toHaveBeenCalledTimes(1);
+  });
+
+  it("drops a waiting edit when debounceMs is turned off", async () => {
+    const onValueChange = vi.fn();
+    const { container, rerender } = renderUi(
+      <Input aria-label="n" debounceMs={300} onValueChange={onValueChange} />,
+    );
+    const u = user();
+    await u.type(q(container), "a");
+    rerender(<Input aria-label="n" onValueChange={onValueChange} />);
+    await u.type(q(container), "b");
+    tick(600);
+    expect(onValueChange.mock.calls.map((call) => call[0])).toEqual(["ab"]);
+  });
+
+  it("takes a value set from outside, dropping a waiting edit", async () => {
+    const onSearch = vi.fn();
+    const { container } = renderUi(<Search onSearch={onSearch} />);
+    const u = user();
+    await u.type(q(container), "kiwi");
+    tick(300);
+    await u.type(q(container), "fruit");
+    // Clicking Clear would blur the field and send the edit first, so press it without focus.
+    act(() => (container.querySelector("button") as HTMLButtonElement).click());
+    expect(q(container).value).toBe("");
+    tick(300);
+    expect(onSearch.mock.calls).toEqual([["kiwi"]]);
+    expect(q(container).value).toBe("");
   });
 });
 

@@ -44,6 +44,7 @@ const lazyDemos: Record<DemoName, ComponentType> = {
   "input-group/money": dynamic(() => import("./input-group/money.demo")),
   "input-group/search": dynamic(() => import("./input-group/search.demo")),
   "input/basic": dynamic(() => import("./input/basic.demo")),
+  "input/debounce": dynamic(() => import("./input/debounce.demo")),
   "input/states": dynamic(() => import("./input/states.demo")),
   "input/textarea": dynamic(() => import("./input/textarea.demo")),
   "layout/container": dynamic(() => import("./layout/container.demo")),

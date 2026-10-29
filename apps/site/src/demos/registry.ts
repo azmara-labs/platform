@@ -34,6 +34,7 @@ import FormSettings from "./form/settings.demo";
 import IconBasic from "./icon/basic.demo";
 import IconNamed from "./icon/named.demo";
 import InputBasic from "./input/basic.demo";
+import InputDebounce from "./input/debounce.demo";
 import InputStates from "./input/states.demo";
 import InputTextarea from "./input/textarea.demo";
 import InputGroupButtons from "./input-group/buttons.demo";
@@ -146,6 +147,7 @@ export const demos = {
   "layout/stack": LayoutStack,
   "input/states": InputStates,
   "input/textarea": InputTextarea,
+  "input/debounce": InputDebounce,
   "input-group/money": InputGroupMoney,
   "input-group/search": InputGroupSearch,
   "input-group/buttons": InputGroupButtons,

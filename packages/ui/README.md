@@ -168,7 +168,7 @@ An unknown name renders nothing and logs one development warning; it never crash
 | Import | Contents | Directive |
 |---|---|---|
 | `@azmr/ui` | everything (`Grid`, `useSignal`, `cn`) | `"use client"` |
-| `@azmr/ui/hooks` | React hooks (`useSignal`) | `"use client"` |
+| `@azmr/ui/hooks` | React hooks (`useSignal`, `useDebouncedCallback`, `useDebouncedValue`, `useReducedMotion`, `useUrlTab`) | `"use client"` |
 | `@azmr/ui/theme` | server-safe theme helpers: `createTheme`, cookies, `htmlAttributes`, `createLocale` | none, importable from Server Components and middleware |
 | `@azmr/ui/react` | `ThemeProvider`, `useTheme`, `LocaleProvider`, `useLocale` | `"use client"` |
 | `@azmr/ui/button` | `Button`, `buttonVariants` | `"use client"` |
