@@ -204,6 +204,19 @@ describe("Input: controlled with debounceMs", () => {
     expect(onSearch).toHaveBeenCalledTimes(1);
   });
 
+  it("drops a waiting edit when debounceMs is turned off", async () => {
+    const onValueChange = vi.fn();
+    const { container, rerender } = renderUi(
+      <Input aria-label="n" debounceMs={300} onValueChange={onValueChange} />,
+    );
+    const u = user();
+    await u.type(q(container), "a");
+    rerender(<Input aria-label="n" onValueChange={onValueChange} />);
+    await u.type(q(container), "b");
+    tick(600);
+    expect(onValueChange.mock.calls.map((call) => call[0])).toEqual(["ab"]);
+  });
+
   it("takes a value set from outside, dropping a waiting edit", async () => {
     const onSearch = vi.fn();
     const { container } = renderUi(<Search onSearch={onSearch} />);

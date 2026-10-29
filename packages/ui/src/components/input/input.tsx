@@ -99,6 +99,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       if (value !== undefined) setDraft(next);
       debounced(next, details);
     } else {
+      // debounceMs was just turned off: drop anything still waiting from before.
+      debounced.cancel();
+      setDraft(undefined);
       emitted.current = next;
       onValueChange?.(next, details);
     }
