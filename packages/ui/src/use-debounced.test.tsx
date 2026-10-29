@@ -102,6 +102,24 @@ describe("useDebouncedCallback", () => {
     expect(spy).toHaveBeenCalledWith("now");
     expect(probe.fn.isPending()).toBe(false);
   });
+
+  it("drops a waiting call when the delay drops to 0 and a new call runs", () => {
+    const spy = vi.fn();
+    const pending = vi.fn();
+    let fn: DebouncedCallback<[string]> | undefined;
+    function Probe({ delay }: { delay: number }) {
+      fn = useDebouncedCallback(spy, delay, { onPendingChange: pending });
+      return null;
+    }
+    const { rerender } = renderUi(<Probe delay={200} />);
+    fn?.("old");
+    rerender(<Probe delay={0} />);
+    fn?.("new");
+    tick(500);
+    // The stale call must not land after the new one.
+    expect(spy.mock.calls).toEqual([["new"]]);
+    expect(pending.mock.calls).toEqual([[true], [false]]);
+  });
 });
 
 describe("useDebouncedValue", () => {

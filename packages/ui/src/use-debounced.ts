@@ -56,6 +56,9 @@ export function useDebouncedCallback<Args extends unknown[]>(
     };
     const fn = ((...next: Args) => {
       if (delay.current <= 0) {
+        // A call left waiting from a longer delay would otherwise land after this one.
+        args.current = undefined;
+        if (clear()) setPending(false);
         latest.current(...next);
         return;
       }
