@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.0
+
+### Minor Changes
+
+- 480388b: Add the debounce contract to `Input`: `debounceMs` delays `onValueChange`, `onCommit` fires on blur or Enter (not while an input method is composing) after sending any waiting value, `data-pending` marks a waiting value, a waiting value is dropped on unmount, and an unchanged value is never reported or committed twice. The native `onChange` stays immediate, so `register()` is unaffected. `@azmr/ui/hooks` now exports `useDebouncedCallback` (stable, with `flush`, `cancel` and `isPending`) and `useDebouncedValue`.
+- b5585b6: Add the form adapters. `@azmr/ui/rhf` (React Hook Form 7, optional peer): `Form` (a `noValidate` form with `FormProvider` and `handleSubmit`), `FormField` (a `Field` that registers its control with `register()`, so there is no `Controller`, shows the field's error and required state, and switches to `useController` with `controlled` or `render` for controls without an input ref) and `FormErrorSummary`. `@azmr/ui/zod` (Zod 4, optional peer, server-safe): `zodResolver` (async refinements, parsed output, nested and array paths, `root` for object-level issues, `criteriaMode: "all"`) and `fieldsFromSchema`/`fieldFromSchema`, which describe a schema's fields (label, control type, required, limits, enum options, metadata) for generated forms. `ErrorSummary` now lists errors in the order their fields appear on the page, with form-level errors first.
+- 4deeaee: Add `@azmr/ui/number-field`: `NumberField` and `MoneyField` on Base UI's NumberField. They format with `Intl.NumberFormat` for the locale (`LocaleProvider`, en-NZ and NZD without one), report a real `number` or `null` and never a formatted string, clamp to `min`/`max`, support `step`, `allowNegative`, `decimalScale`, `grouping`, `format`, an optional stepper, paste parsing and a wheel guard, and follow the `debounceMs`/`onCommit` contract. `MoneyField` rounds to the currency's minor unit. `register()` works without a `Controller`: `ref` is the named hidden number input, `onChange`/`onBlur` get real DOM events on it, and `numberOrNull` is a ready `setValueAs`. Both fit inside an `InputGroup`.
+
 ## 0.7.0
 
 ### Minor Changes
