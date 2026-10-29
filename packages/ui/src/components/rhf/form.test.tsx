@@ -239,6 +239,9 @@ describe("FormField controlled", () => {
 describe("Form with zodResolver, async validation and FormErrorSummary", () => {
   // The async refinement plus several typed fields can pass 1 s on a loaded CI runner.
   const ASYNC = { timeout: 5000 };
+  // A waitFor cannot outlast its test, and the default 5 s test timeout covers every
+  // keystroke and all three waits: CI runs this suite several times slower than locally.
+  const TEST_TIMEOUT = 20_000;
   const taken = new Set(["northline"]);
   const schema = z.object({
     business: z.string().min(2, "Enter your business name"),
@@ -288,42 +291,50 @@ describe("Form with zodResolver, async validation and FormErrorSummary", () => {
     );
   }
 
-  it("lists schema errors in the summary, takes focus, then runs the async check", async () => {
-    const onSave = vi.fn();
-    const user = setupUser();
-    const { container } = renderUi(<Signup onSave={onSave} />);
-    await user.click(submit(container));
-    const summary = () => container.querySelector('[role="alert"]') as HTMLElement | null;
-    await vi.waitFor(() => expect(summary()).not.toBeNull(), ASYNC);
-    expect(document.activeElement).toBe(summary());
-    expect(Array.from(summary()?.querySelectorAll("a") ?? []).map((a) => a.textContent)).toEqual([
-      "Enter your business name",
-      "Use at least 3 characters",
-      "Enter the number of seats",
-    ]);
+  it(
+    "lists schema errors in the summary, takes focus, then runs the async check",
+    async () => {
+      const onSave = vi.fn();
+      // No pause between keystrokes: each default pause waits a macrotask, slow on a busy runner.
+      const user = setupUser({ delay: null });
+      const { container } = renderUi(<Signup onSave={onSave} />);
+      await user.click(submit(container));
+      const summary = () => container.querySelector('[role="alert"]') as HTMLElement | null;
+      await vi.waitFor(() => expect(summary()).not.toBeNull(), ASYNC);
+      expect(document.activeElement).toBe(summary());
+      expect(Array.from(summary()?.querySelectorAll("a") ?? []).map((a) => a.textContent)).toEqual([
+        "Enter your business name",
+        "Use at least 3 characters",
+        "Enter the number of seats",
+      ]);
 
-    await user.type(inputByLabel(container, "Business name"), "Northline Electrical");
-    await user.type(inputByLabel(container, "Web address"), "northline");
-    await user.type(inputByLabel(container, "Seats"), "4");
-    await user.click(submit(container));
-    await vi.waitFor(() => expect(container.textContent).toContain("That address is taken"), ASYNC);
-    expect(onSave).not.toHaveBeenCalled();
-    // The summary shows the new errors, not the ones from the first submit.
-    expect(Array.from(summary()?.querySelectorAll("a") ?? []).map((a) => a.textContent)).toEqual([
-      "That address is taken",
-    ]);
+      await user.type(inputByLabel(container, "Business name"), "Northline Electrical");
+      await user.type(inputByLabel(container, "Web address"), "northline");
+      await user.type(inputByLabel(container, "Seats"), "4");
+      await user.click(submit(container));
+      await vi.waitFor(
+        () => expect(container.textContent).toContain("That address is taken"),
+        ASYNC,
+      );
+      expect(onSave).not.toHaveBeenCalled();
+      // The summary shows the new errors, not the ones from the first submit.
+      expect(Array.from(summary()?.querySelectorAll("a") ?? []).map((a) => a.textContent)).toEqual([
+        "That address is taken",
+      ]);
 
-    await user.clear(inputByLabel(container, "Web address"));
-    await user.type(inputByLabel(container, "Web address"), "northline-nz");
-    await user.click(submit(container));
-    await vi.waitFor(() => expect(onSave).toHaveBeenCalled(), ASYNC);
-    expect(onSave.mock.calls[0]?.[0]).toEqual({
-      business: "Northline Electrical",
-      slug: "northline-nz",
-      seats: 4,
-    });
-    expect(summary()).toBeNull();
-  });
+      await user.clear(inputByLabel(container, "Web address"));
+      await user.type(inputByLabel(container, "Web address"), "northline-nz");
+      await user.click(submit(container));
+      await vi.waitFor(() => expect(onSave).toHaveBeenCalled(), ASYNC);
+      expect(onSave.mock.calls[0]?.[0]).toEqual({
+        business: "Northline Electrical",
+        slug: "northline-nz",
+        seats: 4,
+      });
+      expect(summary()).toBeNull();
+    },
+    TEST_TIMEOUT,
+  );
 
   it("passes axe after a failed submit", async () => {
     const user = setupUser();
