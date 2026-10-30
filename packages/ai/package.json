@@ -57,7 +57,7 @@
     "@types/node": "^26.1.1",
     "tsup": "^8.5.1",
     "typescript": "^5.7.3",
-    "vitest": "^4.1.11"
+    "vitest": "^5.0.5"
   },
   "notes": {
     "isolated-vm": "Pinned to ^6.1.2 (not ^7.x) — isolated-vm 7.x requires node >=26, which has no LTS release yet (still Node's pre-LTS 'Current' line). 6.1.2 requires only node >=22, satisfied by the 24.x LTS line ('Krypton') this platform targets. This is an engines-range fix, not a build-tools issue — re-evaluate the pin once Node 26 reaches LTS and the platform's baseline moves to it."
