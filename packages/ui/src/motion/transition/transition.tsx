@@ -34,6 +34,7 @@ export function findViewTransition(
 
 /** Builds a `Transition` around a lookup. Exported so the behaviour can be tested without a new React. */
 export function createTransition(find: () => ViewTransitionComponent | undefined) {
+  // biome-ignore lint/correctness/noComponentHookFactories: a factory by design; callers build the component once, at module level
   return function Transition(props: TransitionProps) {
     const reduced = useReducedMotion();
     const ViewTransition = find();

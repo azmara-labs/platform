@@ -26,6 +26,7 @@ describe("analyzeSource — no-sql-concat", () => {
   it("flags template literal SQL with interpolation", () => {
     const result = analyzeSource(
       "test.ts",
+      // biome-ignore lint/suspicious/noTemplateCurlyInString: source code quoted as text
       "const sql = `SELECT * FROM users WHERE id = ${userId}`;",
     );
     expect(result.findings.some((f) => f.rule === "no-sql-concat")).toBe(true);

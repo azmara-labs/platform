@@ -20,6 +20,7 @@ export function createIconSet<const T extends Record<string, IconComponent>>(ico
   const own: Readonly<Record<string, IconComponent>> = Object.freeze({ ...icons });
   const names = Object.freeze(Object.keys(own)) as readonly (keyof T & string)[];
 
+  // biome-ignore lint/correctness/noComponentHookFactories: a factory by design; callers build the component once, at module level
   const SetIcon = forwardRef<SVGSVGElement, SetIconProps<keyof T & string>>(function SetIcon(
     { name, ...props },
     ref,

@@ -45,14 +45,14 @@
 
 /* The code highlighter's dark theme writes comments in #6A737D, which is 3.4:1 on the dark code
    background (WCAG AA needs 4.5:1). Lighten that one colour, in dark mode only: 6.4:1. */
-/* biome-ignore lint/complexity/noImportantStyles: the highlighter writes the colour as an inline style, which only !important beats */
 .dark pre span[style*="--shiki-dark:#6A737D"] {
+  /* biome-ignore lint/complexity/noImportantStyles: the highlighter writes the colour as an inline style, which only !important beats */
   --shiki-dark: #98a3b0 !important;
 }
 
 /* The highlighter's light theme writes variables and parameters in #E36209, which is 3.5:1 on white.
    Darken that one colour, which also affects nothing in dark mode: 5.3:1. */
-/* biome-ignore lint/complexity/noImportantStyles: the highlighter writes the colour as an inline style, which only !important beats */
 pre span[style*="--shiki-light:#E36209"] {
+  /* biome-ignore lint/complexity/noImportantStyles: the highlighter writes the colour as an inline style, which only !important beats */
   --shiki-light: #b84700 !important;
 }
