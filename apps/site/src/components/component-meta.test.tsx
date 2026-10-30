@@ -69,6 +69,7 @@ describe("ComponentMeta", () => {
 describe("the links ComponentMeta makes", () => {
   it("point at section ids that the component index really has", () => {
     const grid = readFileSync(join(import.meta.dirname, "component-grid.tsx"), "utf8");
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: source code quoted as text
     expect(grid).toContain("`group-${groupId(entry.group)}`");
     for (const group of COMPONENT_GROUPS) expect(groupId(group)).toMatch(/^[a-z]+(-[a-z]+)*$/);
   });

@@ -13,12 +13,16 @@ const generator = createGenerator({
   cache: createFileSystemGeneratorCache(".next/fumadocs-typescript"),
 });
 
+// Defined once, not inside getMDXComponents: a component created per call is a new type each
+// time, so React would remount every type table on each render.
+function GeneratedTypeTable(props: Partial<AutoTypeTableProps>) {
+  return <AutoTypeTable {...props} generator={generator} />;
+}
+
 export function getMDXComponents(components?: MDXComponents) {
   return {
     ...defaultMdxComponents,
-    AutoTypeTable: (props: Partial<AutoTypeTableProps>) => (
-      <AutoTypeTable {...props} generator={generator} />
-    ),
+    AutoTypeTable: GeneratedTypeTable,
     ComponentIndex,
     Demo,
     FixtureFile,

@@ -72,6 +72,7 @@ describe("parseLiteral never runs code", () => {
     ["a call", "[process.exit(1)]"],
     ["a variable", "[secret]"],
     ["a spread", "[...other]"],
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: source code quoted as text
     ["a template expression", "[`${1 + 1}`]"],
     ["a computed key", '[{ ["a" + "b"]: 1 }]'],
     ["a method", "[{ f() {} }]"],
