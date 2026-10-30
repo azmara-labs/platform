@@ -48,11 +48,11 @@
     "@azmr/security": "workspace:*"
   },
   "peerDependencies": {
-    "@supabase/supabase-js": "^2.103.0"
+    "@supabase/supabase-js": "^2.118.0"
   },
   "devDependencies": {
-    "@supabase/supabase-js": "^2.103.0",
-    "@types/node": "^26.1.1",
+    "@supabase/supabase-js": "^2.118.0",
+    "@types/node": "^26.6.5",
     "tsup": "^8.5.1",
     "typescript": "^5.7.3",
     "vitest": "^4.1.11"
