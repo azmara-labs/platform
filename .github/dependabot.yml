@@ -11,6 +11,10 @@ updates:
       time: "08:00"
       timezone: Pacific/Auckland
     open-pull-requests-limit: 5
+    # Published packages: when a version already fits the range, update only the lockfile. Raising
+    # a range's floor is a requirement change for consumers; for a peer range (db-supabase's
+    # @supabase/supabase-js, #229) it forces every app to upgrade.
+    versioning-strategy: increase-if-necessary
     commit-message:
       prefix: chore(deps)
       prefix-development: chore(deps-dev)
@@ -34,6 +38,11 @@ updates:
     # Workspace packages are versioned by Changesets, not Dependabot.
     ignore:
       - dependency-name: "@azmr/*"
+      # isolated-vm 7 requires Node 24; @azmr/ai supports Node 22 (LTS until April 2027). As an
+      # optional dependency it would fail to install there and @azmr/ai would quietly fall back
+      # to its weaker sandbox (#231). Lift this when @azmr/ai drops Node 22.
+      - dependency-name: isolated-vm
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: "/"
