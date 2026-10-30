@@ -25,10 +25,15 @@ updates:
       development:
         dependency-type: development
         update-types: [minor, patch]
+      # A major still gets a PR of its own, since each needs its own migration, but one PR for
+      # every directory instead of one per package (vitest 5 came as 11 PRs without this).
+      majors:
+        patterns: ["*"]
+        update-types: [major]
+        group-by: dependency-name
     # Workspace packages are versioned by Changesets, not Dependabot.
     ignore:
       - dependency-name: "@azmr/*"
-    # Majors still arrive one per PR, since each needs its own migration.
 
   - package-ecosystem: github-actions
     directory: "/"
