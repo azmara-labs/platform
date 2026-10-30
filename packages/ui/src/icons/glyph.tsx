@@ -57,6 +57,7 @@ export function createGlyph(name: string, node: IconNode, aliases: readonly stri
     return createElement(tag, { key: index, ...props });
   });
 
+  // biome-ignore lint/correctness/noComponentHookFactories: a factory by design; callers build the component once, at module level
   const glyph = forwardRef<SVGSVGElement, GlyphProps>(function Glyph(
     {
       size = VIEWBOX_SIZE,
