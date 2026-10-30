@@ -3,7 +3,7 @@
 // serves it, and checks the result. It exercises what unit tests cannot:
 //   - a Server Component can import the server-safe entries and render the client components
 //     (fails the build if "use client" is missing or misplaced);
-//   - Tailwind v4 scans the package's classes inside node_modules (the @source rule);
+//   - Tailwind v4 generates the package's classes from node_modules (the class lists the app imports);
 //   - the server renders data-theme / data-density from cookies;
 //   - the package's exports map resolves from a real install.
 //
@@ -194,9 +194,12 @@ async function main() {
 
   // Optional fault injection (proves the checks below can actually fail).
   if (sabotage === "no-source") {
-    const css = join(installedUi, "dist", "tokens.css");
-    writeFileSync(css, readFileSync(css, "utf8").replace(/@source[^;]*;/, ""));
-    log("SABOTAGE: removed the @source rule from the installed tokens.css");
+    const css = join(app, "app", "globals.css");
+    writeFileSync(
+      css,
+      readFileSync(css, "utf8").replace(/@import\s+"@azmr\/ui\/classes[^;]*;/g, ""),
+    );
+    log("SABOTAGE: removed the @azmr/ui class-list imports from the app's globals.css");
   }
   if (sabotage === "no-client-directive") {
     const js = join(installedUi, "dist", "react.js");
@@ -355,14 +358,15 @@ async function main() {
       css.includes("--motion-duration-base"),
   );
   check("Tailwind generated utilities for classes used by the APP", /\.bg-background/.test(css));
-  // These classes appear ONLY inside the package's dist JS, so they exist only if @source worked.
+  // These classes appear ONLY inside the package's dist JS, so they exist only if the class lists the
+  // app imports (@azmr/ui/classes.css, @azmr/ui/classes/button.css) resolved and worked.
   check(
-    "Tailwind scanned @azmr/ui in node_modules (h-(--density-control-height))",
+    "the @azmr/ui class lists reached Tailwind (h-(--density-control-height))",
     /\.h-\\\(--density-control-height\\\)/.test(css),
   );
-  check("Tailwind scanned @azmr/ui in node_modules (animate-spin)", /\.animate-spin/.test(css));
+  check("the @azmr/ui class lists reached Tailwind (animate-spin)", /\.animate-spin/.test(css));
   check(
-    "Tailwind scanned @azmr/ui in node_modules (focus-visible:ring-ring)",
+    "the @azmr/ui class lists reached Tailwind (focus-visible:ring-ring)",
     /focus-visible\\:ring-ring/.test(css),
   );
 

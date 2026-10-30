@@ -380,8 +380,9 @@ describe("Tailwind v4 integration", () => {
     mapped = new Set();
   });
 
-  it("tells Tailwind to scan the distributed classes with @source", () => {
-    expect(css).toMatch(/@source\s+["'][^"']+["']/);
+  it("scans no files with @source: apps pick the class lists in dist/classes instead", () => {
+    expect(css).not.toMatch(/@source\s+["'][^"']+["']/);
+    expect(css).toContain("@azmr/ui/classes.css");
   });
 });
 

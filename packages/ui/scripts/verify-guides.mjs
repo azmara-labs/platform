@@ -4,8 +4,8 @@
 // fixture outside the workspace as a new project would, type-checks it, builds it, and inspects the
 // result:
 //   - the code in the guide type-checks and builds with that framework's current tooling;
-//   - Tailwind v4 found the package's classes inside node_modules (the @source rule), so styles are
-//     there without the reader adding anything to their config;
+//   - Tailwind v4 generated the package's classes from node_modules through the class lists the
+//     guide imports (@azmr/ui/classes/button.css, input.css);
 //   - the colour tokens and the Button reach the output;
 //   - for the server-rendered frameworks, the server really renders the Button and the theme.
 //
@@ -170,14 +170,19 @@ async function verify(name, tarballs) {
   if (!install.ok) return;
 
   if (sabotage === "no-source") {
-    const installed = join(app, "node_modules", "@azmr", "ui", "dist");
-    for (const file of ["tokens.css", "styles.css"]) {
-      const target = join(installed, file);
-      if (existsSync(target)) {
-        writeFileSync(target, readFileSync(target, "utf8").replace(/@source[^;]*;/g, ""));
-      }
-    }
-    log("SABOTAGE: removed the @source rule from the installed stylesheets");
+    // Each guide's global stylesheet, the file that imports the class lists.
+    const stylesheet = {
+      next: "app/globals.css",
+      vite: "src/index.css",
+      "react-router": "app/app.css",
+      esbuild: "src/app.css",
+    }[name];
+    const target = join(app, stylesheet);
+    writeFileSync(
+      target,
+      readFileSync(target, "utf8").replace(/@import\s+"@azmr\/ui\/classes[^;]*;/g, ""),
+    );
+    log("SABOTAGE: removed the @azmr/ui class-list imports from the guide's stylesheet");
   }
 
   const build = run("pnpm", ["run", "build"], app);
@@ -236,14 +241,14 @@ async function verify(name, tarballs) {
     `${name}: Tailwind generated utilities for classes the app uses`,
     /\.bg-background/.test(css),
   );
-  // These classes appear only inside the package's own JavaScript, so they exist only if the
-  // @source rule worked: the reader added nothing to their config.
+  // These classes appear only inside the package's own JavaScript, so they exist only if the class
+  // lists the guide imports reached Tailwind.
   check(
-    `${name}: Tailwind scanned @azmr/ui in node_modules (h-(--density-control-height))`,
+    `${name}: the @azmr/ui class lists reached Tailwind (h-(--density-control-height))`,
     /\.h-\\\(--density-control-height\\\)/.test(css),
   );
   check(
-    `${name}: Tailwind scanned @azmr/ui in node_modules (animate-spin)`,
+    `${name}: the @azmr/ui class lists reached Tailwind (animate-spin)`,
     /\.animate-spin/.test(css),
   );
   if (!spec.server) {

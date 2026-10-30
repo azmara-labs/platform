@@ -1,2 +1,6 @@
 @import "tailwindcss";
 @import "@azmr/ui/styles.css";
+/* Which components' classes Tailwind generates: all of them (the migration path from the old
+   @source scan), plus one per-component list so the "./classes/*" export is resolved too. */
+@import "@azmr/ui/classes.css";
+@import "@azmr/ui/classes/button.css";

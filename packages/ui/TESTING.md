@@ -53,12 +53,12 @@ describe("Thing", () => {
 Unit tests cannot prove that a published package works in a real app. `scripts/verify-consumer.mjs` packs `@azmr/core` and `@azmr/ui` into the same tarballs `npm publish` would ship, installs them into a fresh Next.js 16 + Tailwind v4 app outside the workspace (`fixtures/next-app`), builds it, serves it and checks:
 
 - **Server Components** import the server-safe entries (`lib`, `theme`) and render the client components; the build fails if a `"use client"` directive is missing where it matters.
-- **Tailwind scans the package in `node_modules`** (the `@source` rule): classes that exist only inside `dist` must appear in the app's CSS.
+- **The class lists reach Tailwind** (`@azmr/ui/classes.css` and `@azmr/ui/classes/button.css` in the fixture's CSS): classes that exist only inside `dist` must appear in the app's CSS.
 - **Server-rendered theme**: `data-theme` / `data-density` come from cookies on the first byte, and hostile cookie values are ignored, not reflected.
 - The **exports map** resolves from a real install, including `@azmr/core` as a peer.
 - **Two copies of `@azmr/core`** are a real type error: `Signal` has private members, so a second copy (different version; TypeScript unifies identical `name@version`) makes `useSignal(signal)` fail to type-check. A positive control (one copy passes) proves the failure comes from the duplicate. The `peerDependency` is what prevents it.
 
-The checks are themselves tested: `--sabotage=no-source` strips the `@source` rule and `--sabotage=no-client-directive` strips `"use client"` from `react.js`; each run must fail where expected (exit 0) or the script reports the fault as undetected (exit 1). `--keep` leaves the work directory for inspection. Next lowers `light-dark()` to `--lightningcss-*` toggles for its browser targets; the check accepts either form.
+The checks are themselves tested: `--sabotage=no-source` strips the class-list imports from the app's CSS and `--sabotage=no-client-directive` strips `"use client"` from `react.js`; each run must fail where expected (exit 0) or the script reports the fault as undetected (exit 1). `--keep` leaves the work directory for inspection. Next lowers `light-dark()` to `--lightningcss-*` toggles for its browser targets; the check accepts either form.
 
 ## Registry fixture (`pnpm --filter @azmr/ui verify:registry`)
 

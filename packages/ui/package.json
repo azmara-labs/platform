@@ -196,18 +196,20 @@
       "import": "./dist/motion.js"
     },
     "./styles.css": "./dist/styles.css",
-    "./tokens.css": "./dist/tokens.css"
+    "./tokens.css": "./dist/tokens.css",
+    "./classes.css": "./dist/classes.css",
+    "./classes/*": "./dist/classes/*"
   },
   "sideEffects": [
     "**/*.css"
   ],
   "scripts": {
-    "build": "node scripts/clean.mjs && tsup && node scripts/copy-css.mjs && node scripts/verify-dist.mjs",
+    "build": "node scripts/clean.mjs && tsup && node scripts/copy-css.mjs && node scripts/build-classes.mjs && node scripts/verify-dist.mjs",
     "dev": "tsup --watch --onSuccess \"node scripts/copy-css.mjs\"",
     "check-types": "tsc --noEmit",
     "test": "vitest run",
     "clean": "rm -rf dist",
-    "size": "size-limit && node scripts/check-css-size.mjs",
+    "size": "size-limit && node scripts/check-css-size.mjs && node scripts/check-class-lists.mjs",
     "verify:consumer": "node scripts/verify-consumer.mjs",
     "build:registry": "node scripts/build-registry.mjs",
     "verify:guides": "node scripts/verify-guides.mjs",
@@ -234,6 +236,7 @@
     "@mui/icons-material": "^9.5.0",
     "@size-limit/preset-small-lib": "^14.2.0",
     "@tabler/icons-react": "^3.49.0",
+    "@tailwindcss/oxide": "4.3.3",
     "@tailwindcss/postcss": "^4.3.3",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/user-event": "^14.6.8",

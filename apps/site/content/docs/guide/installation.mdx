@@ -30,14 +30,15 @@ If you would rather own the code than depend on a package, copy the components w
 
 2. **Set up Tailwind CSS v4** with your framework's plugin. `@azmr/ui` does not install Tailwind for you. See [Tailwind CSS setup](/docs/guide/tailwind) for what it needs and why.
 
-3. **Import the stylesheet** after Tailwind, in your global CSS:
+3. **Import the stylesheet and the class lists** after Tailwind, in your global CSS. Add one class list for each entry you use:
 
    ```css
    @import "tailwindcss";
    @import "@azmr/ui/styles.css";
+   @import "@azmr/ui/classes/button.css";
    ```
 
-   You add nothing to a Tailwind config: the stylesheet tells Tailwind where the package's classes are.
+   Each list tells Tailwind exactly which of the package's classes to generate, so you add nothing to a Tailwind config and get CSS only for the components you use. `@import "@azmr/ui/classes.css"` generates every component's classes instead. Without a class list, components render unstyled. [Tailwind CSS setup](/docs/guide/tailwind#how-tailwind-finds-the-packages-classes) explains them.
 
 4. **Use a component.** Import it from its own entry, for example `import { Button } from "@azmr/ui/button"`. Every component's import path is at the top of its [component page](/docs/components).
 
@@ -53,7 +54,7 @@ The page follows the operating system's light or dark setting with no setup and 
 
 ## How these guides stay correct
 
-Each framework guide shows the real files of a small app, not snippets written for the page. CI packs `@azmr/ui` into a tarball, installs it into each of those apps as a new project would, type-checks and builds them, and then checks the output: the Button is rendered, the colour tokens are there, and Tailwind found the package's classes inside `node_modules`. A change that breaks a guide fails the build, and the guide always shows the files that were tested.
+Each framework guide shows the real files of a small app, not snippets written for the page. CI packs `@azmr/ui` into a tarball, installs it into each of those apps as a new project would, type-checks and builds them, and then checks the output: the Button is rendered, the colour tokens are there, and Tailwind generated the package's classes from the class lists the app imports. A change that breaks a guide fails the build, and the guide always shows the files that were tested.
 
 ## Working on the packages themselves
 

@@ -155,10 +155,16 @@ describe("the framework guides", () => {
       "esbuild/src/app.css",
     ]) {
       expect(read(join(fixtures, file)).trim(), file).toBe(
-        '@import "tailwindcss";\n@import "@azmr/ui/styles.css";',
+        [
+          '@import "tailwindcss";',
+          '@import "@azmr/ui/styles.css";',
+          '@import "@azmr/ui/classes/button.css";',
+          '@import "@azmr/ui/classes/input.css";',
+        ].join("\n"),
       );
     }
     expect(guide("tailwind")).toContain('@import "@azmr/ui/styles.css";');
+    expect(guide("tailwind")).toContain('@import "@azmr/ui/classes/input.css";');
   });
 
   it("are listed on the Installation page, and in the sidebar after it, before the concepts", () => {
@@ -204,7 +210,7 @@ describe("the verification behind the guides", () => {
   });
 
   it("checks what each guide's 'What was tested' list says it checks", () => {
-    expect(script).toContain("Tailwind scanned @azmr/ui in node_modules");
+    expect(script).toContain("the @azmr/ui class lists reached Tailwind");
     expect(script).toContain("the server renders the Button and the label");
     expect(script).toContain("the guide's code type-checks");
     expect(script).toContain('data-theme="dark"');

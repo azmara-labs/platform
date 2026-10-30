@@ -29,7 +29,7 @@ If your bundler has a Tailwind v4 plugin or PostCSS support, use that instead of
 
 ## 3. Import the stylesheet
 
-In your global CSS, import Tailwind and then the package's stylesheet:
+In your global CSS, import Tailwind, the package's stylesheet, and the class lists for the components you use (here Button and Input; [Tailwind CSS setup](/docs/guide/tailwind#how-tailwind-finds-the-packages-classes) explains them):
 
 <FixtureFile file="esbuild/src/app.css" />
 
@@ -61,7 +61,7 @@ A page that is built in the browser can only apply the saved choice once its Jav
 
 The files above are the files of an app that CI builds. On every change it packs `@azmr/ui` into a tarball, installs it into that app, type-checks and builds it, and checks that:
 
-- Tailwind found the package's classes inside `node_modules`, with nothing added to the config;
+- Tailwind generated the Button's and Input's classes from the two class lists the stylesheet imports, and nothing else from the package;
 - the colour tokens are in the built stylesheet;
 - the built bundle contains the app and the Button, and reads the saved theme cookie.
 
