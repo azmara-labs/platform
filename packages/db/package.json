@@ -24,7 +24,7 @@
     "azmara"
   ],
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
   },
   "files": [
     "dist",
@@ -52,7 +52,7 @@
   "dependencies": {
     "@azmr/db-core-interface": "workspace:^",
     "@azmr/security": "workspace:*",
-    "better-sqlite3": "^12.11.1"
+    "better-sqlite3": "^13.0.3"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",

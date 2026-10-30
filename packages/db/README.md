@@ -80,7 +80,7 @@ import { DbAdapterError } from "@azmr/db-core-interface";
 
 ## Requirements
 
-- Node.js ≥ 18
+- Node.js ≥ 22 (better-sqlite3 13 needs it)
 - TypeScript ≥ 5 (types included)
 - ESM only — no CommonJS build. `require("@azmr/db")` will not work; use `import`.
 

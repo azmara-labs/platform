@@ -55,7 +55,9 @@ overrides:
 
 allowBuilds:
   '@biomejs/biome': true
-  better-sqlite3: true
+  # v13 ships prebuilt N-API binaries for every platform; its implicit node-gyp build only
+  # breaks installs on machines without a C++ toolchain.
+  better-sqlite3: false
   core-js: true
   esbuild: true
   isolated-vm: true
