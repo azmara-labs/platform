@@ -51,7 +51,7 @@
     "@azmr/security": "workspace:*"
   },
   "optionalDependencies": {
-    "isolated-vm": "^6.1.2"
+    "isolated-vm": "^7.0.1"
   },
   "devDependencies": {
     "@types/node": "^26.1.1",
