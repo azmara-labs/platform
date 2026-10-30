@@ -244,7 +244,7 @@
     "@types/node": "^26.1.1",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "@vitest/browser": "^4.1.10",
+    "@vitest/browser": "^5.0.5",
     "axe-core": "^4.14.0",
     "culori": "^4.0.2",
     "esbuild": "^0.28.1",
