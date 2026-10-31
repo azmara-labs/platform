@@ -1,1 +1,8 @@
-export { Spinner, type SpinnerProps } from "./spinner.js";
+export {
+  Spinner,
+  type SpinnerProps,
+  type SpinnerSize,
+  type SpinnerTone,
+  spinnerSizes,
+  spinnerTones,
+} from "./spinner.js";

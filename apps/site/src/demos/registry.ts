@@ -46,6 +46,10 @@ import InputGroupSearch from "./input-group/search.demo";
 import LayoutContainer from "./layout/container.demo";
 import LayoutGrid from "./layout/grid.demo";
 import LayoutStack from "./layout/stack.demo";
+import LoadingBar from "./loading/bar.demo";
+import LoadingBasic from "./loading/basic.demo";
+import LoadingLogo from "./loading/logo.demo";
+import LoadingOverlay from "./loading/overlay.demo";
 import MenuContext from "./menu/context.demo";
 import MenuOpensDialog from "./menu/dialog.demo";
 import MenuDropdown from "./menu/dropdown.demo";
@@ -119,6 +123,10 @@ export const demos = {
   "floating/hover-card": FloatingHoverCard,
   "floating/popover": FloatingPopover,
   "floating/tooltip": FloatingTooltip,
+  "loading/bar": LoadingBar,
+  "loading/basic": LoadingBasic,
+  "loading/logo": LoadingLogo,
+  "loading/overlay": LoadingOverlay,
   "menu/context": MenuContext,
   "menu/dialog": MenuOpensDialog,
   "menu/dropdown": MenuDropdown,
