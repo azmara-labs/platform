@@ -91,6 +91,10 @@
       "types": "./dist/form.d.ts",
       "import": "./dist/form.js"
     },
+    "./field-array": {
+      "types": "./dist/field-array.d.ts",
+      "import": "./dist/field-array.js"
+    },
     "./spinner": {
       "types": "./dist/spinner.d.ts",
       "import": "./dist/spinner.js"

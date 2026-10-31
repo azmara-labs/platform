@@ -10,6 +10,7 @@
     "number-field": "src/components/number-field/index.ts",
     "field": "src/components/field/index.ts",
     "form": "src/components/form/index.ts",
+    "field-array": "src/components/field-array/index.ts",
     "rhf": "src/components/rhf/index.ts",
     "scroll-area": "src/components/scroll-area/index.ts",
     "progress": "src/components/progress/index.ts",

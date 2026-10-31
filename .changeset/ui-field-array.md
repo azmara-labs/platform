@@ -1,0 +1,5 @@
+---
+"@azmr/ui": minor
+---
+
+Add `@azmr/ui/field-array`: `FieldArray`, a repeating group of fields (invoice lines, contacts, addresses) that works with any form state. Rows are added, removed and reordered by pointer drag (mouse, touch, pen; Escape cancels), by the arrow keys, Home and End on each row's handle, or with optional move buttons. `min` and `max` disable the remove and add buttons without taking them out of the tab order; `empty` shows when there are no rows, `header` adds column headings for a table-like layout and `footer` renders totals from them. Focus moves to a new row's first field, to the neighbour of a removed row and back to a moved row's handle, and every change is announced in a polite live region; all text is replaceable through `messages`. Add `FormFieldArray` to `@azmr/ui/rhf`, which runs `useFieldArray`, shows the array's own error under its legend and feeds `footer` the current values without re-rendering the rows. Fix `FormField` replacing the control's own `ref` when it registers it: both refs now get the element.

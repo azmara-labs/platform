@@ -25,6 +25,8 @@ import ExamplesSettingsPage from "./examples/settings-page.demo";
 import FieldBasic from "./field/basic.demo";
 import FieldParts from "./field/parts.demo";
 import FieldValidation from "./field/validation.demo";
+import FieldArrayBasic from "./field-array/basic.demo";
+import FieldArrayInvoice from "./field-array/invoice.demo";
 import FloatingHoverCard from "./floating/hover-card.demo";
 import FloatingPopover from "./floating/popover.demo";
 import FloatingTooltip from "./floating/tooltip.demo";
@@ -165,6 +167,8 @@ export const demos = {
   "form/fieldset": FormFieldset,
   "form/error-summary": FormErrorSummary,
   "form/settings": FormSettings,
+  "field-array/basic": FieldArrayBasic,
+  "field-array/invoice": FieldArrayInvoice,
   "scroll-area/basic": ScrollAreaBasic,
   "progress/basic": ProgressBasic,
   "progress/circular": ProgressCircular,
