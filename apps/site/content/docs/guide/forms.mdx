@@ -89,6 +89,23 @@ For a control without an input ref, such as a toggle, a select or a date picker,
 />
 ```
 
+`render` also gets `control`: the `id` and ARIA props that tie the label, description and error to the control. Spread it on the element that takes focus. That is how a control from another library, such as a Radix (shadcn) Select, gets its label and its error read out:
+
+```tsx
+<FormField
+  name="customer_id"
+  label="Customer"
+  render={({ value, onChange, onBlur, ref, control }) => (
+    <Select name="customer_id" value={value || undefined} onValueChange={onChange}>
+      <SelectTrigger ref={ref} onBlur={onBlur} {...control}>
+        <SelectValue placeholder="Select a customer…" />
+      </SelectTrigger>
+      <SelectContent>{/* items */}</SelectContent>
+    </Select>
+  )}
+/>
+```
+
 ## `FormErrorSummary`
 
 The form's [ErrorSummary](/docs/components/form#error-summary). It reads the errors and the submit count from the form, takes focus after every failed submit and links each error to its field, listed in the order the fields appear on the page, even when an async check finishes last. Set `shouldFocusError: false` in `useForm` so focus lands on the summary, not on the first field.

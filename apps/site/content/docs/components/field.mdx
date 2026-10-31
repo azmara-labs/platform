@@ -75,6 +75,23 @@ Without an `error` prop, the field shows its own messages: the result of `valida
 </Field>
 ```
 
+## Any control
+
+`Field` wires its label, description and error to `Input`, `Textarea` and the other Base UI controls by itself. For any other control, such as a Radix (shadcn) Select trigger, a native `<select>` or a date picker from another library, pass a function as the child. It gets the `id`, `aria-labelledby`, `aria-describedby`, `aria-invalid`, `aria-required` and `aria-errormessage` to spread on the element that takes focus:
+
+```tsx
+<Field label="Country" description="Where the invoice is sent." error={errors.country?.message}>
+  {(control) => (
+    <select {...control} {...register("country")}>
+      <option>New Zealand</option>
+      <option>Australia</option>
+    </select>
+  )}
+</Field>
+```
+
+With React Hook Form, `FormField`'s `render` passes the same props as `control`. See [Forms](/docs/guide/forms#formfield).
+
 ## Custom layouts
 
 <Demo name="field/parts" />

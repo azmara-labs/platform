@@ -52,6 +52,17 @@ With React Hook Form, use `FormFieldArray` from `@azmr/ui/rhf` inside a [`Form`]
 - `footer` gets the rows' current values and updates as people type, without re-rendering the rows.
 - An error for the array as a whole, such as `z.array(line).min(1, "Add at least one line")` or the `rules` prop, shows under the legend. Each field shows its own error.
 - Focus after adding a row is handled by `FieldArray`, so `useFieldArray`'s own `shouldFocus` is turned off.
+- `row.name()` is typed: with `FormFieldArray<Invoice, "lines">`, `row.name("quantity")` is `` `lines.${number}.quantity` `` and a name that isn't a field of a line fails to compile.
+- To change the rows from elsewhere in the form, such as an "Add from catalogue" picker that calls `replace()`, call `useFieldArray` yourself and pass its result as `fieldArray`. `FormFieldArray` then uses it instead of its own; give any array `rules` to your `useFieldArray`.
+
+```tsx
+const lines = useFieldArray({ control: form.control, name: "lines" });
+
+<CataloguePicker onPick={(item) => lines.append(lineFrom(item))} />
+<FormFieldArray<Invoice, "lines"> name="lines" fieldArray={lines} legend="Line items">
+  {(_, row) => /* ... */}
+</FormFieldArray>
+```
 
 The demo adds up money in integer cents, so the GST total is exact. Work out the real total again on the server from the saved lines.
 
@@ -72,7 +83,7 @@ Each row's drag handle moves it in three ways:
 export type FieldArrayDocProps = Pick<FieldArrayProps<unknown>, "legend" | "description" | "error" | "items" | "getKey" | "name" | "children" | "onAdd" | "onRemove" | "onMove" | "min" | "max" | "empty" | "header" | "footer" | "itemLabel" | "moveButtons" | "disabled" | "messages" | "className">`}
 />
 
-`FormFieldArray` takes the same props except `items`, `getKey`, `onAdd`, `onRemove`, `onMove` and `error`, plus `name`, `rules`, `newItem`, `removable` and `sortable`.
+`FormFieldArray` takes the same props except `items`, `getKey`, `onAdd`, `onRemove`, `onMove` and `error`, plus `name`, `rules`, `fieldArray`, `newItem`, `removable` and `sortable`.
 
 ## Accessibility
 
