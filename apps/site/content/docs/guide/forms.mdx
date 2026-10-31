@@ -93,6 +93,10 @@ For a control without an input ref, such as a toggle, a select or a date picker,
 
 The form's [ErrorSummary](/docs/components/form#error-summary). It reads the errors and the submit count from the form, takes focus after every failed submit and links each error to its field, listed in the order the fields appear on the page, even when an async check finishes last. Set `shouldFocusError: false` in `useForm` so focus lands on the summary, not on the first field.
 
+## `FormFieldArray`
+
+Repeating rows of fields, such as invoice lines, run through `useFieldArray`: add, remove and reorder by drag or keyboard, with focus and announcements handled. Put a `FormField` in each row with `row.name()`. See [Field array](/docs/components/field-array) for the props and an invoice demo with GST.
+
 ## `zodResolver`
 
 `zodResolver(schema)` validates the form with a Zod 4 schema; you don't need `@hookform/resolvers`.

@@ -5,6 +5,8 @@ import {
   isValidElement,
   type ReactElement,
   type ReactNode,
+  type Ref,
+  version,
 } from "react";
 import {
   type ControllerRenderProps,
@@ -99,6 +101,25 @@ function chain(first: unknown, second: unknown): AnyHandler | undefined {
   };
 }
 
+// React 19 moved an element's ref into its props; reading element.ref there warns.
+const REF_IN_PROPS = Number.parseInt(version, 10) >= 19;
+
+function childRef(child: ReactElement<Record<string, unknown>>): Ref<unknown> | undefined {
+  return (REF_IN_PROPS ? child.props.ref : (child as { ref?: unknown }).ref) as
+    | Ref<unknown>
+    | undefined;
+}
+
+/** One ref callback that feeds every ref given, so `register()` does not replace the caller's. */
+function mergeRefs<T>(...refs: (Ref<T> | undefined)[]) {
+  return (node: T | null) => {
+    for (const ref of refs) {
+      if (typeof ref === "function") ref(node);
+      else if (ref) (ref as { current: T | null }).current = node;
+    }
+  };
+}
+
 function onlyChild(children: ReactNode): ReactElement<Record<string, unknown>> | null {
   return Children.count(children) === 1 && isValidElement(children)
     ? (children as ReactElement<Record<string, unknown>>)
@@ -129,6 +150,7 @@ function RegisteredField<Values extends FieldValues>({
   const control = child
     ? cloneElement(child, {
         ...registration,
+        ref: mergeRefs(childRef(child), registration.ref),
         onChange: chain(child.props.onChange, registration.onChange),
         onBlur: chain(child.props.onBlur, registration.onBlur),
       })

@@ -23,6 +23,8 @@ export const demoNames: ReadonlySet<string> = new Set([
   "examples/data-table-page",
   "examples/onboarding-wizard",
   "examples/settings-page",
+  "field-array/basic",
+  "field-array/invoice",
   "field/basic",
   "field/parts",
   "field/validation",

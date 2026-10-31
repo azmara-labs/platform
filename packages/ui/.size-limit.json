@@ -67,10 +67,17 @@
     "limit": "22 kB"
   },
   {
-    "name": "@azmr/ui/rhf (react-hook-form is a peer, not counted)",
+    "name": "@azmr/ui/rhf: Form, FormField, FormErrorSummary (react-hook-form is a peer, not counted)",
     "path": "dist/rhf.js",
+    "import": "{ Form, FormField, FormErrorSummary }",
     "ignore": ["react-hook-form"],
     "limit": "17 kB"
+  },
+  {
+    "name": "@azmr/ui/rhf: whole entry, with FormFieldArray (react-hook-form is a peer, not counted)",
+    "path": "dist/rhf.js",
+    "ignore": ["react-hook-form"],
+    "limit": "23 kB"
   },
   {
     "name": "@azmr/ui/zod (zod is a peer, not counted)",
@@ -87,6 +94,11 @@
     "name": "@azmr/ui/form",
     "path": "dist/form.js",
     "limit": "12 kB"
+  },
+  {
+    "name": "@azmr/ui/field-array",
+    "path": "dist/field-array.js",
+    "limit": "20 kB"
   },
   {
     "name": "@azmr/ui/icons (Icon core, no icon set)",

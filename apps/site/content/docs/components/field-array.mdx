@@ -1,0 +1,94 @@
+---
+title: Field array
+description: FieldArray repeats a group of fields, such as invoice lines, contacts or addresses, with add, remove and reorder by drag or keyboard, minimum and maximum rows, an empty state and totals.
+group: Inputs
+status: new
+since: 0.10.0
+interactive: true
+aliases: [repeater, field array, line items, useFieldArray, add another, sortable list, FormFieldArray]
+---
+
+## Usage
+
+```tsx
+import { FieldArray } from "@azmr/ui/field-array";
+```
+
+<Demo name="field-array/basic" />
+
+`FieldArray` renders one row per item through its `children` function, which gets the item and a `row` with its `index`, `key`, `label` and a `name()` helper: with `name="contacts"`, `row.name("email")` is `"contacts.1.email"`. It does not own the rows. You pass `items` and handle `onAdd`, `onRemove` and `onMove`, so it works with plain state, React Hook Form or any other form library.
+
+- Each item needs a stable key: its `id`, its `key`, or whatever `getKey` returns. Never the index, or focus and drag follow the wrong row after a change.
+- The add button appears with `onAdd`, a remove button on each row with `onRemove`, and a drag handle with `onMove`.
+- `min` disables the remove buttons at that many rows, and `max` disables the add button. Both stay focusable, so people can still find them and learn why.
+- `empty` is shown in place of the list when there are no rows.
+- `footer` gets the rows and renders under them: totals, counts or a summary.
+- `header` shows column headings over the rows, for a table-like layout. Lay them out on the same grid as each row's fields. They are hidden from screen readers, so give every field its own label and hide it visually where the headings take over, as the invoice demo below does from the `sm` breakpoint up.
+- `itemLabel` names each row in button labels and announcements ("Remove Contact 2"). It defaults to "Row 1", "Row 2", and so on.
+- `messages` replaces any of the text, for translation.
+
+## Invoice lines with GST
+
+<Demo name="field-array/invoice" />
+
+With React Hook Form, use `FormFieldArray` from `@azmr/ui/rhf` inside a [`Form`](/docs/guide/forms). It runs `useFieldArray` for you: `newItem` gives a new row's values and shows the add button, and rows can be removed and reordered unless you set `removable={false}` or `sortable={false}`. Put a `FormField` in each row with `row.name()`:
+
+```tsx
+<FormFieldArray<Invoice, "lines">
+  name="lines"
+  legend="Line items"
+  itemLabel={(index) => `Line ${index + 1}`}
+  newItem={() => ({ description: "", quantity: 1, unitPrice: 0 })}
+  footer={(lines) => <Totals lines={lines} />}
+>
+  {(_, row) => (
+    <FormField name={row.name("description")} label="Description">
+      <Input />
+    </FormField>
+  )}
+</FormFieldArray>
+```
+
+- `footer` gets the rows' current values and updates as people type, without re-rendering the rows.
+- An error for the array as a whole, such as `z.array(line).min(1, "Add at least one line")` or the `rules` prop, shows under the legend. Each field shows its own error.
+- Focus after adding a row is handled by `FieldArray`, so `useFieldArray`'s own `shouldFocus` is turned off.
+
+The demo adds up money in integer cents, so the GST total is exact. Work out the real total again on the server from the saved lines.
+
+## Reordering
+
+Each row's drag handle moves it in three ways:
+
+- **Drag** with a mouse, a finger or a pen. The other rows move aside as you go, and the row drops where you let go. Press Escape to cancel.
+- **Arrow keys** on the focused handle move the row up or down by one, and Home and End move it to the top or bottom. Focus stays on the handle.
+- **Move buttons**: set `moveButtons` to add move up and move down buttons to every row. They are the easiest to find, including for screen reader users in browse mode, where the arrow keys move the reading position instead.
+
+## Props
+
+<AutoTypeTable
+  path="../../packages/ui/src/components/field-array/index.ts"
+  name="FieldArrayDocProps"
+  type={`import type { FieldArrayProps } from "./field-array.js"
+export type FieldArrayDocProps = Pick<FieldArrayProps<unknown>, "legend" | "description" | "error" | "items" | "getKey" | "name" | "children" | "onAdd" | "onRemove" | "onMove" | "min" | "max" | "empty" | "header" | "footer" | "itemLabel" | "moveButtons" | "disabled" | "messages" | "className">`}
+/>
+
+`FormFieldArray` takes the same props except `items`, `getKey`, `onAdd`, `onRemove`, `onMove` and `error`, plus `name`, `rules`, `newItem`, `removable` and `sortable`.
+
+## Accessibility
+
+- The rows sit in a `<fieldset>` labelled by its legend, so every field in a row is read with the group's name.
+- Adding a row moves focus to its first field. Removing a row moves focus to the first field of the row that takes its place, then to the previous row, then to the add button.
+- Every add, remove and move is announced in a polite live region, for example "Line 2 removed. 2 rows left." or "Line 3 moved to position 1 of 3."
+- The drag handle, remove and move buttons are named after their row ("Move Line 2", "Remove Line 2"). The handle also describes how to use the arrow keys.
+- Rows step aside with a transform only, and skip that animation when reduced motion is preferred.
+
+<KeyboardMap
+  rows={[
+    { keys: ["ArrowUp"], action: "On a drag handle: moves the row up one place." },
+    { keys: ["ArrowDown"], action: "On a drag handle: moves the row down one place." },
+    { keys: ["Home"], action: "On a drag handle: moves the row to the top." },
+    { keys: ["End"], action: "On a drag handle: moves the row to the bottom." },
+    { keys: ["Escape"], action: "Cancels a drag in progress." },
+    { keys: ["Enter"], action: "On the add, remove or move buttons: activates the button." },
+  ]}
+/>
