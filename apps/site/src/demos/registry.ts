@@ -77,6 +77,8 @@ import RecipesTenantTheme from "./recipes/tenant-theme.demo";
 import ScrollAreaBasic from "./scroll-area/basic.demo";
 import SpinnerBasic from "./spinner/basic.demo";
 import SplitButtonBasic from "./split-button/basic.demo";
+import StateViewErrorBoundary from "./state-view/error-boundary.demo";
+import StateViewStates from "./state-view/states.demo";
 import StepperBasic from "./stepper/basic.demo";
 import TableBasic from "./table/basic.demo";
 import TableSticky from "./table/sticky.demo";
@@ -134,6 +136,8 @@ export const demos = {
   "modal/dialog": ModalDialog,
   "modal/dialog-stacked": ModalDialogStacked,
   "modal/drawer": ModalDrawer,
+  "state-view/error-boundary": StateViewErrorBoundary,
+  "state-view/states": StateViewStates,
   "stepper/basic": StepperBasic,
   "table/basic": TableBasic,
   "table/sticky": TableSticky,

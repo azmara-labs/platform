@@ -1,0 +1,119 @@
+---
+title: State view
+description: One layout for a region's loading, empty and error states, and an error boundary that reports errors, recovers and never shows error details to users.
+group: Feedback
+status: stable
+since: 0.12.0
+interactive: false
+aliases: [StateView, ErrorBoundary, error boundary, empty state, error state, error.tsx, page loader, fallback]
+---
+
+## Usage
+
+```tsx
+import { StateView } from "@azmr/ui/state-view"; // Server Component
+import { ErrorBoundary } from "@azmr/ui/error-boundary"; // "use client"
+```
+
+<Demo name="state-view/states" />
+
+Every list, table and page has the same three extra states: still loading, nothing to show, and failed. `StateView` gives them one layout (icon, title, a sentence, an action), so they look and read the same everywhere. It is a **Server Component**, so it works in `loading.tsx`, `error.tsx`, Suspense fallbacks and empty tables.
+
+| `state` | Announced as | Default title | Default icon |
+|---|---|---|---|
+| `loading` | a polite status (it is [`Loading`](/docs/components/loading)), after 200 ms | Loading… | the spinner, or your `logo` |
+| `empty` | plain content | Nothing here yet | inbox |
+| `error` | an alert | Something went wrong | alert, in the destructive colour |
+
+`variant="page"` fills the content area and `section` (default) fills its container. `titleAs` picks the heading level (`h2` by default) so it fits the page's outline. `icon={null}` drops the icon, and `action` takes any buttons or links.
+
+## Page loader
+
+A full-page loader with your logo is `<StateView state="loading" variant="page" logo={…} />`, the same as `<Loading variant="page" logo={…} />`. The ring spins around the logo while the logo stays still.
+
+## Error boundary
+
+<Demo name="state-view/error-boundary" />
+
+`ErrorBoundary` catches errors thrown while its children render and shows a fallback with **Try again**, instead of a blank page.
+
+- **Reporting:** `onError(error, info)` is called once per caught error, with the component stack. Send it to Sentry, PostHog or your own logger. The boundary has no reporting service built in.
+- **Recovery:** Try again calls `reset`, which renders the children again (so fix the cause first, in `onReset`). `resetKeys={[id]}` resets by itself when a route or record changes.
+- **No error details by default:** the default fallback says "Something went wrong" and never shows `error.message`, which can carry an email address, a record id or a server path. Customise the text with `fallbackProps`, or pass your own `fallback`, which receives `{ error, reset }`.
+- **What it does not catch:** errors in event handlers, timers and promises are not render errors. Catch them where they happen and show a toast or set state.
+
+## In Next.js
+
+Next.js has its own error boundary, the `error.tsx` file. Use `StateView` as its UI. Since Next.js 16.2 it receives `retry`, which fetches the segment again; `reset` only re-renders it.
+
+```tsx title="app/(portal)/invoices/error.tsx"
+"use client";
+
+import { Button } from "@azmr/ui/button";
+import { StateView } from "@azmr/ui/state-view";
+import { useEffect } from "react";
+
+export default function InvoicesError({ error, retry }: { error: Error & { digest?: string }; retry: () => void }) {
+  useEffect(() => {
+    reportError(error); // your reporting hook; error.digest matches the server logs
+  }, [error]);
+
+  return (
+    <StateView
+      state="error"
+      variant="page"
+      title="Invoices couldn't load"
+      description="Try again, or come back later."
+      action={<Button onClick={() => retry()}>Try again</Button>}
+    />
+  );
+}
+```
+
+```tsx title="app/(portal)/invoices/loading.tsx"
+import { StateView } from "@azmr/ui/state-view";
+
+export default function InvoicesLoading() {
+  return <StateView state="loading" variant="page" title="Loading invoices…" />;
+}
+```
+
+Use `ErrorBoundary` for a part of a page (a chart, a widget) that should fail on its own. In Next.js pass `rethrow={unstable_rethrow}` from `next/navigation`: `redirect()` and `notFound()` work by throwing, and `rethrow` lets them through to Next.js instead of showing them as errors. They are not passed to `onError` either.
+
+```tsx
+"use client";
+
+import { ErrorBoundary } from "@azmr/ui/error-boundary";
+import { unstable_rethrow } from "next/navigation";
+
+<ErrorBoundary rethrow={unstable_rethrow} onError={reportError} fallbackProps={{ title: "This chart couldn't load" }}>
+  <RevenueChart />
+</ErrorBoundary>
+```
+
+## Props
+
+### StateView
+
+<AutoTypeTable
+  path="../../packages/ui/src/components/state-view/index.ts"
+  name="StateViewDocProps"
+  type={`import type { StateViewProps } from "./state-view.js"
+export type StateViewDocProps = Pick<StateViewProps, "state" | "title" | "description" | "icon" | "action" | "variant" | "titleAs" | "logo" | "delay" | "className">`}
+/>
+
+### ErrorBoundary
+
+<AutoTypeTable
+  path="../../packages/ui/src/components/error-boundary/index.ts"
+  name="ErrorBoundaryDocProps"
+  type={`import type { ErrorBoundaryProps } from "./error-boundary.js"
+export type ErrorBoundaryDocProps = Pick<ErrorBoundaryProps, "children" | "fallback" | "fallbackProps" | "onError" | "onReset" | "resetKeys" | "rethrow">`}
+/>
+
+## Accessibility
+
+- An error is a `role="alert"`, so it is announced when it appears; loading is a polite status; empty is plain content, found by reading the page.
+- The title is a real heading (`titleAs`), so screen reader users can jump to it.
+- Icons are decorative (`aria-hidden`); the title says what happened.
+- After an error, **Try again** is an ordinary button: keyboard users reach it with Tab.

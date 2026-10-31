@@ -78,6 +78,8 @@ export const demoNames: ReadonlySet<string> = new Set([
   "scroll-area/basic",
   "spinner/basic",
   "split-button/basic",
+  "state-view/error-boundary",
+  "state-view/states",
   "stepper/basic",
   "table/basic",
   "table/sticky",

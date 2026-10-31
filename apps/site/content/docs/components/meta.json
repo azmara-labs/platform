@@ -27,6 +27,7 @@
     "progress",
     "loading",
     "spinner",
+    "state-view",
     "toast",
     "---Overlays---",
     "floating",

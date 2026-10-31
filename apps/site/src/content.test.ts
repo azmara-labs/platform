@@ -109,6 +109,7 @@ describe("@azmr/ui entry points have docs", () => {
     icons: "icon",
     "icons/lucide": "icon",
     "loading/client": "loading",
+    "error-boundary": "state-view",
     rhf: "/docs/guide/forms",
     zod: "/docs/guide/forms",
   };
