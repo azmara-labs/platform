@@ -99,6 +99,14 @@
       "types": "./dist/spinner.d.ts",
       "import": "./dist/spinner.js"
     },
+    "./loading": {
+      "types": "./dist/loading.d.ts",
+      "import": "./dist/loading.js"
+    },
+    "./loading/client": {
+      "types": "./dist/loading/client.d.ts",
+      "import": "./dist/loading/client.js"
+    },
     "./icons": {
       "types": "./dist/icons.d.ts",
       "import": "./dist/icons.js"

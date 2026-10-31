@@ -123,7 +123,19 @@ const { register } = useForm();
 
 ### Spinner
 
-`<Spinner />` is decorative; `<Spinner label="Loading customers" />` is announced as a status. It keeps spinning under `prefers-reduced-motion` because a frozen spinner reads as a hung page.
+`<Spinner />` is decorative; `<Spinner label="Loading customers" />` is announced as a status. It keeps spinning under `prefers-reduced-motion` because a frozen spinner reads as a hung page. `size` (`xs` to `xl`, or `inherit`), `tone` and `delay` (ms before it fades in, pure CSS) are optional.
+
+### Loading
+
+```tsx
+import { Loading } from "@azmr/ui/loading"; // Server Component: fine in loading.tsx
+import { LoadingBar, LoadingOverlay } from "@azmr/ui/loading/client";
+
+<Loading label="Loading invoices…" variant="page" />           // a Next loading.tsx
+<Loading label="Loading data" logo={<img src="/logo.svg" alt="" />} />
+<LoadingOverlay active={isRefetching}>{table}</LoadingOverlay>  // dims, aria-busy, spinner on top
+<LoadingBar loading={isNavigating} />                          // thin bar at the top of the page
+```
 
 ## Icons
 
@@ -183,7 +195,9 @@ An unknown name renders nothing and logs one development warning; it never crash
 | `@azmr/ui/zod` | `zodResolver`, `fieldsFromSchema`, `fieldFromSchema`, `toFieldErrors` (Zod 4, optional peer) | none, server-safe |
 | `@azmr/ui/field` | `Field`, `FieldRoot`, `FieldLabel`, `FieldDescription`, `FieldError` | `"use client"` |
 | `@azmr/ui/form` | `Fieldset`, `FieldsetRoot`, `FieldsetLegend`, `FormSection`, `ErrorSummary`, `toErrorSummaryItems` | `"use client"` |
-| `@azmr/ui/spinner` | `Spinner` | none, importable from Server Components |
+| `@azmr/ui/spinner` | `Spinner` (`size`, `tone`, `delay`) | none, importable from Server Components |
+| `@azmr/ui/loading` | `Loading` (inline, section or page; visible label; logo with a spinning ring), `Spinner` | none, importable from Server Components |
+| `@azmr/ui/loading/client` | `LoadingOverlay`, `LoadingBar` (top-of-page bar), `useLoadingState` (`delay` and `minDuration`) | `"use client"` |
 | `@azmr/ui/icons` | `Icon`, `createIconSet`, `registerIcons` | none, importable from Server Components |
 | `@azmr/ui/icons/lucide` | `Icon` bound to the curated Lucide set, `lucideIcons` | none, importable from Server Components |
 | `@azmr/ui/icons/mui-map` | `resolveMuiIcon`, `muiIconMap`, `unmappedMuiIcons` (migration data) | none, pure data |
