@@ -108,6 +108,24 @@ describe("ErrorBoundary", () => {
     expect(container.textContent).toContain("Recovered");
   });
 
+  it("does not reset when the keys change in the same render that throws", () => {
+    shouldThrow = false;
+    const onError = vi.fn();
+    const ui = (id: number) => (
+      <ErrorBoundary resetKeys={[id]} onError={onError}>
+        <Flaky />
+      </ErrorBoundary>
+    );
+    const { container, rerender } = renderUi(ui(1));
+    expect(container.textContent).toBe("Recovered");
+
+    // Navigating to a record that fails to load: new key and a throw in one render.
+    shouldThrow = true;
+    rerender(ui(2));
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(container.querySelector('[role="alert"]')).not.toBeNull();
+  });
+
   it("renders a custom fallback, given the error and reset", () => {
     const { container } = renderUi(
       <ErrorBoundary

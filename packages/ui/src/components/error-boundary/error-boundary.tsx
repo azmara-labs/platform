@@ -70,8 +70,15 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, State> {
     this.props.onError?.(error, info);
   }
 
-  override componentDidUpdate(previous: ErrorBoundaryProps) {
-    if (this.state.failed && changed(previous.resetKeys, this.props.resetKeys)) this.reset();
+  override componentDidUpdate(previous: ErrorBoundaryProps, previousState: State) {
+    // Only an error that was already showing: new keys in the render that threw are the cause, not a fix.
+    if (
+      this.state.failed &&
+      previousState.failed &&
+      changed(previous.resetKeys, this.props.resetKeys)
+    ) {
+      this.reset();
+    }
   }
 
   reset = () => {
