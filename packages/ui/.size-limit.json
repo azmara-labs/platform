@@ -42,6 +42,16 @@
     "limit": "9 kB"
   },
   {
+    "name": "@azmr/ui/loading",
+    "path": "dist/loading.js",
+    "limit": "9.5 kB"
+  },
+  {
+    "name": "@azmr/ui/loading/client",
+    "path": "dist/loading/client.js",
+    "limit": "10.5 kB"
+  },
+  {
     "name": "@azmr/ui/button",
     "path": "dist/button.js",
     "limit": "14 kB"

@@ -1,7 +1,8 @@
 import { createRef } from "react";
 import { describe, expect, it } from "vitest";
 import { expectNoA11yViolations, renderUi } from "../../test-utils/index.js";
-import { Spinner } from "./spinner.js";
+import { progressTones } from "../progress/tones.js";
+import { Spinner, spinnerSizes, spinnerTones } from "./spinner.js";
 
 const svg = (container: HTMLElement) => container.querySelector("svg") as SVGSVGElement;
 
@@ -31,6 +32,40 @@ describe("Spinner", () => {
     expect(classes).toContain("size-8");
     expect(classes).not.toContain("size-4");
     expect(classes).toContain("text-primary");
+  });
+
+  it("sizes from xs to xl, or 1em with inherit", () => {
+    for (const [size, cls] of Object.entries(spinnerSizes)) {
+      const { container } = renderUi(<Spinner size={size as keyof typeof spinnerSizes} />);
+      expect(svg(container).getAttribute("class")).toContain(cls);
+    }
+    expect(spinnerSizes.inherit).toBe("size-[1em]");
+  });
+
+  it("follows the text colour by default and takes Progress's tones", () => {
+    const plain = renderUi(<Spinner />);
+    expect(svg(plain.container).getAttribute("class")).not.toMatch(/\btext-/);
+    const { container } = renderUi(<Spinner tone="destructive" />);
+    expect(svg(container).getAttribute("class")).toContain("text-destructive");
+  });
+
+  it("uses the same colour classes as Progress, whose tones are contrast-checked", () => {
+    const { current, ...tones } = spinnerTones;
+    expect(current).toBe("");
+    expect(tones).toEqual(
+      Object.fromEntries(Object.entries(progressTones).map(([tone, def]) => [tone, def.ring])),
+    );
+  });
+
+  it("waits `delay` ms before fading in, in CSS, while the svg keeps its spin", () => {
+    const { container } = renderUi(<Spinner delay={300} />);
+    const group = svg(container).querySelector("g") as SVGGElement;
+    expect(group.getAttribute("class")).toContain("azmr-fade-in");
+    expect(group.style.animationDelay).toBe("300ms");
+    expect(svg(container).getAttribute("class")).toContain("animate-spin");
+
+    const immediate = renderUi(<Spinner />);
+    expect(svg(immediate.container).querySelector("g")?.hasAttribute("class")).toBe(false);
   });
 
   it("forwards the ref to the svg element", () => {

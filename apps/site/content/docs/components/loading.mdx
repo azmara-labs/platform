@@ -1,0 +1,138 @@
+---
+title: Loading
+description: Spinners, loading messages, logo loaders, overlays for refetching data and a top-of-page loading bar. The message and spinner are Server Components and fine in loading.tsx.
+group: Feedback
+status: stable
+since: 0.12.0
+interactive: false
+aliases: [loader, busy, progress bar, suspense, loading.tsx]
+---
+
+## Usage
+
+```tsx
+import { Loading, Spinner } from "@azmr/ui/loading"; // Server Components
+import { LoadingBar, LoadingOverlay, useLoadingState } from "@azmr/ui/loading/client";
+```
+
+<Demo name="loading/basic" />
+
+`Spinner` is the bare ring: `size` from `xs` to `xl` (or `inherit`, 1em, for inside text and buttons) and `tone` for its colour. `Loading` adds a message beside or below it (`labelPlacement`) in a `role="status"` region, so it is shown and announced. Every part takes `className` and `style`, merged last, so any default can be overridden.
+
+## With your logo
+
+<Demo name="loading/logo" />
+
+Pass `logo` (an `<img>`, an `<svg>` or an `Avatar`) and a ring spins around it while the logo itself **stays upright**, so it is always readable. `animation="pulse"` drops the ring and fades the logo in and out instead. The logo is decorative; the message is what gets announced, so give images `alt=""`.
+
+## Pages and sections
+
+`variant="page"` fills the content area and `variant="section"` fills its container. Both put the message under the spinner and **wait 200 ms before fading in**, so a fast load shows nothing at all. The delay is CSS (`animation-delay` on opacity), so it works with no client JavaScript.
+
+```tsx title="app/(portal)/invoices/loading.tsx"
+import { Loading } from "@azmr/ui/loading";
+
+export default function InvoicesLoading() {
+  return <Loading variant="page" label="Loading invoices…" />;
+}
+```
+
+```tsx title="A slow part of a page"
+import { Suspense } from "react";
+import { Loading } from "@azmr/ui/loading";
+
+<Suspense fallback={<Loading variant="section" label="Loading recent payments…" />}>
+  <RecentPayments />
+</Suspense>
+```
+
+`delay={0}` shows it at once; any other number of milliseconds sets the wait.
+
+## Refetching data that is already on screen
+
+<Demo name="loading/overlay" />
+
+When data is already showing and is being refreshed, replacing it with a spinner throws away what the user was reading. `LoadingOverlay` keeps it: the content dims, the region gets `aria-busy`, and a spinner with the message sits on top.
+
+It shows only once `active` has been true for `delay` (default 200 ms), and then stays for at least `minDuration` (default 400 ms), so a quick refetch never flickers. The same timing is available on its own as `useLoadingState(loading, { delay, minDuration })`, which returns whether to show your own indicator.
+
+## Top-of-page loading bar
+
+<Demo name="loading/bar" />
+
+`LoadingBar` is a thin bar fixed to the top of the page, like GitHub's. While `loading` is true it creeps towards 90% and slows as it gets there; when `loading` turns false it fills to 100% and fades away. A load faster than `delay` (default 150 ms) shows nothing. Pass `value` (0 to 100) when the real progress is known, and it shows that instead.
+
+It works with any router: drive `loading` from your own pending state. In a Next.js App Router app, wrap navigations or Server Actions in a transition and pass its pending flag:
+
+```tsx
+"use client";
+
+import { LoadingBar } from "@azmr/ui/loading/client";
+import { useRouter } from "next/navigation";
+import { useTransition } from "react";
+
+export function InvoiceLink({ id }: { id: string }) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+  return (
+    <>
+      <LoadingBar loading={pending} />
+      <button type="button" onClick={() => startTransition(() => router.push(`/invoices/${id}`))}>
+        Open
+      </button>
+    </>
+  );
+}
+```
+
+The fill moves with `transform: scaleX`, never `width`.
+
+## Reduced motion
+
+A spinner, a ring around a logo and a pulsing logo **keep moving** under `prefers-reduced-motion` (`data-motion="essential"`): a frozen loader reads as a hung page. Fades and the bar's movement follow the user's setting and become instant; the delay still applies.
+
+## Props
+
+### Loading
+
+<AutoTypeTable
+  path="../../packages/ui/src/components/loading/index.ts"
+  name="LoadingDocProps"
+  type={`import type { LoadingProps } from "./loading.js"
+export type LoadingDocProps = Pick<LoadingProps, "label" | "labelPlacement" | "variant" | "size" | "tone" | "logo" | "animation" | "delay" | "className">`}
+/>
+
+### Spinner
+
+<AutoTypeTable
+  path="../../packages/ui/src/components/spinner/index.ts"
+  name="SpinnerDocProps"
+  type={`import type { SpinnerProps } from "./spinner.js"
+export type SpinnerDocProps = Pick<SpinnerProps, "label" | "size" | "tone" | "delay" | "className">`}
+/>
+
+### LoadingOverlay
+
+<AutoTypeTable
+  path="../../packages/ui/src/components/loading-client/index.ts"
+  name="LoadingOverlayDocProps"
+  type={`import type { LoadingOverlayProps } from "./loading-overlay.js"
+export type LoadingOverlayDocProps = Pick<LoadingOverlayProps, "active" | "children" | "label" | "labelPlacement" | "delay" | "minDuration" | "size" | "tone" | "logo" | "animation" | "className">`}
+/>
+
+### LoadingBar
+
+<AutoTypeTable
+  path="../../packages/ui/src/components/loading-client/index.ts"
+  name="LoadingBarDocProps"
+  type={`import type { LoadingBarProps } from "./loading-bar.js"
+export type LoadingBarDocProps = Pick<LoadingBarProps, "loading" | "value" | "delay" | "tone" | "aria-label" | "className">`}
+/>
+
+## Accessibility
+
+- `Loading` is one `role="status"` region: its message is announced once, politely. With `labelPlacement="hidden"` the message is kept for screen readers only.
+- The spinner, the ring and the logo are `aria-hidden`; only the message is read.
+- `LoadingOverlay` keeps an empty status region in the page and fills it when the overlay appears, so the message is announced when it shows, and sets `aria-busy` on the content while it is stale.
+- `LoadingBar` is a `progressbar` named "Loading" by default (`aria-label`). It has no `aria-valuenow` while creeping, because that number is not real; with a known `value` it reports it.
+- Nothing here is focusable or takes keyboard input.

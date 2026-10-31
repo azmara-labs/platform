@@ -15,7 +15,9 @@ import { Spinner } from "@azmr/ui/spinner";
 
 <Demo name="spinner/basic" />
 
-`Spinner` is a **Server Component** (no hooks, no `"use client"`), so it works in `loading.tsx` and Suspense fallbacks without a client boundary. Size it with a class (`size-6`); colour follows `currentColor`.
+`Spinner` is a **Server Component** (no hooks, no `"use client"`), so it works in `loading.tsx` and Suspense fallbacks without a client boundary. `size` runs from `xs` to `xl` (default `sm`, 1rem), or `inherit` for 1em; a `size-*` class still overrides it. Colour follows `currentColor`, or set `tone`. `delay` keeps it invisible for that many milliseconds, then fades it in (pure CSS).
+
+For a visible message, your logo inside the spinner, a page or section loader, an overlay or a top-of-page bar, see [Loading](/docs/components/loading).
 
 ## Decorative or announced
 
@@ -31,7 +33,7 @@ Most motion in `@azmr/ui` stops under `prefers-reduced-motion`. A spinner does n
   path="../../packages/ui/src/components/spinner/index.ts"
   name="SpinnerDocProps"
   type={`import type { SpinnerProps } from "./spinner.js"
-export type SpinnerDocProps = Pick<SpinnerProps, "label" | "className">`}
+export type SpinnerDocProps = Pick<SpinnerProps, "label" | "size" | "tone" | "delay" | "className">`}
 />
 
 Any SVG attribute passes through, and `ref` is the `<svg>`. `className` is merged last: `size-8 text-primary`.
