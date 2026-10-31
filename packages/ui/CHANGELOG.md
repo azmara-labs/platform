@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.12.0
+
+### Minor Changes
+
+- d31c392: Add loading states (PAZM-122). `Spinner` gains `size` (`xs` to `xl`, or `inherit` for 1em; default unchanged), `tone` (Progress's tones; default still the text colour) and `delay` (milliseconds before it fades in, in CSS, so it works in Server Components). New `@azmr/ui/loading` (Server Components): `Loading`, a spinner with a visible, announced message (beside, below or screen-reader only) as `inline`, `section` (Suspense fallbacks) or `page` (`loading.tsx`, 200 ms delay by default), with an optional `logo` that a ring spins around while the logo stays upright, or that pulses. New `@azmr/ui/loading/client`: `LoadingOverlay` keeps refetching content on screen, dimmed and `aria-busy`, with a spinner and message over it; `LoadingBar` is a GitHub-style bar fixed to the top of the page that creeps towards 90% while loading, then fills and fades, or shows a known `value`; `useLoadingState(loading, { delay, minDuration })` gives the same show-late, stay-long timing for your own indicator. `progressTones` moved to its own module (still exported from `@azmr/ui/progress`).
+- 54c7ca1: Add route-level states (PAZM-82). New `@azmr/ui/state-view` (Server Component): `StateView`, one layout (icon, title, description, action) for a region's `loading`, `empty` and `error` states, as a section or a full page; loading is a polite status built on `Loading` (logo and delay included, so it doubles as the page loader), error is an alert, and the title's heading level is configurable. New `@azmr/ui/error-boundary`: `ErrorBoundary` with an `onError(error, info)` reporting hook for any service, `reset` and `resetKeys` for recovery, a custom `fallback` or `fallbackProps`, and `rethrow` to let framework errors through (pass Next.js's `unstable_rethrow` so `redirect()` and `notFound()` keep working). The default fallback never shows the error's message. Add the `inbox` icon to `@azmr/ui/icons/lucide`.
+
 ## 0.11.0
 
 ### Minor Changes
