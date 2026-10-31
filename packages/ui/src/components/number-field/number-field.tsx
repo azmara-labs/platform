@@ -97,6 +97,11 @@ export interface NumberFieldProps
   onBlur?: FormEventHandler;
   /** Labels for the stepper buttons. @default { decrement: "Decrease", increment: "Increase" } */
   stepperLabels?: { decrement: string; increment: string };
+  /**
+   * Styles the group: the border, height, radius and background around the input and steppers.
+   * Applied last, so it wins over the defaults.
+   */
+  groupClassName?: string;
   /** Content before the input inside the border, such as a unit. Prefer `InputGroup` for more. */
   children?: ReactNode;
 }
@@ -148,6 +153,7 @@ export const NumberFieldBase = forwardRef<HTMLInputElement, BaseProps>(function 
     readOnly,
     required,
     className,
+    groupClassName,
     inputClassName,
     onChange,
     onBlur,
@@ -285,6 +291,7 @@ export const NumberFieldBase = forwardRef<HTMLInputElement, BaseProps>(function 
 
   return (
     <NumberFieldPrimitive.Root
+      data-slot="number-field"
       inputRef={setHiddenRef}
       value={number}
       onValueChange={(next) => update(next)}
@@ -304,6 +311,7 @@ export const NumberFieldBase = forwardRef<HTMLInputElement, BaseProps>(function 
       className={cn(group ? "flex h-full min-w-0 flex-1" : "w-full min-w-0", className)}
     >
       <NumberFieldPrimitive.Group
+        data-slot="number-field-group"
         className={cn(
           "flex h-full w-full min-w-0 items-center text-sm text-foreground",
           !group && [
@@ -313,6 +321,7 @@ export const NumberFieldBase = forwardRef<HTMLInputElement, BaseProps>(function 
             "has-[input[aria-invalid=true]]:border-destructive has-[input[data-invalid]]:border-destructive",
             "data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 data-[readonly]:bg-muted",
           ],
+          groupClassName,
         )}
       >
         {stepper ? (
@@ -325,6 +334,7 @@ export const NumberFieldBase = forwardRef<HTMLInputElement, BaseProps>(function 
         ) : null}
         {children}
         <NumberFieldPrimitive.Input
+          data-slot="number-field-input"
           {...aria}
           {...groupAria}
           aria-describedby={ids || undefined}

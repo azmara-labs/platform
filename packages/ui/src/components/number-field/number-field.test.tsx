@@ -497,3 +497,22 @@ describe("numberOrNull", () => {
     expect(numberOrNull("-0")).toBe(-0);
   });
 });
+
+describe("NumberField: styling hooks", () => {
+  it("marks its parts with data-slot and applies groupClassName to the group, last", () => {
+    const { container } = renderUi(
+      <MoneyField aria-label="Price" className="w-40" groupClassName="h-8 rounded-lg" />,
+    );
+    const root = container.querySelector('[data-slot="number-field"]') as HTMLElement;
+    const group = container.querySelector('[data-slot="number-field-group"]') as HTMLElement;
+    expect(root.className).toContain("w-40");
+    expect(root.className).not.toContain("h-8");
+    expect(group.className).toContain("h-8");
+    expect(group.className).toContain("rounded-lg");
+    // cn() keeps the caller's radius instead of the default one.
+    expect(group.className).not.toContain("rounded-md");
+    expect(container.querySelector('[data-slot="number-field-input"]')).toBe(
+      container.querySelector('input[aria-label="Price"]'),
+    );
+  });
+});

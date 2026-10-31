@@ -1,12 +1,12 @@
 import { createRef, type ReactNode } from "react";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { expectNoA11yViolations, renderUi, setupUser } from "../../test-utils/index.js";
 import { Button } from "../button/button.js";
 import { Input } from "../input/input.js";
 import { zodResolver } from "../zod/resolver.js";
-import { Form, FormField, FormFieldArray } from "./index.js";
+import { Form, FormField, FormFieldArray, type FormFieldArrayRow } from "./index.js";
 
 const schema = z.object({
   lines: z
@@ -82,7 +82,10 @@ describe("FormFieldArray", () => {
     const onSave = vi.fn();
     const user = setupUser();
     renderUi(<Invoice onSave={onSave} />);
-    await user.click(buttonNamed("Add"));
+    const add = Array.from(document.querySelectorAll("button")).find(
+      (b) => b.textContent === "Add",
+    ) as HTMLButtonElement;
+    await user.click(add);
     expect(document.activeElement).toBe(byLabel("Description 2"));
     await user.type(byLabel("Description 2"), "Tow, 12 km");
     await user.click(buttonNamed("Save"));
@@ -175,7 +178,7 @@ describe("FormFieldArray", () => {
         <Form form={form} onSubmit={() => {}}>
           <FormFieldArray name="tags" legend="Tags" sortable={false} removable={false}>
             {(_, row) => (
-              <FormField name={row.name("text") as "tags.0.text"} label="Tag">
+              <FormField name={row.name("text")} label="Tag">
                 <Input />
               </FormField>
             )}
@@ -194,6 +197,83 @@ describe("FormFieldArray", () => {
     const { container } = renderUi(<Invoice onSave={vi.fn()} lines={[]} />);
     await user.click(buttonNamed("Save"));
     await expectNoA11yViolations(container);
+  });
+});
+
+describe("FormFieldArray with your own useFieldArray", () => {
+  function Catalog({ onSave }: { onSave: (values: Output) => void }) {
+    const form = useForm<Input_, unknown, Output>({
+      resolver: zodResolver(schema),
+      defaultValues: { lines: [{ description: "", qty: "1" }] },
+    });
+    const lines = useFieldArray({ control: form.control, name: "lines" });
+    return (
+      <Form form={form} onSubmit={onSave}>
+        <Button
+          onClick={() =>
+            lines.replace([
+              ...form.getValues("lines").filter((line) => line.description !== ""),
+              { description: "Callout", qty: "1" },
+            ])
+          }
+        >
+          Add callout
+        </Button>
+        <FormFieldArray<Input_, "lines">
+          name="lines"
+          fieldArray={lines}
+          legend="Line items"
+          itemLabel={(index) => `Line ${index + 1}`}
+          newItem={() => ({ description: "", qty: "1" })}
+        >
+          {(_, row) => (
+            <>
+              <FormField name={row.name("description")} label={`Description ${row.index + 1}`}>
+                <Input />
+              </FormField>
+              <FormField name={row.name("qty")} label={`Quantity ${row.index + 1}`}>
+                <Input inputMode="decimal" />
+              </FormField>
+            </>
+          )}
+        </FormFieldArray>
+        <Button type="submit">Save</Button>
+      </Form>
+    );
+  }
+
+  it("shows rows changed from outside it, and still adds and submits", async () => {
+    const user = setupUser();
+    const onSave = vi.fn();
+    renderUi(<Catalog onSave={onSave} />);
+    // The blank line is replaced, not kept.
+    await user.click(buttonNamed("Add callout"));
+    expect((byLabel("Description 1") as HTMLInputElement).value).toBe("Callout");
+    expect(document.querySelectorAll("[data-slot=field-array-row]")).toHaveLength(1);
+
+    const add = Array.from(document.querySelectorAll("button")).find(
+      (b) => b.textContent === "Add",
+    ) as HTMLButtonElement;
+    await user.click(add);
+    expect(document.activeElement).toBe(byLabel("Description 2"));
+    await user.type(byLabel("Description 2"), "Labour");
+    await user.click(buttonNamed("Save"));
+    await vi.waitFor(() => expect(onSave).toHaveBeenCalled());
+    expect(onSave.mock.calls[0]?.[0]).toEqual({
+      lines: [
+        { description: "Callout", qty: 1 },
+        { description: "Labour", qty: 1 },
+      ],
+    });
+  });
+
+  it("types row.name() against the array's items", () => {
+    type Typed = FormFieldArrayRow<Input_, "lines">;
+    const name: Typed["name"] = (field) => `lines.0.${field}`;
+    const qty: "lines.0.qty" | `lines.${number}.qty` = name("qty");
+    expect(qty).toBe("lines.0.qty");
+    // @ts-expect-error: not a field of a line
+    name("price");
   });
 });
 

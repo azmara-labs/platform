@@ -236,6 +236,98 @@ describe("FormField controlled", () => {
   });
 });
 
+describe("FormField render with a control Base UI doesn't know", () => {
+  // Stands in for a Radix Select: a trigger button that opens a list, and no input.
+  function FakeSelect({
+    value,
+    onValueChange,
+    options,
+    ...props
+  }: {
+    value: string;
+    onValueChange: (value: string) => void;
+    options: string[];
+  } & Record<string, unknown>) {
+    return (
+      <>
+        <button type="button" role="combobox" aria-expanded="false" {...props}>
+          {value || "Select a customer"}
+        </button>
+        {options.map((option) => (
+          <button key={option} type="button" onClick={() => onValueChange(option)}>
+            {option}
+          </button>
+        ))}
+      </>
+    );
+  }
+
+  function Invoice({ onSave }: { onSave: (values: { customer: string }) => void }) {
+    const form = useForm<{ customer: string }>({ defaultValues: { customer: "" } });
+    return (
+      <Form form={form} onSubmit={onSave}>
+        <FormField
+          name="customer"
+          label="Customer"
+          description="Who the invoice is for."
+          required
+          rules={{ required: "Select a customer" }}
+          render={({ value, onChange, onBlur, ref, control }) => (
+            <FakeSelect
+              value={value}
+              onValueChange={onChange}
+              onBlur={onBlur}
+              ref={ref}
+              options={["Northline Ltd"]}
+              {...control}
+            />
+          )}
+        />
+        <Button type="submit">Save</Button>
+      </Form>
+    );
+  }
+
+  const trigger = (container: HTMLElement) =>
+    container.querySelector('[role="combobox"]') as HTMLButtonElement;
+
+  it("labels and describes the control, and links the error once there is one", async () => {
+    const user = setupUser();
+    const onSave = vi.fn();
+    const { container } = renderUi(<Invoice onSave={onSave} />);
+    const label = container.querySelector("label") as HTMLLabelElement;
+    expect(label.htmlFor).toBe(trigger(container).id);
+    expect(document.getElementById(trigger(container).getAttribute("aria-labelledby") ?? "")).toBe(
+      label,
+    );
+    expect(trigger(container).getAttribute("aria-required")).toBe("true");
+    expect(trigger(container).hasAttribute("aria-invalid")).toBe(false);
+
+    await user.click(submit(container));
+    await vi.waitFor(() => expect(trigger(container).getAttribute("aria-invalid")).toBe("true"));
+    const describedBy = (trigger(container).getAttribute("aria-describedby") ?? "")
+      .split(" ")
+      .map((id) => document.getElementById(id)?.textContent);
+    expect(describedBy).toEqual(["Who the invoice is for.", "Select a customer"]);
+    expect(
+      document.getElementById(trigger(container).getAttribute("aria-errormessage") ?? "")
+        ?.textContent,
+    ).toBe("Select a customer");
+    expect(onSave).not.toHaveBeenCalled();
+    await expectNoA11yViolations(container);
+
+    await user.click(
+      Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent === "Northline Ltd",
+      ) as HTMLButtonElement,
+    );
+    await vi.waitFor(() => expect(trigger(container).hasAttribute("aria-invalid")).toBe(false));
+    await user.click(submit(container));
+    await vi.waitFor(() => expect(onSave).toHaveBeenCalled());
+    expect(onSave.mock.calls[0]?.[0]).toEqual({ customer: "Northline Ltd" });
+  });
+});
+
 describe("Form with zodResolver, async validation and FormErrorSummary", () => {
   // The async refinement plus several typed fields can pass 1 s on a loaded CI runner.
   const ASYNC = { timeout: 5000 };

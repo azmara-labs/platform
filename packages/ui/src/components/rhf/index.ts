@@ -1,4 +1,4 @@
-export { FormFieldArray, type FormFieldArrayProps } from "./field-array.js";
+export { FormFieldArray, type FormFieldArrayProps, type FormFieldArrayRow } from "./field-array.js";
 export {
   Form,
   FormErrorSummary,

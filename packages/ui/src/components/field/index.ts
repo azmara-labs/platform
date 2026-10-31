@@ -1,5 +1,6 @@
 export {
   Field,
+  type FieldControlProps,
   FieldDescription,
   FieldError,
   FieldLabel,

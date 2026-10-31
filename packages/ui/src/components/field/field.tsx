@@ -95,8 +95,23 @@ export interface FieldProps
   error?: ReactNode;
   /** Shows the required marker and sets `aria-required` on the control. */
   required?: boolean;
-  /** One control: `Input`, `Textarea` or any Base UI control. */
-  children: ReactNode;
+  /**
+   * One control: `Input`, `Textarea` or any Base UI control. For any other control, such as a
+   * Radix Select trigger, a native `<select>` or a third-party picker, pass a function: it gets
+   * the `id` and ARIA props to spread on the control, so the label, description and error are
+   * wired to it too.
+   */
+  children: ReactNode | ((control: FieldControlProps) => ReactNode);
+}
+
+/** What a function child of `Field` spreads on its control. */
+export interface FieldControlProps {
+  id: string;
+  "aria-labelledby"?: string;
+  "aria-describedby"?: string;
+  "aria-invalid"?: true;
+  "aria-required"?: true;
+  "aria-errormessage"?: string;
 }
 
 function hasError(error: ReactNode): boolean {
@@ -114,19 +129,48 @@ export const Field = forwardRef<HTMLDivElement, FieldProps>(function Field(
   ref,
 ) {
   const errorId = useId();
+  const controlId = useId();
+  const labelId = useId();
+  const descriptionId = useId();
   const showError = hasError(error);
-  const only = Children.count(children) === 1 && isValidElement(children) ? children : null;
-  const control = only
-    ? cloneElement(only as ReactElement<Record<string, unknown>>, {
-        ...(required ? { "aria-required": true } : {}),
-        ...(showError ? { "aria-errormessage": errorId } : {}),
-      })
-    : children;
+  // A function child is a control Base UI doesn't know about, so the ids are wired here instead.
+  const custom = typeof children === "function";
+  let control: ReactNode;
+  if (custom) {
+    const describedBy = [
+      description !== undefined ? descriptionId : undefined,
+      showError ? errorId : undefined,
+    ].filter(Boolean);
+    control = children({
+      id: controlId,
+      ...(label !== undefined ? { "aria-labelledby": labelId } : {}),
+      ...(describedBy.length > 0 ? { "aria-describedby": describedBy.join(" ") } : {}),
+      ...(showError || invalid ? { "aria-invalid": true as const } : {}),
+      ...(required ? { "aria-required": true as const } : {}),
+      ...(showError ? { "aria-errormessage": errorId } : {}),
+    });
+  } else {
+    const only = Children.count(children) === 1 && isValidElement(children) ? children : null;
+    control = only
+      ? cloneElement(only as ReactElement<Record<string, unknown>>, {
+          ...(required ? { "aria-required": true } : {}),
+          ...(showError ? { "aria-errormessage": errorId } : {}),
+        })
+      : children;
+  }
 
   return (
     <FieldRoot ref={ref} invalid={showError || invalid} {...props}>
-      {label !== undefined ? <FieldLabel required={required}>{label}</FieldLabel> : null}
-      {description !== undefined ? <FieldDescription>{description}</FieldDescription> : null}
+      {label !== undefined ? (
+        <FieldLabel required={required} {...(custom ? { id: labelId, htmlFor: controlId } : {})}>
+          {label}
+        </FieldLabel>
+      ) : null}
+      {description !== undefined ? (
+        <FieldDescription {...(custom ? { id: descriptionId } : {})}>
+          {description}
+        </FieldDescription>
+      ) : null}
       {control}
       {/* Always mounted, so the error is announced when it appears. The negative margin cancels
           the gap while it is empty. */}

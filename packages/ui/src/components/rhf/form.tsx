@@ -22,7 +22,7 @@ import {
   useFormContext,
   useFormState,
 } from "react-hook-form";
-import { Field, type FieldProps } from "../field/field.js";
+import { Field, type FieldControlProps, type FieldProps } from "../field/field.js";
 import { ErrorSummary, type ErrorSummaryProps } from "../form/error-summary.js";
 
 export interface FormProps<Values extends FieldValues, Output = Values>
@@ -68,6 +68,11 @@ export function FormErrorSummary(props: Omit<ErrorSummaryProps, "errors" | "subm
 export interface FormFieldRenderProps<Values extends FieldValues = FieldValues>
   extends ControllerRenderProps<Values, FieldPath<Values>> {
   invalid: boolean;
+  /**
+   * The `id` and ARIA props that tie the control to its label, description and error. Spread
+   * them on the element that takes focus, such as a Radix Select trigger.
+   */
+  control: FieldControlProps;
 }
 
 export interface FormFieldProps<Values extends FieldValues = FieldValues>
@@ -84,7 +89,11 @@ export interface FormFieldProps<Values extends FieldValues = FieldValues>
    * toggle, a select or a date picker. The child gets `value`, `onValueChange` and `onBlur`.
    */
   controlled?: boolean;
-  /** Renders the control yourself from the controller's field props. Implies `controlled`. */
+  /**
+   * Renders the control yourself from the controller's field props, for any control: spread
+   * `control` on the element that takes focus so the label, description and error are wired to
+   * it. Implies `controlled`.
+   */
   render?: (field: FormFieldRenderProps<Values>) => ReactNode;
   /** One control, such as `Input`, `Textarea`, `NumberField` or `PasswordInput`. */
   children?: ReactNode;
@@ -181,7 +190,8 @@ function ControlledField<Values extends FieldValues>({
   const error = fieldState.error ? fieldState.error.message || undefined : undefined;
   const child = onlyChild(children);
   const control = render
-    ? render({ ...field, invalid: fieldState.invalid })
+    ? (props: FieldControlProps) =>
+        render({ ...field, invalid: fieldState.invalid, control: props })
     : child
       ? cloneElement(child, {
           ref: field.ref,

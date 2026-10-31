@@ -272,3 +272,100 @@ describe("Field: accessibility", () => {
     await expectNoA11yViolations(container);
   });
 });
+
+describe("Field: any control (function child)", () => {
+  // What a Radix Select trigger renders: a button Base UI's Field doesn't know about.
+  const trigger = (container: HTMLElement) =>
+    container.querySelector('[role="combobox"]') as HTMLButtonElement;
+
+  it("labels the control with the label", () => {
+    const { container } = renderUi(
+      <Field label="Customer">
+        {(control) => (
+          <button type="button" role="combobox" aria-expanded="false" {...control}>
+            Pick one
+          </button>
+        )}
+      </Field>,
+    );
+    const label = container.querySelector("label") as HTMLLabelElement;
+    expect(label.htmlFor).toBe(trigger(container).id);
+    expect(byId(trigger(container).getAttribute("aria-labelledby"))).toBe(label);
+  });
+
+  it("describes the control with the description and the error, and marks it invalid", () => {
+    const { container } = renderUi(
+      <Field
+        label="Customer"
+        description="Who the invoice is for."
+        error="Select a customer"
+        required
+      >
+        {(control) => (
+          <button type="button" role="combobox" aria-expanded="false" {...control}>
+            Pick one
+          </button>
+        )}
+      </Field>,
+    );
+    const control = trigger(container);
+    expect(describedBy(control)).toEqual(["Who the invoice is for.", "Select a customer"]);
+    expect(control.getAttribute("aria-invalid")).toBe("true");
+    expect(control.getAttribute("aria-required")).toBe("true");
+    expect(byId(control.getAttribute("aria-errormessage"))?.textContent).toBe("Select a customer");
+  });
+
+  it("adds no ARIA it has nothing for", () => {
+    const { container } = renderUi(<Field>{(control) => <select {...control} />}</Field>);
+    const select = container.querySelector("select") as HTMLSelectElement;
+    expect(select.id).not.toBe("");
+    for (const name of [
+      "aria-labelledby",
+      "aria-describedby",
+      "aria-invalid",
+      "aria-required",
+      "aria-errormessage",
+    ]) {
+      expect(select.hasAttribute(name)).toBe(false);
+    }
+  });
+
+  it("marks the control invalid from `invalid` without an error message", () => {
+    const { container } = renderUi(
+      <Field label="Country" invalid>
+        {(control) => <select {...control} />}
+      </Field>,
+    );
+    expect(
+      (container.querySelector("select") as HTMLSelectElement).getAttribute("aria-invalid"),
+    ).toBe("true");
+  });
+
+  it("focuses a native control when the label is clicked", async () => {
+    const user = setupUser();
+    const { container } = renderUi(
+      <Field label="Country">
+        {(control) => (
+          <select {...control}>
+            <option>New Zealand</option>
+          </select>
+        )}
+      </Field>,
+    );
+    await user.click(container.querySelector("label") as HTMLLabelElement);
+    expect(document.activeElement).toBe(container.querySelector("select"));
+  });
+
+  it("has no accessibility violations with an error showing", async () => {
+    const { container } = renderUi(
+      <Field label="Customer" description="Who the invoice is for." error="Select a customer">
+        {(control) => (
+          <button type="button" role="combobox" aria-expanded="false" {...control}>
+            Pick one
+          </button>
+        )}
+      </Field>,
+    );
+    await expectNoA11yViolations(container);
+  });
+});
