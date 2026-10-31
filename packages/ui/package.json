@@ -107,6 +107,14 @@
       "types": "./dist/loading/client.d.ts",
       "import": "./dist/loading/client.js"
     },
+    "./state-view": {
+      "types": "./dist/state-view.d.ts",
+      "import": "./dist/state-view.js"
+    },
+    "./error-boundary": {
+      "types": "./dist/error-boundary.d.ts",
+      "import": "./dist/error-boundary.js"
+    },
     "./icons": {
       "types": "./dist/icons.d.ts",
       "import": "./dist/icons.js"

@@ -30,6 +30,7 @@ import {
   Funnel as FunnelNode,
   GripVertical as GripVerticalNode,
   House as HouseNode,
+  Inbox as InboxNode,
   Info as InfoNode,
   LoaderCircle as LoaderCircleNode,
   Lock as LockNode,
@@ -106,6 +107,7 @@ export const EyeOff = /* @__PURE__ */ createGlyph("eye-off", EyeOffNode);
 export const Funnel = /* @__PURE__ */ createGlyph("funnel", FunnelNode, ["filter"]);
 export const GripVertical = /* @__PURE__ */ createGlyph("grip-vertical", GripVerticalNode);
 export const House = /* @__PURE__ */ createGlyph("house", HouseNode, ["home"]);
+export const Inbox = /* @__PURE__ */ createGlyph("inbox", InboxNode);
 export const Info = /* @__PURE__ */ createGlyph("info", InfoNode);
 export const LoaderCircle = /* @__PURE__ */ createGlyph("loader-circle", LoaderCircleNode, [
   "loader-2",

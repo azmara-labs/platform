@@ -197,6 +197,8 @@ An unknown name renders nothing and logs one development warning; it never crash
 | `@azmr/ui/form` | `Fieldset`, `FieldsetRoot`, `FieldsetLegend`, `FormSection`, `ErrorSummary`, `toErrorSummaryItems` | `"use client"` |
 | `@azmr/ui/spinner` | `Spinner` (`size`, `tone`, `delay`) | none, importable from Server Components |
 | `@azmr/ui/loading` | `Loading` (inline, section or page; visible label; logo with a spinning ring), `Spinner` | none, importable from Server Components |
+| `@azmr/ui/state-view` | `StateView` (one layout for a region's loading, empty and error states) | none, importable from Server Components |
+| `@azmr/ui/error-boundary` | `ErrorBoundary` (`onError` reporting hook, `reset`, `resetKeys`, `rethrow` for framework errors) | `"use client"` |
 | `@azmr/ui/loading/client` | `LoadingOverlay`, `LoadingBar` (top-of-page bar), `useLoadingState` (`delay` and `minDuration`) | `"use client"` |
 | `@azmr/ui/icons` | `Icon`, `createIconSet`, `registerIcons` | none, importable from Server Components |
 | `@azmr/ui/icons/lucide` | `Icon` bound to the curated Lucide set, `lucideIcons` | none, importable from Server Components |

@@ -52,6 +52,16 @@
     "limit": "10.5 kB"
   },
   {
+    "name": "@azmr/ui/state-view",
+    "path": "dist/state-view.js",
+    "limit": "10.5 kB"
+  },
+  {
+    "name": "@azmr/ui/error-boundary",
+    "path": "dist/error-boundary.js",
+    "limit": "14.5 kB"
+  },
+  {
     "name": "@azmr/ui/button",
     "path": "dist/button.js",
     "limit": "14 kB"

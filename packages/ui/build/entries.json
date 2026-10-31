@@ -23,12 +23,14 @@
     "toggle": "src/components/toggle/index.ts",
     "split-button": "src/components/split-button/index.ts",
     "loading/client": "src/components/loading-client/index.ts",
+    "error-boundary": "src/components/error-boundary/index.ts",
     "transition": "src/motion/transition/index.ts",
     "motion": "src/motion/library/index.ts"
   },
   "serverComponents": {
     "spinner": "src/components/spinner/index.ts",
     "loading": "src/components/loading/index.ts",
+    "state-view": "src/components/state-view/index.ts",
     "icons": "src/icons/index.ts",
     "icons/lucide": "src/icons/lucide.ts",
     "typography": "src/components/typography/index.ts",
