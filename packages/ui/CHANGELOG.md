@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.12.1
+
+### Patch Changes
+
+- 1baf44e: `StateView` `titleAs` accepts `h1`, for a state that is the whole page (a 404 page, a root error page) with no other heading.
+
 ## 0.12.0
 
 ### Minor Changes
