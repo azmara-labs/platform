@@ -58,6 +58,8 @@ describe("StateView", () => {
     );
     expect(custom.container.querySelector('[data-testid="mine"]')).not.toBeNull();
     expect(custom.container.querySelector("h3")).not.toBeNull();
+    const page = renderUi(<StateView state="empty" title="Page not found" titleAs="h1" />);
+    expect(page.container.querySelector("h1")?.textContent).toBe("Page not found");
     const none = renderUi(<StateView state="empty" icon={null} />);
     expect(none.container.querySelector('[data-slot="state-view-icon"]')).toBeNull();
   });
