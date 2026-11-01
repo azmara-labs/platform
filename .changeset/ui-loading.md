@@ -1,5 +1,0 @@
----
-"@azmr/ui": minor
----
-
-Add loading states (PAZM-122). `Spinner` gains `size` (`xs` to `xl`, or `inherit` for 1em; default unchanged), `tone` (Progress's tones; default still the text colour) and `delay` (milliseconds before it fades in, in CSS, so it works in Server Components). New `@azmr/ui/loading` (Server Components): `Loading`, a spinner with a visible, announced message (beside, below or screen-reader only) as `inline`, `section` (Suspense fallbacks) or `page` (`loading.tsx`, 200 ms delay by default), with an optional `logo` that a ring spins around while the logo stays upright, or that pulses. New `@azmr/ui/loading/client`: `LoadingOverlay` keeps refetching content on screen, dimmed and `aria-busy`, with a spinner and message over it; `LoadingBar` is a GitHub-style bar fixed to the top of the page that creeps towards 90% while loading, then fills and fades, or shows a known `value`; `useLoadingState(loading, { delay, minDuration })` gives the same show-late, stay-long timing for your own indicator. `progressTones` moved to its own module (still exported from `@azmr/ui/progress`).
