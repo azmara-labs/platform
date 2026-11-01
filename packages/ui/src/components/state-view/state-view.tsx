@@ -35,8 +35,11 @@ export interface StateViewProps
   action?: ReactNode;
   /** `section` (default) fills its container; `page` fills the content area. */
   variant?: keyof typeof VARIANT;
-  /** The title's element, to fit the page's heading outline. Default `h2`. */
-  titleAs?: "h2" | "h3" | "h4" | "p";
+  /**
+   * The title's element, to fit the page's heading outline. Default `h2`. Use `h1` when the state
+   * is the whole page (a 404 page, a root error page) and nothing else on it is a heading.
+   */
+  titleAs?: "h1" | "h2" | "h3" | "h4" | "p";
   /** Loading only: milliseconds before it fades in. Default 200. */
   delay?: number;
 }
