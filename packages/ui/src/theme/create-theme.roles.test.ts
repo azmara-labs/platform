@@ -66,6 +66,12 @@ describe("brand and primary", () => {
     expect(() => createTheme({ brand: "#0F4C5C", primary: "#0f4c5c" })).not.toThrow();
   });
 
+  it("brand and primary that are the same grey are accepted whatever hue they carry", () => {
+    expect(() =>
+      createTheme({ brand: "oklch(0.6 0 0)", primary: "oklch(0.6 0 200)" }),
+    ).not.toThrow();
+  });
+
   it("brand and primary that differ throw a ThemeConfigError", () => {
     failure(() => createTheme({ brand: "#0F4C5C", primary: "#C2410C" }), ThemeConfigError);
   });
