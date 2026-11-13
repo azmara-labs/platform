@@ -166,7 +166,7 @@ try {
 } catch (error) {
   message = error.message;
 }
-// => "Invalid theme config:\n  - createTheme: brand must be #rgb, #rrggbb, oklch(L C H) or { l, c, h }; got \"red\""
+// => "Invalid theme config:\n  - createTheme: brand must be #rgb, #rrggbb or oklch(L C H); got \"red\""
 ```
 
 To build an editing form, `@azmr/ui/theme-schema` exports `ThemeConfigSchema`, a Zod schema with a label and a help sentence on every field. Pass it to `fieldsFromSchema` from `@azmr/ui/zod` to describe the controls. The schema and `parseThemeConfig` give the same answer for every JSON value, and for the `undefined` fields that forms send; a test holds them to it on a table of cases and on thousands of generated ones.

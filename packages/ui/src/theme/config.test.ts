@@ -153,6 +153,26 @@ describe("parseThemeConfig: strictness", () => {
     failure(() => parseThemeConfig({ brand: "#fff", dark: { background: null } }));
   });
 
+  it("does not suggest an { l, c, h } object, which a stored config cannot hold", () => {
+    const messages = [
+      failure(() => parseThemeConfig({ brand: "red" })),
+      failure(() => parseThemeConfig({ brand: "oklch(2 0 0)" })),
+      failure(() => parseThemeConfig({ brand: "#fff", light: { background: "red" } })),
+      failure(() => parseThemeConfig({ brand: "#fff", dark: { background: "oklch(0.5 0.9 0)" } })),
+      failure(() => parseThemeConfig({ brand: 123 })),
+    ].map((error) => error.message);
+    for (const message of messages) {
+      expect(message).not.toContain("{ l, c, h }");
+      expect(message).toContain("oklch(L C H)");
+    }
+  });
+
+  it("still names the colour and the value that was wrong", () => {
+    expect(failure(() => parseThemeConfig({ brand: "red" })).issues).toEqual([
+      'createTheme: brand must be #rgb, #rrggbb or oklch(L C H); got "red"',
+    ]);
+  });
+
   it("rejects brand and primary that disagree", () => {
     failure(() => parseThemeConfig({ brand: "#1D4E89", primary: "#C2410C" }));
   });

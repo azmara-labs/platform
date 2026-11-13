@@ -154,7 +154,7 @@ function checkColour(value: unknown, path: string, issues: string[]): Oklch | un
     return undefined;
   }
   try {
-    return parseColour(value, path);
+    return parseColour(value, path, "text");
   } catch (error) {
     issues.push(error instanceof Error ? error.message : String(error));
     return undefined;
