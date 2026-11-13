@@ -109,57 +109,45 @@ const DEFAULT_SURFACES: Record<Mode, Surfaces> = {
   light: { style: "light", list: [WHITE] },
   dark: { style: "dark", list: [NEAR_BLACK, DARK_CARD] },
 };
-const SURFACE_DEFAULTS: Record<Mode, Record<"background" | "card" | "popover", Oklch>> = {
-  light: { background: WHITE, card: WHITE, popover: WHITE },
-  dark: { background: NEAR_BLACK, card: DARK_CARD, popover: DARK_CARD },
+type SurfaceRole = "background" | "card" | "popover" | "sidebar";
+const SURFACE_DEFAULTS: Record<Mode, Record<SurfaceRole, Oklch>> = {
+  light: { background: WHITE, card: WHITE, popover: WHITE, sidebar: WHITE },
+  dark: { background: NEAR_BLACK, card: DARK_CARD, popover: DARK_CARD, sidebar: DARK_CARD },
 };
+const PAGE_SURFACES: readonly SurfaceRole[] = ["background", "card", "popover"];
 /** Relative luminance where black and white text read equally well: darker is a dark surface. */
 const DARK_SURFACE_LUMINANCE = 0.179;
 
-/** The surfaces for `mode`. An override that cannot be read is left for `applyOverrides` to report. */
-function surfacesFor(options: ThemeOptions, mode: Mode): Surfaces {
+/**
+ * The surfaces `roles` make in `mode`: each overridden one, else its default. With none overridden
+ * it is the mode's default surfaces. The page, card and popover go together; the sidebar is a
+ * surface of its own, so it is asked for alone. An override that cannot be read is left for
+ * `applyOverrides` to report. A style is dark when every surface is dark, light when none is, and
+ * the mode's own when they are mixed.
+ */
+function surfacesFor(
+  options: ThemeOptions,
+  mode: Mode,
+  roles: readonly SurfaceRole[] = PAGE_SURFACES,
+): Surfaces {
   const overrides: unknown = options[mode];
-  if (typeof overrides !== "object" || overrides === null || Array.isArray(overrides)) {
-    return DEFAULT_SURFACES[mode];
-  }
-  const given = overrides as Record<string, string | Oklch | undefined>;
-  const roles = ["background", "card", "popover"] as const;
+  const given =
+    typeof overrides === "object" && overrides !== null && !Array.isArray(overrides)
+      ? (overrides as Record<string, string | Oklch | undefined>)
+      : {};
   if (roles.every((role) => given[role] === undefined)) return DEFAULT_SURFACES[mode];
   const list = roles.map((role) => {
-    const value = given[role];
-    if (value === undefined) return SURFACE_DEFAULTS[mode][role];
+    const fallback = SURFACE_DEFAULTS[mode][role];
     try {
-      return parseColour(value, `${mode}.${role}`);
+      return given[role] === undefined
+        ? fallback
+        : parseColour(given[role] as string, `${mode}.${role}`);
     } catch {
-      return SURFACE_DEFAULTS[mode][role];
+      return fallback;
     }
   });
-  return { style: styleOf(list, mode), list };
-}
-
-/** Dark when every surface is dark, light when none is, and the mode's own style when mixed. */
-function styleOf(list: readonly Oklch[], mode: Mode): Mode {
   const dark = list.map((colour) => luminance(colour) < DARK_SURFACE_LUMINANCE);
-  return dark.every(Boolean) ? "dark" : dark.some(Boolean) ? mode : "light";
-}
-
-/**
- * The sidebar is a surface of its own. With no `sidebar` override it is the default surface for
- * the mode, whatever the page and cards were overridden to.
- */
-function sidebarSurfacesFor(options: ThemeOptions, mode: Mode): Surfaces {
-  const overrides: unknown = options[mode];
-  const value =
-    typeof overrides === "object" && overrides !== null && !Array.isArray(overrides)
-      ? (overrides as Record<string, string | Oklch | undefined>).sidebar
-      : undefined;
-  if (value === undefined) return DEFAULT_SURFACES[mode];
-  try {
-    const list = [parseColour(value, `${mode}.sidebar`)];
-    return { style: styleOf(list, mode), list };
-  } catch {
-    return DEFAULT_SURFACES[mode];
-  }
+  return { style: dark.every(Boolean) ? "dark" : dark.some(Boolean) ? mode : "light", list };
 }
 
 // A button's background blends with what is behind it on hover (`hover:bg-X/90`, secondary `/80`).
@@ -417,8 +405,8 @@ function resolveTheme(options: ThemeOptions): Resolution {
     setRole(
       resolved,
       "sidebar-ring",
-      ringFor(brand, sidebarSurfacesFor(options, "light")),
-      ringFor(brand, sidebarSurfacesFor(options, "dark")),
+      ringFor(brand, surfacesFor(options, "light", ["sidebar"])),
+      ringFor(brand, surfacesFor(options, "dark", ["sidebar"])),
     );
   }
 

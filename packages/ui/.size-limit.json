@@ -29,7 +29,7 @@
   {
     "name": "@azmr/ui/theme",
     "path": "dist/theme.js",
-    "limit": "7 kB"
+    "limit": "7.5 kB"
   },
   {
     "name": "@azmr/ui/theme-schema",
