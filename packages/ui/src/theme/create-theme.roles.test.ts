@@ -249,6 +249,71 @@ describe("contrast", () => {
   });
 });
 
+describe("derived roles follow the surfaces they sit on", () => {
+  const COLOURS = {
+    secondary: "#64748B",
+    success: "#2E7D32",
+    warning: "#FBC02D",
+    info: "#1E88E5",
+    destructive: "#D32F2F",
+  };
+  const BRAND_SET = ["#0F4C5C", "#C2410C", "#7C3AED", "#FBC02D"];
+
+  it("derives status colours that read on a lighter dark-mode page", () => {
+    // The status colours used to assume a near-black page, so they failed as text on these.
+    for (const brand of BRAND_SET) {
+      const options: ThemeOptions = {
+        brand,
+        ...COLOURS,
+        dark: {
+          background: "oklch(0.34 0.02 220)",
+          card: "oklch(0.37 0.02 220)",
+          popover: "oklch(0.37 0.02 220)",
+          muted: "oklch(0.42 0.02 220)",
+          "muted-foreground": "oklch(0.9 0 0)",
+        },
+      };
+      expect(validateTheme(options), brand).toEqual([]);
+      expect(() => createTheme(options), brand).not.toThrow();
+    }
+  });
+
+  it("derives light-mode colours that read on a dark light-mode page", () => {
+    // A light mode with dark surfaces is derived the way a dark mode is: light labels, readable text.
+    for (const brand of BRAND_SET) {
+      const options: ThemeOptions = {
+        brand,
+        ...COLOURS,
+        light: {
+          background: "oklch(0.25 0.02 220)",
+          card: "oklch(0.28 0.02 220)",
+          popover: "oklch(0.28 0.02 220)",
+          foreground: "oklch(0.97 0 0)",
+          "card-foreground": "oklch(0.97 0 0)",
+          "popover-foreground": "oklch(0.97 0 0)",
+          muted: "oklch(0.32 0.02 220)",
+          "muted-foreground": "oklch(0.88 0 0)",
+        },
+      };
+      expect(validateTheme(options), brand).toEqual([]);
+      expect(() => createTheme(options), brand).not.toThrow();
+    }
+  });
+
+  it("leaves derived colours alone when only roles that are not surfaces are overridden", () => {
+    const plain = createTheme({ brand: "#0F4C5C", ...COLOURS }).cssVariables;
+    const withOverride = createTheme({
+      brand: "#0F4C5C",
+      ...COLOURS,
+      light: { accent: "#e8eef0" },
+      dark: { sidebar: "#10252b" },
+    }).cssVariables;
+    for (const name of ["--primary", "--destructive", "--success", "--warning", "--ring"]) {
+      expect(withOverride[name], name).toBe(plain[name]);
+    }
+  });
+});
+
 describe("output shape", () => {
   it("writes only generated declarations: every line is a custom property", () => {
     const { css } = createTheme({
