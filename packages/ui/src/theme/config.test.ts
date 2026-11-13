@@ -175,6 +175,18 @@ describe("parseThemeConfig: injection", () => {
     }
   });
 
+  it("rejects bidirectional control characters in name and appName, but keeps Arabic and Hebrew text", () => {
+    // These reorder the text around them, so a name can read differently to how it is stored.
+    const bidi = ["؜", "‎", "‏", "‪", "‫", "‬", "‭", "‮"];
+    for (const mark of [...bidi, "⁦", "⁧", "⁨", "⁩"]) {
+      failure(() => parseThemeConfig({ brand: "#fff", name: `Acme${mark}Ltd` }));
+      failure(() => parseThemeConfig({ brand: "#fff", branding: { appName: `Acme${mark}Ltd` } }));
+    }
+    for (const fine of ["مؤسسة أزمارا", "אזמרה", "Azmara مؤسسة"]) {
+      expect(() => parseThemeConfig({ brand: "#fff", name: fine })).not.toThrow();
+    }
+  });
+
   it("rejects control characters and over-long text in name and appName", () => {
     for (const bad of ["a\u0000b", "a\nb", "", "   ", "x".repeat(81)]) {
       failure(() => parseThemeConfig({ brand: "#fff", name: bad }));
