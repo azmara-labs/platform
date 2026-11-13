@@ -69,6 +69,8 @@ const DATA_URI = /^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
 /**
  * An image reference: an `https:` URL (no credentials) or a small PNG, JPEG or WebP data URI.
  * SVG is refused because it can carry script; a logo that must be SVG is rendered by the app.
+ * The value is checked, never rewritten, and `'`, `(` and `)` are legal in it: the caller escapes it
+ * for the place it uses it (an attribute through a framework, never a hand-built `url(...)`).
  */
 export function isAssetRef(value: unknown): value is string {
   if (typeof value !== "string") return false;

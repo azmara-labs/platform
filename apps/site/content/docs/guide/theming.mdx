@@ -169,6 +169,8 @@ try {
 // => "Invalid theme config:\n  - createTheme: brand must be #rgb, #rrggbb or oklch(L C H); got \"red\""
 ```
 
+The parser checks an image reference but does not rewrite it: `logo`, `logoDark` and `favicon` come back exactly as stored. Characters such as `'`, `(` and `)` are legal in an `https:` URL, so escape the value yourself wherever you place it. Pass it to an `<img src>` or `<link href>` through your framework, which escapes it, and do not build a CSS `url(...)` or an HTML string out of it by hand.
+
 To build an editing form, `@azmr/ui/theme-schema` exports `ThemeConfigSchema`, a Zod schema with a label and a help sentence on every field. Pass it to `fieldsFromSchema` from `@azmr/ui/zod` to describe the controls. The schema and `parseThemeConfig` give the same answer for every JSON value, and for the `undefined` fields that forms send; a test holds them to it on a table of cases and on thousands of generated ones.
 
 ## Apply the theme
