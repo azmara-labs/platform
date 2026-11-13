@@ -120,9 +120,14 @@ export function shiftUntil(
   return undefined;
 }
 
-/** Whether two parsed colours are the same colour, allowing for rounding in the parse. */
+/**
+ * Whether two parsed colours are the same colour, allowing for rounding in the parse. A grey has
+ * no hue, so two greys of the same lightness are the same colour whatever hue they were given.
+ */
 export const sameColour = (a: Oklch, b: Oklch) =>
-  Math.abs(a.l - b.l) < 1e-6 && Math.abs(a.c - b.c) < 1e-6 && Math.abs(a.h - b.h) < 1e-3;
+  Math.abs(a.l - b.l) < 1e-6 &&
+  Math.abs(a.c - b.c) < 1e-6 &&
+  (Math.max(a.c, b.c) < 1e-6 || Math.abs(a.h - b.h) < 1e-3);
 
 export const encode = (v: number) => (v <= 0.0031308 ? 12.92 * v : 1.055 * v ** (1 / 2.4) - 0.055);
 export const decode = (v: number) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);

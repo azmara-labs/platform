@@ -22,6 +22,7 @@ const FIXTURES: [name: string, input: unknown][] = [
   ["empty object", {}],
   ["primary alias", { primary: "#1D4E89" }],
   ["brand and primary equal", { brand: "#1D4E89", primary: "#1d4e89" }],
+  ["brand and primary the same grey", { brand: "oklch(0.6 0 0)", primary: "oklch(0.6 0 200)" }],
   ["oklch brand", { brand: "oklch(0.35 0.1 250)" }],
   [
     "all colours",
