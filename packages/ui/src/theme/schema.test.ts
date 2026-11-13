@@ -87,6 +87,7 @@ const FIXTURES: [name: string, input: unknown][] = [
   ["name blank", { name: "   " }],
   ["name too long", { name: "x".repeat(81) }],
   ["name with control character", { name: "a\u0000b" }],
+  ["name with bidi override", { name: "a‮b" }],
   ["appName too long", { branding: { appName: "x".repeat(81) } }],
   ["svg logo", { branding: { logo: "data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=" } }],
   ["http logo", { branding: { logo: "http://example.com/logo.png" } }],
