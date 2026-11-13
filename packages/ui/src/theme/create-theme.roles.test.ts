@@ -200,6 +200,30 @@ describe("contrast", () => {
     expect(thrown.issues).toEqual(issues);
   });
 
+  it("validateTheme refuses the same non-colour options createTheme refuses", () => {
+    // An editor that calls only validateTheme must not accept a theme that cannot be built.
+    const bad: [string, ThemeOptions][] = [
+      ["radius", { brand: "#0F4C5C", radius: "4vw" }],
+      ["radius break-out", { brand: "#0F4C5C", radius: "4px; } *{display:none" }],
+      ["font", { brand: "#0F4C5C", font: "x; } body { display:none" }],
+      ["density", { brand: "#0F4C5C", density: "huge" as never }],
+      ["scope", { brand: "#0F4C5C", scope: "body > div" }],
+    ];
+    for (const [name, options] of bad) {
+      expect(() => createTheme(options), `createTheme ${name}`).toThrow();
+      expect(() => validateTheme(options), `validateTheme ${name}`).toThrow();
+    }
+    expect(
+      validateTheme({
+        brand: "#0F4C5C",
+        radius: "0.5rem",
+        font: "Inter, sans-serif",
+        density: "compact",
+        scope: ".app",
+      }),
+    ).toEqual([]);
+  });
+
   it("validateTheme returns nothing for a sound theme", () => {
     expect(validateTheme({ brand: "#0F4C5C" })).toEqual([]);
     expect(validateTheme({})).toEqual([]);

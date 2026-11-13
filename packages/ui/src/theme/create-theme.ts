@@ -331,21 +331,50 @@ function resolveTheme(options: ThemeOptions): Resolution {
   return { resolved, issues: checkContrast(full) };
 }
 
-/**
- * Check a theme without building it: the contrast issues, or an empty list. Still throws a
- * `ThemeConfigError` for options that are malformed (a bad colour, an unknown role).
- */
-export function validateTheme(options: ThemeOptions): ThemeIssue[] {
-  return resolveTheme(options).issues;
-}
-
-export function createTheme(options: ThemeOptions = {}): Theme {
+/** The selector the CSS is scoped to. Throws a `ThemeConfigError` for one that is not allowed. */
+function assertScope(options: ThemeOptions): string {
   const scope = options.scope ?? ":root";
   if (!isScope(scope)) {
     throw new ThemeConfigError([
       'scope must be ":root", one class (.name), one id (#name) or one data attribute ([data-name] or [data-name="value"])',
     ]);
   }
+  return scope;
+}
+
+/** The options that are not colours: radius, font and density. Throws for one `createTheme` refuses. */
+function assertPlainOptions(options: ThemeOptions): {
+  radius?: string;
+  font?: string;
+  density?: Density;
+} {
+  const out: { radius?: string; font?: string; density?: Density } = {};
+  if (options.radius !== undefined) out.radius = assertRadius(options.radius);
+  if (options.font !== undefined) out.font = assertFont(options.font);
+  if (options.density !== undefined) {
+    const density = parseDensity(options.density, "comfortable");
+    if (density !== options.density)
+      throw new Error(`createTheme: unknown density ${JSON.stringify(options.density)}`);
+    out.density = density;
+  }
+  return out;
+}
+
+/**
+ * Check a theme without building it: the contrast issues, or an empty list. Throws for options
+ * `createTheme` would refuse, so a theme that passes here can be built: a `ThemeConfigError` for a
+ * bad colour, an unknown role, a tint without a brand or a scope that is not allowed, and an
+ * `Error` for a radius, font or density that is not valid.
+ */
+export function validateTheme(options: ThemeOptions): ThemeIssue[] {
+  assertScope(options);
+  const { issues } = resolveTheme(options);
+  assertPlainOptions(options);
+  return issues;
+}
+
+export function createTheme(options: ThemeOptions = {}): Theme {
+  const scope = assertScope(options);
   const { resolved, issues } = resolveTheme(options);
   // Contrast is enforced for the new options (tint and overrides). Options that existed before
   // are derived to pass by construction and are covered by their own tests, so they never throw.
@@ -355,15 +384,9 @@ export function createTheme(options: ThemeOptions = {}): Theme {
 
   const cssVariables: Record<string, string> = {};
   for (const [role, value] of resolved) cssVariables[cssVar(role)] = toLightDark(value);
-  if (options.radius !== undefined) cssVariables["--radius"] = assertRadius(options.radius);
-  if (options.font !== undefined) cssVariables["--font-sans-stack"] = assertFont(options.font);
-
-  let density: Density | undefined;
-  if (options.density !== undefined) {
-    density = parseDensity(options.density, "comfortable");
-    if (density !== options.density)
-      throw new Error(`createTheme: unknown density ${JSON.stringify(options.density)}`);
-  }
+  const { radius, font, density } = assertPlainOptions(options);
+  if (radius !== undefined) cssVariables["--radius"] = radius;
+  if (font !== undefined) cssVariables["--font-sans-stack"] = font;
 
   const entries = Object.entries(cssVariables);
   const css =
