@@ -89,6 +89,7 @@ const lazyDemos: Record<DemoName, ComponentType> = {
   "stepper/basic": dynamic(() => import("./stepper/basic.demo")),
   "table/basic": dynamic(() => import("./table/basic.demo")),
   "table/sticky": dynamic(() => import("./table/sticky.demo")),
+  "theming/presets": dynamic(() => import("./theming/presets.demo")),
   "toast/actions": dynamic(() => import("./toast/actions.demo")),
   "toast/promise": dynamic(() => import("./toast/promise.demo")),
   "toast/types": dynamic(() => import("./toast/types.demo")),

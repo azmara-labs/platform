@@ -1,6 +1,15 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { createTheme, htmlAttributes } from "@azmr/ui/theme";
+import {
+  createTheme,
+  htmlAttributes,
+  MAX_DATA_URI_CHARS,
+  MAX_THEME_JSON_CHARS,
+  parseThemeJson,
+  ROLES,
+  validateTheme,
+} from "@azmr/ui/theme";
+import { THEME_PRESETS } from "@azmr/ui/theme-presets";
 import { oklch, parse, wcagContrast } from "culori";
 import { describe, expect, it } from "vitest";
 import { parseTokens, splitArgs } from "../scripts/build-tokens";
@@ -25,7 +34,15 @@ describe("the Theming guide's examples", () => {
       "brand",
       "light-brand",
       "invalid",
+      "tint",
+      "override",
+      "contrast-error",
+      "sidebar-brand",
+      "presets",
+      "json",
+      "json-invalid",
       "css",
+      "scope",
       "cookies",
       "cookies-invalid",
       "density",
@@ -36,9 +53,45 @@ describe("the Theming guide's examples", () => {
     "%s: shows the output the package returns",
     async (_n, example) => {
       expect(example.expected, `${example.name} has no // => line`).not.toBeUndefined();
-      expect(await runExample(example, { createTheme, htmlAttributes })).toEqual(example.expected);
+      expect(
+        await runExample(example, {
+          createTheme,
+          htmlAttributes,
+          validateTheme,
+          parseThemeJson,
+          THEME_PRESETS,
+        }),
+      ).toEqual(example.expected);
     },
   );
+});
+
+describe("the guide covers the whole theme schema", () => {
+  it("names every colour role", () => {
+    for (const role of ROLES) expect(guide, role).toContain(`\`${role}\``);
+  });
+
+  it("names the two new entry points and the preset demo", () => {
+    expect(guide).toContain("@azmr/ui/theme-schema");
+    expect(guide).toContain("@azmr/ui/theme-presets");
+    expect(guide).toContain('<Demo name="theming/presets" />');
+  });
+
+  it("states the size limits the package enforces", () => {
+    expect(guide).toContain(MAX_THEME_JSON_CHARS.toLocaleString("en-NZ"));
+    expect(guide).toContain(MAX_DATA_URI_CHARS.toLocaleString("en-NZ"));
+    expect(guide).not.toContain("16,384");
+  });
+
+  it("tells strict Content-Security-Policy users to send a nonced style element", () => {
+    expect(guide).toContain("style-src");
+    expect(guide).toContain("<style nonce={nonce}>{theme.css}</style>");
+  });
+
+  it("warns that a brand-coloured sidebar needs its own ring and active-item colours", () => {
+    expect(guide).toContain("sidebar-ring");
+    expect(guide).toContain("sidebar-primary");
+  });
 });
 
 describe("the claims in the guide's prose", () => {

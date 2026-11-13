@@ -82,6 +82,7 @@ import StateViewStates from "./state-view/states.demo";
 import StepperBasic from "./stepper/basic.demo";
 import TableBasic from "./table/basic.demo";
 import TableSticky from "./table/sticky.demo";
+import ThemingPresets from "./theming/presets.demo";
 import ToastActions from "./toast/actions.demo";
 import ToastPromise from "./toast/promise.demo";
 import ToastTypes from "./toast/types.demo";
@@ -141,6 +142,7 @@ export const demos = {
   "stepper/basic": StepperBasic,
   "table/basic": TableBasic,
   "table/sticky": TableSticky,
+  "theming/presets": ThemingPresets,
   "toast/actions": ToastActions,
   "toast/promise": ToastPromise,
   "toast/types": ToastTypes,
