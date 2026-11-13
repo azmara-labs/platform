@@ -112,6 +112,8 @@ describe("@azmr/ui entry points have docs", () => {
     "error-boundary": "state-view",
     rhf: "/docs/guide/forms",
     zod: "/docs/guide/forms",
+    "theme-schema": "/docs/guide/theming",
+    "theme-presets": "/docs/guide/theming",
   };
 
   // Entries with no page of their own, each with the reason. Remove a line when its page lands.

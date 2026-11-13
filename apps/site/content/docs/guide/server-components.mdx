@@ -73,7 +73,9 @@ These are plain functions with no React rendering and no browser globals, so the
 | Import path | What it is |
 | --- | --- |
 | `@azmr/ui/lib` | Helpers such as `cn` |
-| `@azmr/ui/theme` | `createTheme`, the cookie helpers and `htmlAttributes` |
+| `@azmr/ui/theme` | `createTheme`, `validateTheme`, `parseThemeJson`, the cookie helpers and `htmlAttributes` |
+| `@azmr/ui/theme-schema` | `ThemeConfigSchema`, the Zod schema for a stored theme (needs `zod`) |
+| `@azmr/ui/theme-presets` | `THEME_PRESETS`, three ready-made themes |
 | `@azmr/ui/zod` | `zodResolver` and `fieldsFromSchema`, so a schema module can be shared with the server |
 | `@azmr/ui/icons/mui-map` | Migration map from MUI icon names |
 | `@azmr/ui/typography/mui-map` | Migration map from MUI typography variants |

@@ -83,6 +83,7 @@ export const demoNames: ReadonlySet<string> = new Set([
   "stepper/basic",
   "table/basic",
   "table/sticky",
+  "theming/presets",
   "toast/actions",
   "toast/promise",
   "toast/types",

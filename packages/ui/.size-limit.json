@@ -29,7 +29,18 @@
   {
     "name": "@azmr/ui/theme",
     "path": "dist/theme.js",
-    "limit": "4 kB"
+    "limit": "7 kB"
+  },
+  {
+    "name": "@azmr/ui/theme-schema",
+    "path": "dist/theme-schema.js",
+    "ignore": ["zod"],
+    "limit": "3 kB"
+  },
+  {
+    "name": "@azmr/ui/theme-presets",
+    "path": "dist/theme-presets.js",
+    "limit": "1 kB"
   },
   {
     "name": "@azmr/ui/react",

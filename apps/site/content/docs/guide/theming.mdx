@@ -1,6 +1,6 @@
 ---
 title: Theming
-description: Change the brand colours, switch between light and dark, set density, and see exactly what createTheme guarantees.
+description: Change the brand colour, set light and dark colours role by role, set density, and see exactly what createTheme guarantees.
 ---
 
 `@azmr/ui` is themed with CSS custom properties: the [design tokens](/docs/guide/tokens). You can override a token in plain CSS, or call `createTheme` to derive a whole accessible set from your brand colours. The examples with an `// =>` line on this page are run by the docs tests, so the output shown is what the package returns.
@@ -55,6 +55,122 @@ try {
 
 `radius` must be a number in `rem` or `px`, `font` must be a short font-family list (letters, digits, spaces, commas, quotes, dots, hyphens and underscores, 200 characters at most), and `density` must be `compact`, `comfortable` or `spacious`.
 
+## Set light and dark separately
+
+Beyond the brand colour, `createTheme` can set every colour **role**, and each role has its own light and dark value. A role is a named colour that components use, such as `background` or `sidebar-accent`. Components only use roles and never check the mode, so changing a role changes every component that uses it. There are 35:
+
+| Group | Roles |
+|---|---|
+| Page and surfaces | `background`, `foreground`, `card`, `card-foreground`, `popover`, `popover-foreground`, `muted`, `muted-foreground`, `accent`, `accent-foreground` |
+| Actions | `primary`, `primary-foreground`, `secondary`, `secondary-foreground` |
+| Status | `destructive`, `destructive-foreground`, `success`, `success-foreground`, `warning`, `warning-foreground`, `warning-text`, `info`, `info-foreground` |
+| Lines and focus | `border`, `input`, `ring` |
+| Overlay | `scrim` |
+| Sidebar | `sidebar`, `sidebar-foreground`, `sidebar-primary`, `sidebar-primary-foreground`, `sidebar-accent`, `sidebar-accent-foreground`, `sidebar-border`, `sidebar-ring` |
+
+`scrim`, the layer behind a modal, cannot be overridden. The chart colours are not roles.
+
+### Three ways to define a theme
+
+They build on each other, so use as few as you need.
+
+1. **Derive.** Give only a `brand` colour (the alias of `primary`). Surfaces stay the neutral greys, and the brand appears on buttons, links and the focus ring. This is everything above.
+2. **Tint.** Add `tint` and every neutral grey leans a few degrees toward the brand hue, so the app feels on-brand without coloured panels. `"brand"` is a light tint; a number from 0 to 0.04 sets the amount. A brand with no hue (black, white, grey) gets no tint.
+3. **Override.** Set any role for one mode with `light` or `dark`. The other mode keeps the derived or default value.
+
+Tint adds the neutral surface and sidebar roles after the six brand variables:
+
+```ts example=tint result=surfaces
+const theme = createTheme({ brand: "#0F4C5C", tint: "brand" });
+const surfaces = Object.keys(theme.cssVariables).slice(6);
+// => ["--background","--foreground","--card","--card-foreground","--popover","--popover-foreground","--muted","--muted-foreground","--accent","--accent-foreground","--sidebar","--sidebar-foreground","--sidebar-accent","--sidebar-accent-foreground"]
+```
+
+An override replaces one role in one mode, here a deep teal page in dark mode while light mode keeps its default:
+
+```ts example=override result=background
+const theme = createTheme({
+  brand: "#0F4C5C",
+  dark: { background: "oklch(0.2 0.03 220)" },
+});
+const background = theme.cssVariables["--background"];
+// => "light-dark(oklch(1 0 0), oklch(0.2 0.03 220))"
+```
+
+Override values are `#rgb`, `#rrggbb` or `oklch(L C H)`. A role name that does not exist is an error, and so is `scrim`. In dark mode `border`, `input` and `sidebar-border` default to a translucent white, which stays unless you override it with an opaque colour.
+
+### Contrast is checked
+
+Once you use `tint`, `light` or `dark`, the finished theme is checked in both modes: every foreground on its surface at **4.5:1**, the status colours as text on the page and on cards at 4.5:1, and the focus rings at **3:1**. A theme that fails is rejected with a message that names the pair, so you cannot ship text that is unreadable:
+
+```ts example=contrast-error result=message
+let message;
+try {
+  createTheme({ brand: "#0F4C5C", light: { foreground: "#ffffff" } });
+} catch (error) {
+  message = error.message;
+}
+// => "Theme fails contrast checks:\n  - foreground on background (light): 1.00:1, needs 4.5:1"
+```
+
+The error is a `ThemeContrastError`, and its `issues` list has the role, the surface, the mode and both ratios. `validateTheme(options)` returns the same list without throwing, which is what an editor wants. Your override is never adjusted for you, because you asked for that exact colour. Options that existed before these (`primary`, `secondary` and the status colours on their own) are derived to pass and never throw.
+
+Borders are not checked in this version: the default `border` and `input` do not reach 3:1 on the page, and in dark mode they are translucent. Making form-control borders meet that is a separate change to the tokens.
+
+### A brand-coloured sidebar
+
+If you paint the sidebar in the brand colour, two roles that are derived from the brand end up the same colour as the sidebar: `sidebar-ring`, the focus ring inside it, and `sidebar-primary`, the active item. The check catches the ring and the text colour. It does not check `sidebar-primary`, so set both yourself:
+
+```ts example=sidebar-brand result=problems
+const problems = validateTheme({
+  brand: "#0F4C5C",
+  light: { sidebar: "#0F4C5C" },
+}).map((issue) => issue.message);
+// => ["sidebar-foreground on sidebar (light): 2.08:1, needs 4.5:1","sidebar-ring on sidebar (light): 1.00:1, needs 3:1"]
+```
+
+The `branded` preset below does exactly this: it sets `sidebar-foreground`, `sidebar-primary` and its foreground, `sidebar-accent` and its foreground, and `sidebar-ring`.
+
+### Presets
+
+`@azmr/ui/theme-presets` exports `THEME_PRESETS`: three ready-made themes for a made-up company, one for each way above. They are plain data, so use one as it is, or copy it and change the brand.
+
+```ts example=presets result=names
+import { THEME_PRESETS } from "@azmr/ui/theme-presets";
+
+const names = Object.keys(THEME_PRESETS);
+// => ["neutral","tinted","branded"]
+```
+
+<Demo name="theming/presets" />
+
+The presets are frozen, so one part of an app cannot change what another part reads. Copy with `{ ...THEME_PRESETS.branded, brand: "#7B1FA2" }`.
+
+### Store and share a theme
+
+A theme config is plain JSON: the same options, plus an optional `version`, a `name` and `branding` (an `appName` and `logo`, `logoDark` and `favicon` images). `parseThemeJson` reads one from text you do not control, such as a database column or an upload:
+
+```ts example=json result=config
+import { parseThemeJson } from "@azmr/ui/theme";
+
+const config = parseThemeJson('{"version":1,"brand":"#0F4C5C","tint":"brand"}');
+// => {"version":1,"brand":"#0F4C5C","tint":"brand"}
+```
+
+It is strict because the result becomes CSS. It refuses text over 131,072 characters before parsing it, any key it does not know, and any value that is not exactly a colour, size or name it accepts. A `tint` needs a `brand` to lean toward, and a value of `undefined` counts as absent. Images must be `https:` URLs or `data:` PNG, JPEG or WebP images of at most 32,768 characters each, so three images and every role override always fit in the text limit; **SVG is not accepted**, because it can carry script. Every problem is reported at once:
+
+```ts example=json-invalid result=message
+let message;
+try {
+  parseThemeJson('{"brand":"red"}');
+} catch (error) {
+  message = error.message;
+}
+// => "Invalid theme config:\n  - createTheme: brand must be #rgb, #rrggbb, oklch(L C H) or { l, c, h }; got \"red\""
+```
+
+To build an editing form, `@azmr/ui/theme-schema` exports `ThemeConfigSchema`, a Zod schema with a label and a help sentence on every field. Pass it to `fieldsFromSchema` from `@azmr/ui/zod` to describe the controls. The schema and `parseThemeConfig` give the same answer for every JSON value, and for the `undefined` fields that forms send; a test holds them to it on a table of cases and on thousands of generated ones.
+
 ## Apply the theme
 
 A theme is a set of custom properties, so apply it to `<html>`, or to any element to theme only what is inside it:
@@ -79,9 +195,26 @@ const css = theme.css;
 // => ":root {\n  --radius: 0.5rem;\n  --font-sans-stack: Inter, sans-serif;\n}"
 ```
 
-Prefer the `style` attribute: an inline style always wins. If you output `theme.css` in a `<style>` tag, put it **after** the `@azmr/ui` stylesheet. The tokens' own scopes (`.dark`, `[data-theme]`) have the same specificity as `:root`, so for the same element the later rule wins.
+To put the rule on one part of the page, such as a panel with its own branding, pass `scope`. It must be `:root`, one class, one id or one data attribute, and nothing that combines selectors, so a stored value cannot widen the rule beyond the element you named:
+
+```ts example=scope result=firstLine
+const firstLine = createTheme({ brand: "#0F4C5C", scope: ".org-theme" }).css.split("\n")[0];
+// => ".org-theme {"
+```
+
+Where your Content-Security-Policy allows it (see below), prefer the `style` attribute: an inline style always wins. If you output `theme.css` in a `<style>` tag, put it **after** the `@azmr/ui` stylesheet. The tokens' own scopes (`.dark`, `[data-theme]`) have the same specificity as `:root`, so for the same element the later rule wins.
 
 A theme's colours set on an outer element do not reach inside a nested `data-theme` or `.dark` scope, because that scope re-declares every colour token. Put the theme's variables on the scope element itself, or inside it.
+
+### Under a strict Content-Security-Policy
+
+A policy that allows styles only from your own origin and nonces (`style-src 'self' 'nonce-…'`, no `'unsafe-inline'`) blocks a `style` attribute in the HTML your server sends. A nonce can be put on a `<style>` element but not on an attribute, so the `style` prop shown above is blocked when it is rendered on the server. Send the theme as a `<style>` element with your nonce instead:
+
+```tsx
+<style nonce={nonce}>{theme.css}</style>
+```
+
+`theme.css` is built only from validated colours, sizes and font names, so it holds no markup, and React writes it as text. Put it after the `@azmr/ui` stylesheet. If your policy can allow `style-src-attr 'unsafe-inline'`, the `style` prop works too. Setting variables from client script with `element.style.setProperty` is never blocked.
 
 To change one token by hand, override it for light and for dark:
 
