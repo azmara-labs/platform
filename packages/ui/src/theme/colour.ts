@@ -79,6 +79,9 @@ export function fromHex(hex: string): Oklch {
   return color.c < 0.004 ? { l: color.l, c: 0, h: 0 } : color;
 }
 
+const TEXT_FORMS = "#rgb, #rrggbb or oklch(L C H)"; // conventions-ignore: the message names the accepted colour syntax
+const TEXT_OR_OBJECT_FORMS = "#rgb, #rrggbb, oklch(L C H) or { l, c, h }"; // conventions-ignore: the message names the accepted colour syntax
+
 /**
  * Parses a colour option. `name` is the option, so an error says which one was wrong. `accepts` is
  * what the caller can give: a stored theme is JSON, which holds text but never an `{ l, c, h }`
@@ -108,10 +111,7 @@ export function parseColour(
     const l = Number(ok[1]) / (ok[2] ? 100 : 1);
     return parseColour({ l, c: Number(ok[3]), h: Number(ok[4]) }, name, accepts);
   }
-  const forms =
-    accepts === "text"
-      ? "#rgb, #rrggbb or oklch(L C H)"
-      : "#rgb, #rrggbb, oklch(L C H) or { l, c, h }"; // conventions-ignore: the message names the accepted colour syntax
+  const forms = accepts === "text" ? TEXT_FORMS : TEXT_OR_OBJECT_FORMS;
   throw new Error(`createTheme: ${name} must be ${forms}; got ${JSON.stringify(text)}`);
 }
 
