@@ -113,20 +113,20 @@ try {
 // => "Theme fails contrast checks:\n  - foreground on background (light): 1.00:1, needs 4.5:1"
 ```
 
-The error is a `ThemeContrastError`, and its `issues` list has the role, the surface, the mode and both ratios. `validateTheme(options)` returns the same list without throwing, which is what an editor wants. Your override is never adjusted for you, because you asked for that exact colour. Options that existed before these (`primary`, `secondary` and the status colours on their own) are derived to pass and never throw.
+The error is a `ThemeContrastError`, and its `issues` list has the role, the surface, the mode and both ratios. `validateTheme(options)` returns the same list without throwing, which is what an editor wants. Your override is never adjusted for you, because you asked for that exact colour. The colours `createTheme` derives for you (from `primary`, `secondary`, `success`, `warning`, `info` and `destructive`) follow the `background`, `card` and `popover` you override: they are derived for those surfaces, and a mode whose surfaces are dark is derived the way a dark mode is. A role you did not ask `createTheme` to derive stays at its default and is checked as it is. Options that existed before these (`primary`, `secondary` and the status colours on their own) are derived to pass and never throw.
 
 Borders are not checked in this version: the default `border` and `input` do not reach 3:1 on the page, and in dark mode they are translucent. Making form-control borders meet that is a separate change to the tokens.
 
 ### A brand-coloured sidebar
 
-If you paint the sidebar in the brand colour, two roles that are derived from the brand end up the same colour as the sidebar: `sidebar-ring`, the focus ring inside it, and `sidebar-primary`, the active item. The check catches the ring and the text colour. It does not check `sidebar-primary`, so set both yourself:
+If you paint the sidebar in the brand colour, `sidebar-ring`, the focus ring inside it, is derived for that sidebar and stays visible. `sidebar-primary`, the active item, is derived from the brand and ends up the same colour as the sidebar. The check catches the text colour. It does not check `sidebar-primary`, so set it yourself, with its foreground:
 
 ```ts example=sidebar-brand result=problems
 const problems = validateTheme({
   brand: "#0F4C5C",
   light: { sidebar: "#0F4C5C" },
 }).map((issue) => issue.message);
-// => ["sidebar-foreground on sidebar (light): 2.08:1, needs 4.5:1","sidebar-ring on sidebar (light): 1.00:1, needs 3:1"]
+// => ["sidebar-foreground on sidebar (light): 2.08:1, needs 4.5:1"]
 ```
 
 The `branded` preset below does exactly this: it sets `sidebar-foreground`, `sidebar-primary` and its foreground, `sidebar-accent` and its foreground, and `sidebar-ring`.

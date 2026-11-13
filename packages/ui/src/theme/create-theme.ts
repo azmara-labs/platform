@@ -93,67 +93,165 @@ const AA_TEXT = 4.5;
 const AA_SURFACE = 4.55; // a little over 4.5:1 so rounding in the output cannot dip below it
 const AA_NON_TEXT = 3.2; // a little over 3:1 so rounding in the output cannot dip below it
 
-/** The surfaces a button sits on: the page, and in dark mode also a card. */
-const SURFACES: Record<"light" | "dark", Oklch[]> = {
-  light: [WHITE],
-  dark: [NEAR_BLACK, DARK_CARD],
+/**
+ * The surfaces a mode's colours sit on, and which way to derive for them. With no override these
+ * are the defaults. An overridden `background`, `card` or `popover` replaces its default, so a
+ * colour is derived for the surface the app really uses, and a mode whose surfaces are dark is
+ * derived as a dark mode is (light labels, light text), whatever the mode is called.
+ */
+interface Surfaces {
+  /** Which derivation fits: `"light"` for light surfaces, `"dark"` for dark ones. */
+  style: Mode;
+  list: readonly Oklch[];
+}
+
+const DEFAULT_SURFACES: Record<Mode, Surfaces> = {
+  light: { style: "light", list: [WHITE] },
+  dark: { style: "dark", list: [NEAR_BLACK, DARK_CARD] },
 };
+const SURFACE_DEFAULTS: Record<Mode, Record<"background" | "card" | "popover", Oklch>> = {
+  light: { background: WHITE, card: WHITE, popover: WHITE },
+  dark: { background: NEAR_BLACK, card: DARK_CARD, popover: DARK_CARD },
+};
+/** Relative luminance where black and white text read equally well: darker is a dark surface. */
+const DARK_SURFACE_LUMINANCE = 0.179;
+
+/** The surfaces for `mode`. An override that cannot be read is left for `applyOverrides` to report. */
+function surfacesFor(options: ThemeOptions, mode: Mode): Surfaces {
+  const overrides: unknown = options[mode];
+  if (typeof overrides !== "object" || overrides === null || Array.isArray(overrides)) {
+    return DEFAULT_SURFACES[mode];
+  }
+  const given = overrides as Record<string, string | Oklch | undefined>;
+  const roles = ["background", "card", "popover"] as const;
+  if (roles.every((role) => given[role] === undefined)) return DEFAULT_SURFACES[mode];
+  const list = roles.map((role) => {
+    const value = given[role];
+    if (value === undefined) return SURFACE_DEFAULTS[mode][role];
+    try {
+      return parseColour(value, `${mode}.${role}`);
+    } catch {
+      return SURFACE_DEFAULTS[mode][role];
+    }
+  });
+  return { style: styleOf(list, mode), list };
+}
+
+/** Dark when every surface is dark, light when none is, and the mode's own style when mixed. */
+function styleOf(list: readonly Oklch[], mode: Mode): Mode {
+  const dark = list.map((colour) => luminance(colour) < DARK_SURFACE_LUMINANCE);
+  return dark.every(Boolean) ? "dark" : dark.some(Boolean) ? mode : "light";
+}
+
+/**
+ * The sidebar is a surface of its own. With no `sidebar` override it is the default surface for
+ * the mode, whatever the page and cards were overridden to.
+ */
+function sidebarSurfacesFor(options: ThemeOptions, mode: Mode): Surfaces {
+  const overrides: unknown = options[mode];
+  const value =
+    typeof overrides === "object" && overrides !== null && !Array.isArray(overrides)
+      ? (overrides as Record<string, string | Oklch | undefined>).sidebar
+      : undefined;
+  if (value === undefined) return DEFAULT_SURFACES[mode];
+  try {
+    const list = [parseColour(value, `${mode}.sidebar`)];
+    return { style: styleOf(list, mode), list };
+  } catch {
+    return DEFAULT_SURFACES[mode];
+  }
+}
 
 // A button's background blends with what is behind it on hover (`hover:bg-X/90`, secondary `/80`).
 // Browsers mix in gamma-encoded sRGB, so a mid-tone colour moves a lot toward white.
 const HOVER_ALPHA = 0.9;
 const SECONDARY_HOVER_ALPHA = 0.8;
 
+/** Whether `colour`, used as text, reads at `ratio` on every surface. */
+function readsOn(colour: Oklch, surfaces: Surfaces, ratio: number = AA_SURFACE): boolean {
+  return surfaces.list.every((surface) => contrast(colour, surface) >= ratio);
+}
+
 /**
- * Whether `fg` is readable on `bg` at rest AND on `bg` blended at `alpha` over every surface in
- * the mode. This is what keeps a solid button's label readable while the pointer is over it.
+ * Whether `fg` is readable on `bg` at rest AND on `bg` blended at `alpha` over every surface.
+ * This is what keeps a solid button's label readable while the pointer is over it.
  */
 function holdsOnHover(
   bg: Oklch,
   fg: Oklch,
-  mode: "light" | "dark",
+  surfaces: Surfaces,
   alpha: number = HOVER_ALPHA,
 ): boolean {
   if (contrast(bg, fg) < AA_SURFACE) return false;
-  return SURFACES[mode].every(
+  return surfaces.list.every(
     (surface) =>
       contrastOfLuminance(luminance(fg), mixedLuminance(bg, surface, alpha)) >= AA_SURFACE,
   );
 }
 
-/** Light mode: prefer white text (darkening the brand a little if needed), else dark text. */
-function lightPair(brand: Oklch, alpha: number = HOVER_ALPHA): { bg: Oklch; fg: Oklch } {
-  const withWhite = shiftUntil(brand, -1, 0.12, (c) => holdsOnHover(c, WHITE, "light", alpha));
+/** Light surfaces: prefer white text (darkening the brand a little if needed), else dark text. */
+function lightPair(
+  brand: Oklch,
+  surfaces: Surfaces,
+  alpha: number = HOVER_ALPHA,
+): { bg: Oklch; fg: Oklch } {
+  const withWhite = shiftUntil(brand, -1, 0.12, (c) => holdsOnHover(c, WHITE, surfaces, alpha));
   if (withWhite) return { bg: withWhite, fg: WHITE };
-  const withBlack = shiftUntil(brand, 1, 0.3, (c) => holdsOnHover(c, NEAR_BLACK, "light", alpha));
+  const withBlack = shiftUntil(brand, 1, 0.3, (c) => holdsOnHover(c, NEAR_BLACK, surfaces, alpha));
   if (withBlack) return { bg: withBlack, fg: NEAR_BLACK };
-  const forced = shiftUntil(brand, -1, 1, (c) => holdsOnHover(c, WHITE, "light", alpha));
+  const forced = shiftUntil(brand, -1, 1, (c) => holdsOnHover(c, WHITE, surfaces, alpha));
   return { bg: forced ?? clampToGamut({ ...brand, l: 0.2 }), fg: WHITE };
 }
 
-/** Dark mode: a lighter primary with dark text. */
-function darkPair(brand: Oklch, alpha: number = HOVER_ALPHA): { bg: Oklch; fg: Oklch } {
+/** Dark surfaces: a lighter primary with dark text. */
+function darkPair(
+  brand: Oklch,
+  surfaces: Surfaces,
+  alpha: number = HOVER_ALPHA,
+): { bg: Oklch; fg: Oklch } {
   const start = clampToGamut({ ...brand, l: Math.min(0.88, Math.max(0.7, brand.l)) });
-  const bg = shiftUntil(start, 1, 0.3, (c) => holdsOnHover(c, NEAR_BLACK, "dark", alpha)) ?? start;
+  const bg =
+    shiftUntil(start, 1, 0.3, (c) => holdsOnHover(c, NEAR_BLACK, surfaces, alpha)) ?? start;
   return { bg, fg: NEAR_BLACK };
+}
+
+/** A solid colour and its label, derived for the surfaces it sits on. */
+function pairFor(
+  brand: Oklch,
+  surfaces: Surfaces,
+  alpha: number = HOVER_ALPHA,
+): { bg: Oklch; fg: Oklch } {
+  return surfaces.style === "light"
+    ? lightPair(brand, surfaces, alpha)
+    : darkPair(brand, surfaces, alpha);
 }
 
 /**
  * A status colour (success, info, destructive) is used twice: as a button or badge surface with
- * its foreground on top, and as TEXT on the page and on cards. So it must satisfy both: in light
- * mode dark enough for white text on it, including on hover (which also makes it readable on
- * white); in dark mode light enough for near-black text on it, including on hover, and readable
- * on the dark page and card.
+ * its foreground on top, and as TEXT on the page and on cards. So it must satisfy both: on light
+ * surfaces dark enough for white text on it, including on hover, and readable on the surfaces; on
+ * dark surfaces light enough for near-black text on it, including on hover, and readable on the
+ * page and card.
  */
-function statusPair(brand: Oklch, mode: "light" | "dark"): { bg: Oklch; fg: Oklch } {
-  if (mode === "light") {
-    const bg = shiftUntil(brand, -1, 1, (c) => holdsOnHover(c, WHITE, "light"));
+function statusPair(brand: Oklch, surfaces: Surfaces): { bg: Oklch; fg: Oklch } {
+  if (surfaces.style === "light") {
+    const bg = shiftUntil(
+      brand,
+      -1,
+      1,
+      (c) => holdsOnHover(c, WHITE, surfaces) && readsOn(c, surfaces),
+    );
     return { bg: bg ?? clampToGamut({ ...brand, l: 0.2 }), fg: WHITE };
   }
-  // Lightness is floored at 0.7, which on its own is more than 6:1 on the dark page and card, so
-  // only the near-black label constrains the result.
+  // On the default dark surfaces lightness is floored at 0.7, which on its own is more than 6:1,
+  // so only the near-black label constrains the result. Lighter surfaces need `readsOn` too.
   const start = clampToGamut({ ...brand, l: Math.min(0.88, Math.max(0.7, brand.l)) });
-  const bg = shiftUntil(start, 1, 0.3, (c) => holdsOnHover(c, NEAR_BLACK, "dark"));
+  const bg = shiftUntil(
+    start,
+    1,
+    0.3,
+    (c) => holdsOnHover(c, NEAR_BLACK, surfaces) && readsOn(c, surfaces),
+  );
   return { bg: bg ?? start, fg: NEAR_BLACK };
 }
 
@@ -161,40 +259,37 @@ function statusPair(brand: Oklch, mode: "light" | "dark"): { bg: Oklch; fg: Oklc
  * Warning is a bright surface with dark text on it, plus a separate darker colour that is
  * readable as text on the page (a bright yellow is not, on white).
  */
-function warningColours(
-  brand: Oklch,
-  mode: "light" | "dark",
-): { bg: Oklch; fg: Oklch; text: Oklch } {
+function warningColours(brand: Oklch, surfaces: Surfaces): { bg: Oklch; fg: Oklch; text: Oklch } {
   const start = clampToGamut({ ...brand, l: Math.min(0.9, Math.max(0.7, brand.l)) });
-  if (mode === "light") {
+  if (surfaces.style === "light") {
     const bg =
-      shiftUntil(start, 1, 0.3, (c) => holdsOnHover(c, WARNING_FOREGROUND, "light")) ?? start;
-    const text = shiftUntil(brand, -1, 1, (c) => contrast(c, WHITE) >= AA_TEXT);
+      shiftUntil(start, 1, 0.3, (c) => holdsOnHover(c, WARNING_FOREGROUND, surfaces)) ?? start;
+    const text = shiftUntil(brand, -1, 1, (c) => readsOn(c, surfaces, AA_TEXT));
     return { bg, fg: WARNING_FOREGROUND, text: text ?? clampToGamut({ ...brand, l: 0.2 }) };
   }
-  // In dark mode one light colour serves as the surface and as text. The warning foreground is
-  // lighter than the page and the card, so clearing it also clears them.
-  const both = shiftUntil(start, 1, 0.3, (c) => holdsOnHover(c, WARNING_FOREGROUND, "dark"));
+  // On dark surfaces one light colour serves as the surface and as text. On the default surfaces
+  // the warning foreground is lighter than the page and the card, so clearing it also clears them;
+  // lighter surfaces need `readsOn` as well.
+  const both = shiftUntil(
+    start,
+    1,
+    0.3,
+    (c) => holdsOnHover(c, WARNING_FOREGROUND, surfaces) && readsOn(c, surfaces, AA_TEXT),
+  );
   const colour = both ?? start;
   return { bg: colour, fg: WARNING_FOREGROUND, text: colour };
 }
 
 /** Focus ring: the brand hue, shifted until it is visible against every surface. */
-function ringFor(brand: Oklch, mode: "light" | "dark"): Oklch {
-  const surfaces: Oklch[] =
-    mode === "light"
-      ? [WHITE]
-      : [
-          { l: 0.145, c: 0, h: 0 },
-          { l: 0.205, c: 0, h: 0 },
-        ];
+function ringFor(brand: Oklch, surfaces: Surfaces): Oklch {
+  const light = surfaces.style === "light";
   const start = clampToGamut({
-    l: mode === "light" ? Math.min(brand.l, 0.6) : Math.max(brand.l, 0.7),
+    l: light ? Math.min(brand.l, 0.6) : Math.max(brand.l, 0.7),
     c: Math.min(brand.c, 0.18),
     h: brand.h,
   });
-  const ok = (c: Oklch) => surfaces.every((s) => contrast(c, s) >= AA_NON_TEXT);
-  return shiftUntil(start, mode === "light" ? -1 : 1, 0.6, ok) ?? start;
+  const ok = (c: Oklch) => surfaces.list.every((s) => contrast(c, s) >= AA_NON_TEXT);
+  return shiftUntil(start, light ? -1 : 1, 0.6, ok) ?? start;
 }
 
 // ---- public API ----------------------------------------------------------------------------
@@ -279,11 +374,12 @@ interface Resolution {
 /** Derive every role the options ask for, then tint, then apply overrides, then check contrast. */
 function resolveTheme(options: ThemeOptions): Resolution {
   const resolved: Resolved = new Map();
+  const surfaces = { light: surfacesFor(options, "light"), dark: surfacesFor(options, "dark") };
 
   if (options.secondary !== undefined) {
     const brand = parseColour(options.secondary, "secondary");
-    const light = lightPair(brand, SECONDARY_HOVER_ALPHA);
-    const dark = darkPair(brand, SECONDARY_HOVER_ALPHA);
+    const light = pairFor(brand, surfaces.light, SECONDARY_HOVER_ALPHA);
+    const dark = pairFor(brand, surfaces.dark, SECONDARY_HOVER_ALPHA);
     setRole(resolved, "secondary", light.bg, dark.bg);
     setRole(resolved, "secondary-foreground", light.fg, dark.fg);
   }
@@ -291,15 +387,15 @@ function resolveTheme(options: ThemeOptions): Resolution {
     const input = options[name];
     if (input === undefined) continue;
     const brand = parseColour(input, name);
-    const light = statusPair(brand, "light");
-    const dark = statusPair(brand, "dark");
+    const light = statusPair(brand, surfaces.light);
+    const dark = statusPair(brand, surfaces.dark);
     setRole(resolved, name, light.bg, dark.bg);
     setRole(resolved, `${name}-foreground`, light.fg, dark.fg);
   }
   if (options.warning !== undefined) {
     const brand = parseColour(options.warning, "warning");
-    const light = warningColours(brand, "light");
-    const dark = warningColours(brand, "dark");
+    const light = warningColours(brand, surfaces.light);
+    const dark = warningColours(brand, surfaces.dark);
     setRole(resolved, "warning", light.bg, dark.bg);
     setRole(resolved, "warning-foreground", light.fg, dark.fg);
     setRole(resolved, "warning-text", light.text, dark.text);
@@ -309,16 +405,21 @@ function resolveTheme(options: ThemeOptions): Resolution {
   if (brandInput !== undefined) {
     const brand = parseColour(brandInput, options.primary !== undefined ? "primary" : "brand");
     brandColour = brand;
-    const light = lightPair(brand);
-    const dark = darkPair(brand);
-    const ringLight = ringFor(brand, "light");
-    const ringDark = ringFor(brand, "dark");
+    const light = pairFor(brand, surfaces.light);
+    const dark = pairFor(brand, surfaces.dark);
+    const ringLight = ringFor(brand, surfaces.light);
+    const ringDark = ringFor(brand, surfaces.dark);
     setRole(resolved, "primary", light.bg, dark.bg);
     setRole(resolved, "primary-foreground", light.fg, dark.fg);
     setRole(resolved, "ring", ringLight, ringDark);
     setRole(resolved, "sidebar-primary", light.bg, dark.bg);
     setRole(resolved, "sidebar-primary-foreground", light.fg, dark.fg);
-    setRole(resolved, "sidebar-ring", ringLight, ringDark);
+    setRole(
+      resolved,
+      "sidebar-ring",
+      ringFor(brand, sidebarSurfacesFor(options, "light")),
+      ringFor(brand, sidebarSurfacesFor(options, "dark")),
+    );
   }
 
   applyTint(resolved, options, brandColour);
