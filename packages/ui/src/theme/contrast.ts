@@ -44,6 +44,8 @@ export const TEXT_PAIRS: readonly Pair[] = [
   ["success", "card"],
   ["warning-text", "background"],
   ["warning-text", "card"],
+  ["primary-text", "background"],
+  ["primary-text", "card"],
   ["info", "background"],
   ["info", "card"],
 ];

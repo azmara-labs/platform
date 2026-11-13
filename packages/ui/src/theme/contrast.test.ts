@@ -38,6 +38,8 @@ describe("the pair tables", () => {
     expect(has(TEXT_PAIRS, "sidebar-accent-foreground", "sidebar-accent")).toBe(true);
     expect(has(TEXT_PAIRS, "destructive", "card")).toBe(true);
     expect(has(TEXT_PAIRS, "warning-text", "background")).toBe(true);
+    expect(has(TEXT_PAIRS, "primary-text", "background")).toBe(true);
+    expect(has(TEXT_PAIRS, "primary-text", "card")).toBe(true);
     expect(has(NON_TEXT_PAIRS, "ring", "background")).toBe(true);
   });
 });

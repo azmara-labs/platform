@@ -99,7 +99,7 @@ describe("THEME_PRESETS", () => {
 
   it("neutral changes only the brand-derived variables", () => {
     const keys = Object.keys(createTheme(THEME_PRESETS.neutral).cssVariables);
-    expect(keys).toHaveLength(6);
+    expect(keys).toHaveLength(7);
     expect(keys).not.toContain("--background");
   });
 

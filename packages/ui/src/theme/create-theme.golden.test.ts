@@ -2,7 +2,19 @@ import { describe, expect, it } from "vitest";
 import { createTheme, type ThemeOptions } from "./create-theme.js";
 
 // Characterisation test: the output of option sets that existed before the theme schema work.
-// Recorded from the code at 8ab05c2. The schema work is additive, so these must never change.
+// Recorded from the code at 8ab05c2. The schema work is additive, so these must never change,
+// with one deliberate addition: a colour option that sets `primary` now also sets `--primary-text`
+// (PAZM-137). The recorded strings are kept as they were, and the new variable is taken out before
+// comparing, so every other variable and its order must still match byte for byte.
+const ADDED = "--primary-text";
+const withoutAdded = {
+  vars: (json: string) => {
+    const vars = JSON.parse(json) as Record<string, string>;
+    delete vars[ADDED];
+    return JSON.stringify(vars);
+  },
+  css: (css: string) => css.replace(new RegExp(`\n  ${ADDED}: [^\n]*;`), ""),
+};
 const GOLDEN: { name: string; input: ThemeOptions; vars: string; css: string; attrs: string }[] = [
   {
     name: "{}",
@@ -61,8 +73,12 @@ describe("createTheme: existing option sets keep byte-identical output", () => {
 
   it.each(GOLDEN)("keeps the output of $name byte-identical", ({ input, vars, css, attrs }) => {
     const theme = createTheme(input);
-    expect(JSON.stringify(theme.cssVariables)).toBe(vars);
-    expect(theme.css).toBe(css);
+    expect(withoutAdded.vars(JSON.stringify(theme.cssVariables))).toBe(vars);
+    expect(withoutAdded.css(theme.css)).toBe(css);
     expect(JSON.stringify(theme.htmlAttributes)).toBe(attrs);
+  });
+
+  it.each(GOLDEN)("adds $name's --primary-text only when it sets a primary colour", ({ input }) => {
+    expect(ADDED in createTheme(input).cssVariables).toBe(input.primary !== undefined);
   });
 });

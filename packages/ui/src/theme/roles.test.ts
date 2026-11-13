@@ -32,7 +32,7 @@ const rootColourTokens = [...rootVars]
 
 describe("theme roles", () => {
   it("guards against checking nothing", () => {
-    expect(ROLES).toHaveLength(35);
+    expect(ROLES).toHaveLength(36);
     expect(rootColourTokens.length).toBeGreaterThan(30);
   });
 
