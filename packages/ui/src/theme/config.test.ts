@@ -5,10 +5,12 @@ import {
   MAX_THEME_JSON_CHARS,
   parseThemeConfig,
   parseThemeJson,
+  type ThemeConfig,
   ThemeConfigError,
   TINT_BRAND,
   TINT_MAX,
 } from "./config.js";
+import type { ThemeOptions } from "./create-theme.js";
 import { ROLES } from "./roles.js";
 
 const PNG = "data:image/png;base64,iVBORw0KGgo=";
@@ -82,6 +84,28 @@ describe("parseThemeConfig: valid input", () => {
     for (const tint of [0, 0.01, TINT_MAX, "brand"]) {
       expect(() => parseThemeConfig({ brand: "#1D4E89", tint })).not.toThrow();
     }
+  });
+});
+
+describe("ThemeConfig type", () => {
+  it("holds only what JSON can hold: colour text, and no scope", () => {
+    // These are compile-time checks: `tsc` fails on an unused directive if the type is too wide.
+    // @ts-expect-error a stored config holds colour text, never an { l, c, h } object
+    const object: ThemeConfig = { brand: { l: 0.5, c: 0.1, h: 20 } };
+    // @ts-expect-error scope is a render option, not part of a stored theme
+    const scoped: ThemeConfig = { scope: ":root" };
+    // @ts-expect-error role overrides are colour text too
+    const override: ThemeConfig = { light: { background: { l: 1, c: 0, h: 0 } } };
+    expect([object, scoped, override]).toHaveLength(3);
+  });
+
+  it("can be passed to createTheme as it is", () => {
+    const config: ThemeConfig = parseThemeConfig({
+      brand: "#1D4E89",
+      light: { background: "#fff" },
+    });
+    const options: ThemeOptions = config;
+    expect(options.brand).toBe("#1D4E89");
   });
 });
 
