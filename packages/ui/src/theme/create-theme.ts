@@ -1,12 +1,33 @@
 // Server-safe. createTheme() turns a brand colour into accessible token overrides
 // (replaces MUI's createTheme). Input is validated strictly because the output is CSS.
+import {
+  clampToGamut,
+  contrast,
+  contrastOfLuminance,
+  format,
+  luminance,
+  mixedLuminance,
+  type Oklch,
+  parseColour,
+  sameColour,
+  shiftUntil,
+} from "./colour.js";
+import { ThemeConfigError, TINT_MAX } from "./config.js";
+import { checkContrast, type ThemeIssue } from "./contrast.js";
 import { type Density, type HtmlAttributes, htmlAttributes, parseDensity } from "./preferences.js";
+import {
+  cssVar,
+  isOverridableRole,
+  type Mode,
+  type OverridableRole,
+  ROLE_DEFAULTS,
+  ROLES,
+  type Role,
+} from "./roles.js";
+import { TINT_ROLES, tintedRoles, tintValue } from "./tint.js";
+import { assertFont, assertRadius, isScope } from "./validate.js";
 
-export interface Oklch {
-  l: number;
-  c: number;
-  h: number;
-}
+export type { Oklch };
 
 export interface ThemeOptions {
   /** Brand colour as `#rgb`, `#rrggbb`, `oklch(L C H)` or `{ l, c, h }`. */
@@ -27,107 +48,39 @@ export interface ThemeOptions {
   /** A CSS font-family list, e.g. `Inter, "Segoe UI", sans-serif`. */
   font?: string;
   density?: Density;
+  /** Schema version of a stored config. Only `1` exists. `createTheme` ignores it. */
+  version?: 1;
+  /** A display name for the theme, for editors and exports. `createTheme` ignores it. */
+  name?: string;
+  /** The brand colour. An alias of `primary`: give one of them. */
+  brand?: string | Oklch;
+  /** Chroma added to the neutral greys, leaning toward the brand hue. `"brand"` is a light tint. */
+  tint?: number | "brand";
+  /** Explicit per-role colours for light mode. They replace the derived value for that role. */
+  light?: Partial<Record<OverridableRole, string | Oklch>>;
+  /** Explicit per-role colours for dark mode. They replace the derived value for that role. */
+  dark?: Partial<Record<OverridableRole, string | Oklch>>;
+  /** Name and images for the app. `createTheme` ignores it; the shell reads it. */
+  branding?: ThemeBranding;
+  /** A selector to scope the generated CSS to, instead of `:root`. */
+  scope?: string;
+}
+
+/** Branding that is not a colour. Images are `https:` URLs or small PNG, JPEG or WebP data URIs. */
+export interface ThemeBranding {
+  appName?: string;
+  logo?: string;
+  logoDark?: string;
+  favicon?: string;
 }
 
 export interface Theme {
   /** Custom properties to set on `:root` (or any ancestor), e.g. via a `style` prop. */
   cssVariables: Record<string, string>;
-  /** The same variables as a `:root { ... }` rule. */
+  /** The same variables as a rule on `:root`, or on `scope` when one is given. */
   css: string;
   /** Attributes for `<html>` (density). */
   htmlAttributes: HtmlAttributes;
-}
-
-// ---- colour maths (OKLCH <-> linear sRGB; Ottosson's OKLab) --------------------------------
-
-const rad = (deg: number) => (deg * Math.PI) / 180;
-
-function toLinearSrgb({ l, c, h }: Oklch): [number, number, number] {
-  const a = c * Math.cos(rad(h));
-  const b = c * Math.sin(rad(h));
-  const l_ = (l + 0.3963377774 * a + 0.2158037573 * b) ** 3;
-  const m_ = (l - 0.1055613458 * a - 0.0638541728 * b) ** 3;
-  const s_ = (l - 0.0894841775 * a - 1.291485548 * b) ** 3;
-  return [
-    4.0767416621 * l_ - 3.3077115913 * m_ + 0.2309699292 * s_,
-    -1.2684380046 * l_ + 2.6097574011 * m_ - 0.3413193965 * s_,
-    -0.0041960863 * l_ - 0.7034186147 * m_ + 1.707614701 * s_,
-  ];
-}
-
-function fromLinearSrgb([r, g, b]: [number, number, number]): Oklch {
-  const l_ = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
-  const m_ = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
-  const s_ = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
-  const L = 0.2104542553 * l_ + 0.793617785 * m_ - 0.0040720468 * s_;
-  const A = 1.9779984951 * l_ - 2.428592205 * m_ + 0.4505937099 * s_;
-  const B = 0.0259040371 * l_ + 0.7827717662 * m_ - 0.808675766 * s_;
-  const c = Math.hypot(A, B);
-  return { l: L, c, h: c < 0.0004 ? 0 : ((Math.atan2(B, A) * 180) / Math.PI + 360) % 360 };
-}
-
-const EPS = 1e-4;
-const inGamut = (color: Oklch) => toLinearSrgb(color).every((v) => v >= -EPS && v <= 1 + EPS);
-
-/** Reduce chroma until the colour fits inside sRGB. */
-function clampToGamut(color: Oklch): Oklch {
-  let { c } = color;
-  while (c > 0 && !inGamut({ ...color, c })) c = Math.max(0, c - 0.004);
-  return { ...color, c };
-}
-
-const luminance = (color: Oklch) => {
-  const [r, g, b] = toLinearSrgb(color).map((v) => Math.min(1, Math.max(0, v))) as [
-    number,
-    number,
-    number,
-  ];
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-};
-
-function contrast(a: Oklch, b: Oklch): number {
-  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x) as [number, number];
-  return (hi + 0.05) / (lo + 0.05);
-}
-
-const round = (n: number, digits: number) => Number(n.toFixed(digits));
-const format = ({ l, c, h }: Oklch) => `oklch(${round(l, 3)} ${round(c, 3)} ${round(h, 1)})`; // conventions-ignore: this module generates OKLCH colour strings
-const lightDark = (light: Oklch, dark: Oklch) => `light-dark(${format(light)}, ${format(dark)})`;
-
-// ---- input parsing -------------------------------------------------------------------------
-
-function fromHex(hex: string): Oklch {
-  const digits = hex.length === 3 ? [...hex].map((d) => d + d).join("") : hex;
-  const decode = (i: number) => {
-    const v = Number.parseInt(digits.slice(i, i + 2), 16) / 255;
-    return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
-  };
-  const color = fromLinearSrgb([decode(0), decode(2), decode(4)]);
-  return color.c < 0.004 ? { l: color.l, c: 0, h: 0 } : color;
-}
-
-/** Parses a colour option. `name` is the option, so an error says which one was wrong. */
-function parseColour(input: string | Oklch, name: string): Oklch {
-  if (typeof input === "object" && input !== null) {
-    const { l, c, h } = input;
-    if (![l, c, h].every(Number.isFinite) || l < 0 || l > 1 || c < 0 || c > 0.5) {
-      throw new Error(
-        `createTheme: ${name} { l, c, h } must be finite, with 0 <= l <= 1 and 0 <= c <= 0.5`,
-      );
-    }
-    return { l, c, h: ((h % 360) + 360) % 360 };
-  }
-  const text = String(input).trim();
-  const hex = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.exec(text);
-  if (hex?.[1]) return fromHex(hex[1]);
-  const ok = /^oklch\(\s*(\d*\.?\d+)(%?)\s+(\d*\.?\d+)\s+(\d*\.?\d+)(?:deg)?\s*\)$/i.exec(text);
-  if (ok) {
-    const l = Number(ok[1]) / (ok[2] ? 100 : 1);
-    return parseColour({ l, c: Number(ok[3]), h: Number(ok[4]) }, name);
-  }
-  throw new Error(
-    `createTheme: ${name} must be #rgb, #rrggbb, oklch(L C H) or { l, c, h }; got ${JSON.stringify(text)}`, // conventions-ignore: the message names the accepted colour syntax
-  );
 }
 
 // ---- derived colours -----------------------------------------------------------------------
@@ -139,7 +92,6 @@ const WARNING_FOREGROUND: Oklch = { l: 0.25, c: 0.04, h: 70 };
 const AA_TEXT = 4.5;
 const AA_SURFACE = 4.55; // a little over 4.5:1 so rounding in the output cannot dip below it
 const AA_NON_TEXT = 3.2; // a little over 3:1 so rounding in the output cannot dip below it
-const STEP = 0.005;
 
 /** The surfaces a button sits on: the page, and in dark mode also a card. */
 const SURFACES: Record<"light" | "dark", Oklch[]> = {
@@ -151,34 +103,6 @@ const SURFACES: Record<"light" | "dark", Oklch[]> = {
 // Browsers mix in gamma-encoded sRGB, so a mid-tone colour moves a lot toward white.
 const HOVER_ALPHA = 0.9;
 const SECONDARY_HOVER_ALPHA = 0.8;
-
-const encode = (v: number) => (v <= 0.0031308 ? 12.92 * v : 1.055 * v ** (1 / 2.4) - 0.055);
-const decode = (v: number) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
-
-function encodedSrgb(color: Oklch): [number, number, number] {
-  return toLinearSrgb(color).map((v) => encode(Math.min(1, Math.max(0, v)))) as [
-    number,
-    number,
-    number,
-  ];
-}
-
-/** Luminance of `color` at `alpha` over `surface`, mixed in gamma-encoded sRGB like a browser. */
-function mixedLuminance(color: Oklch, surface: Oklch, alpha: number): number {
-  const top = encodedSrgb(color);
-  const base = encodedSrgb(surface);
-  const [r, g, b] = top.map((v, i) => decode(v * alpha + (base[i] as number) * (1 - alpha))) as [
-    number,
-    number,
-    number,
-  ];
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-}
-
-function contrastOfLuminance(a: number, b: number): number {
-  const [hi, lo] = [a, b].sort((x, y) => y - x) as [number, number];
-  return (hi + 0.05) / (lo + 0.05);
-}
 
 /**
  * Whether `fg` is readable on `bg` at rest AND on `bg` blended at `alpha` over every surface in
@@ -195,23 +119,6 @@ function holdsOnHover(
     (surface) =>
       contrastOfLuminance(luminance(fg), mixedLuminance(bg, surface, alpha)) >= AA_SURFACE,
   );
-}
-
-/** Move lightness in one direction until `ok` holds, or give up after `limit`. */
-function shiftUntil(
-  color: Oklch,
-  direction: 1 | -1,
-  limit: number,
-  ok: (c: Oklch) => boolean,
-): Oklch | undefined {
-  for (let shift = 0; shift <= limit + 1e-9; shift += STEP) {
-    const candidate = clampToGamut({
-      ...color,
-      l: Math.min(1, Math.max(0, color.l + direction * shift)),
-    });
-    if (ok(candidate)) return candidate;
-  }
-  return undefined;
 }
 
 /** Light mode: prefer white text (darkening the brand a little if needed), else dark text. */
@@ -290,39 +197,95 @@ function ringFor(brand: Oklch, mode: "light" | "dark"): Oklch {
   return shiftUntil(start, mode === "light" ? -1 : 1, 0.6, ok) ?? start;
 }
 
-// ---- validation of the other options -------------------------------------------------------
-
-const RADIUS = /^(?:\d+|\d*\.\d+)(?:rem|px)$/;
-const FONT = /^[A-Za-z0-9 ,'"._-]+$/;
-
-function assertRadius(radius: string): string {
-  if (!RADIUS.test(radius))
-    throw new Error(
-      `createTheme: radius must be a number in rem or px, got ${JSON.stringify(radius)}`,
-    );
-  return radius;
-}
-
-function assertFont(font: string): string {
-  if (font.length > 200 || !FONT.test(font)) {
-    throw new Error(
-      "createTheme: font must be a short font-family list (letters, digits, spaces, commas, quotes)",
-    );
-  }
-  return font;
-}
-
 // ---- public API ----------------------------------------------------------------------------
 
-export function createTheme(options: ThemeOptions = {}): Theme {
-  const cssVariables: Record<string, string> = {};
+type Resolved = Map<Role, Record<Mode, string>>;
+
+/** Record the light and dark value of a role. Insertion order is the order of the output. */
+function setRole(resolved: Resolved, role: Role, light: Oklch, dark: Oklch): void {
+  resolved.set(role, { light: format(light), dark: format(dark) });
+}
+
+const toLightDark = (value: Record<Mode, string>) => `light-dark(${value.light}, ${value.dark})`;
+
+/** A theme that fails the contrast checks. `issues` names every failing pair. */
+export class ThemeContrastError extends Error {
+  readonly issues: readonly ThemeIssue[];
+
+  constructor(issues: readonly ThemeIssue[]) {
+    super(
+      `Theme fails contrast checks:\n${issues.map((issue) => `  - ${issue.message}`).join("\n")}`,
+    );
+    this.name = "ThemeContrastError";
+    this.issues = issues;
+  }
+}
+
+/** The brand colour option: `primary`, or its alias `brand`. They must agree if both are given. */
+function brandOption(options: ThemeOptions): string | Oklch | undefined {
+  const { brand, primary } = options;
+  if (brand !== undefined && primary !== undefined) {
+    if (!sameColour(parseColour(brand, "brand"), parseColour(primary, "primary"))) {
+      throw new ThemeConfigError(["brand and primary are different colours; give only brand"]);
+    }
+  }
+  return primary ?? brand;
+}
+
+/** Tint the neutral surfaces toward the brand hue. Needs a brand to lean toward. */
+function applyTint(resolved: Resolved, options: ThemeOptions, brand: Oklch | undefined): void {
+  if (options.tint === undefined) return;
+  const amount = tintValue(options.tint);
+  if (typeof amount !== "number" || !Number.isFinite(amount) || amount < 0 || amount > TINT_MAX) {
+    throw new ThemeConfigError([`tint must be "brand" or a number from 0 to ${TINT_MAX}`]);
+  }
+  if (!brand) throw new ThemeConfigError(["tint needs a brand colour to lean toward"]);
+  const tinted = tintedRoles(brand, amount);
+  for (const role of TINT_ROLES) {
+    const value = tinted[role];
+    if (value) resolved.set(role, value);
+  }
+}
+
+/** Explicit per-mode colours. They replace the derived value of that role in that mode only. */
+function applyOverrides(resolved: Resolved, options: ThemeOptions): void {
+  const issues: string[] = [];
+  for (const mode of ["light", "dark"] as const) {
+    const overrides: unknown = options[mode];
+    if (overrides === undefined) continue;
+    if (typeof overrides !== "object" || overrides === null || Array.isArray(overrides)) {
+      issues.push(`${mode} must be an object of role colours`);
+      continue;
+    }
+    for (const [role, value] of Object.entries(overrides)) {
+      if (value === undefined) continue;
+      if (role === "scrim") issues.push(`${mode}.scrim cannot be overridden`);
+      else if (!isOverridableRole(role)) issues.push(`${mode}.${role} is not a theme role`);
+      else {
+        const colour = parseColour(value as string | Oklch, `${mode}.${role}`);
+        const current = resolved.get(role) ?? ROLE_DEFAULTS[role];
+        resolved.set(role, { ...current, [mode]: format(colour) });
+      }
+    }
+  }
+  if (issues.length > 0) throw new ThemeConfigError(issues);
+}
+
+interface Resolution {
+  resolved: Resolved;
+  issues: ThemeIssue[];
+}
+
+/** Derive every role the options ask for, then tint, then apply overrides, then check contrast. */
+function resolveTheme(options: ThemeOptions): Resolution {
+  const resolved: Resolved = new Map();
 
   if (options.secondary !== undefined) {
     const brand = parseColour(options.secondary, "secondary");
     const light = lightPair(brand, SECONDARY_HOVER_ALPHA);
     const dark = darkPair(brand, SECONDARY_HOVER_ALPHA);
-    cssVariables["--secondary"] = lightDark(light.bg, dark.bg);
-    cssVariables["--secondary-foreground"] = lightDark(light.fg, dark.fg);
+    setRole(resolved, "secondary", light.bg, dark.bg);
+    setRole(resolved, "secondary-foreground", light.fg, dark.fg);
   }
   for (const name of ["success", "info", "destructive"] as const) {
     const input = options[name];
@@ -330,29 +293,68 @@ export function createTheme(options: ThemeOptions = {}): Theme {
     const brand = parseColour(input, name);
     const light = statusPair(brand, "light");
     const dark = statusPair(brand, "dark");
-    cssVariables[`--${name}`] = lightDark(light.bg, dark.bg);
-    cssVariables[`--${name}-foreground`] = lightDark(light.fg, dark.fg);
+    setRole(resolved, name, light.bg, dark.bg);
+    setRole(resolved, `${name}-foreground`, light.fg, dark.fg);
   }
   if (options.warning !== undefined) {
     const brand = parseColour(options.warning, "warning");
     const light = warningColours(brand, "light");
     const dark = warningColours(brand, "dark");
-    cssVariables["--warning"] = lightDark(light.bg, dark.bg);
-    cssVariables["--warning-foreground"] = lightDark(light.fg, dark.fg);
-    cssVariables["--warning-text"] = lightDark(light.text, dark.text);
+    setRole(resolved, "warning", light.bg, dark.bg);
+    setRole(resolved, "warning-foreground", light.fg, dark.fg);
+    setRole(resolved, "warning-text", light.text, dark.text);
   }
-  if (options.primary !== undefined) {
-    const brand = parseColour(options.primary, "primary");
+  const brandInput = brandOption(options);
+  let brandColour: Oklch | undefined;
+  if (brandInput !== undefined) {
+    const brand = parseColour(brandInput, options.primary !== undefined ? "primary" : "brand");
+    brandColour = brand;
     const light = lightPair(brand);
     const dark = darkPair(brand);
-    const ring = lightDark(ringFor(brand, "light"), ringFor(brand, "dark"));
-    cssVariables["--primary"] = lightDark(light.bg, dark.bg);
-    cssVariables["--primary-foreground"] = lightDark(light.fg, dark.fg);
-    cssVariables["--ring"] = ring;
-    cssVariables["--sidebar-primary"] = cssVariables["--primary"];
-    cssVariables["--sidebar-primary-foreground"] = cssVariables["--primary-foreground"];
-    cssVariables["--sidebar-ring"] = ring;
+    const ringLight = ringFor(brand, "light");
+    const ringDark = ringFor(brand, "dark");
+    setRole(resolved, "primary", light.bg, dark.bg);
+    setRole(resolved, "primary-foreground", light.fg, dark.fg);
+    setRole(resolved, "ring", ringLight, ringDark);
+    setRole(resolved, "sidebar-primary", light.bg, dark.bg);
+    setRole(resolved, "sidebar-primary-foreground", light.fg, dark.fg);
+    setRole(resolved, "sidebar-ring", ringLight, ringDark);
   }
+
+  applyTint(resolved, options, brandColour);
+  applyOverrides(resolved, options);
+
+  // Roles nobody set are checked at their defaults, so a pair is always judged as a whole.
+  const full: Resolved = new Map(
+    ROLES.map((role) => [role, resolved.get(role) ?? ROLE_DEFAULTS[role]] as const),
+  );
+  return { resolved, issues: checkContrast(full) };
+}
+
+/**
+ * Check a theme without building it: the contrast issues, or an empty list. Still throws a
+ * `ThemeConfigError` for options that are malformed (a bad colour, an unknown role).
+ */
+export function validateTheme(options: ThemeOptions): ThemeIssue[] {
+  return resolveTheme(options).issues;
+}
+
+export function createTheme(options: ThemeOptions = {}): Theme {
+  const scope = options.scope ?? ":root";
+  if (!isScope(scope)) {
+    throw new ThemeConfigError([
+      'scope must be ":root", one class (.name), one id (#name) or one data attribute ([data-name] or [data-name="value"])',
+    ]);
+  }
+  const { resolved, issues } = resolveTheme(options);
+  // Contrast is enforced for the new options (tint and overrides). Options that existed before
+  // are derived to pass by construction and are covered by their own tests, so they never throw.
+  const enforced =
+    options.tint !== undefined || options.light !== undefined || options.dark !== undefined;
+  if (enforced && issues.length > 0) throw new ThemeContrastError(issues);
+
+  const cssVariables: Record<string, string> = {};
+  for (const [role, value] of resolved) cssVariables[cssVar(role)] = toLightDark(value);
   if (options.radius !== undefined) cssVariables["--radius"] = assertRadius(options.radius);
   if (options.font !== undefined) cssVariables["--font-sans-stack"] = assertFont(options.font);
 
@@ -366,7 +368,7 @@ export function createTheme(options: ThemeOptions = {}): Theme {
   const entries = Object.entries(cssVariables);
   const css =
     entries.length === 0
-      ? ":root {}"
-      : `:root {\n${entries.map(([k, v]) => `  ${k}: ${v};`).join("\n")}\n}`;
+      ? `${scope} {}`
+      : `${scope} {\n${entries.map(([k, v]) => `  ${k}: ${v};`).join("\n")}\n}`;
   return { cssVariables, css, htmlAttributes: htmlAttributes({ density }) };
 }

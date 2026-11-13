@@ -55,6 +55,14 @@
       "types": "./dist/theme.d.ts",
       "import": "./dist/theme.js"
     },
+    "./theme-schema": {
+      "types": "./dist/theme-schema.d.ts",
+      "import": "./dist/theme-schema.js"
+    },
+    "./theme-presets": {
+      "types": "./dist/theme-presets.d.ts",
+      "import": "./dist/theme-presets.js"
+    },
     "./button": {
       "types": "./dist/button.d.ts",
       "import": "./dist/button.js"

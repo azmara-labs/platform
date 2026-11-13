@@ -46,6 +46,8 @@
     "lib": "src/lib/index.ts",
     "zod": "src/components/zod/index.ts",
     "theme": "src/theme/index.ts",
+    "theme-schema": "src/theme/schema.ts",
+    "theme-presets": "src/theme/presets.ts",
     "icons/mui-map": "src/icons/mui-map.ts",
     "typography/mui-map": "src/components/typography/mui-map.ts",
     "layout/mui-map": "src/components/layout/mui-map.ts"
