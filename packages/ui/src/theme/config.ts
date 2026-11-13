@@ -7,8 +7,31 @@ import { parseDensity } from "./preferences.js";
 import { FIXED_ROLES, isOverridableRole, type OverridableRole } from "./roles.js";
 import { assertFont, assertRadius } from "./validate.js";
 
-/** A theme as stored: the same shape `createTheme` takes, parsed and validated. */
-export type ThemeConfig = ThemeOptions;
+type ColourOption =
+  | "brand"
+  | "primary"
+  | "secondary"
+  | "success"
+  | "warning"
+  | "info"
+  | "destructive";
+
+/**
+ * A theme as stored: what `createTheme` takes, parsed and validated, narrowed to what JSON can
+ * hold. Colours are text (never an `{ l, c, h }` object) and there is no `scope`, which is a render
+ * option. Every `ThemeConfig` can be passed to `createTheme`.
+ */
+export interface ThemeConfig extends Omit<ThemeOptions, ColourOption | "light" | "dark" | "scope"> {
+  brand?: string;
+  primary?: string;
+  secondary?: string;
+  success?: string;
+  warning?: string;
+  info?: string;
+  destructive?: string;
+  light?: Partial<Record<OverridableRole, string>>;
+  dark?: Partial<Record<OverridableRole, string>>;
+}
 
 /** Large enough for three images at `MAX_DATA_URI_CHARS` plus every role override. */
 export const MAX_THEME_JSON_CHARS = 131_072;
