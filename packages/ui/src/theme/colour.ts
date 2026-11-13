@@ -79,13 +79,23 @@ export function fromHex(hex: string): Oklch {
   return color.c < 0.004 ? { l: color.l, c: 0, h: 0 } : color;
 }
 
-/** Parses a colour option. `name` is the option, so an error says which one was wrong. */
-export function parseColour(input: string | Oklch, name: string): Oklch {
+/**
+ * Parses a colour option. `name` is the option, so an error says which one was wrong. `accepts` is
+ * what the caller can give: a stored theme is JSON, which holds text but never an `{ l, c, h }`
+ * object, so its errors must not suggest one.
+ */
+export function parseColour(
+  input: string | Oklch,
+  name: string,
+  accepts: "text-or-object" | "text" = "text-or-object",
+): Oklch {
   if (typeof input === "object" && input !== null) {
     const { l, c, h } = input;
     if (![l, c, h].every(Number.isFinite) || l < 0 || l > 1 || c < 0 || c > 0.5) {
       throw new Error(
-        `createTheme: ${name} { l, c, h } must be finite, with 0 <= l <= 1 and 0 <= c <= 0.5`,
+        accepts === "text"
+          ? `createTheme: ${name} oklch(L C H) must have L from 0 to 1 (or 0% to 100%) and C from 0 to 0.5` // conventions-ignore: the message names the accepted colour syntax
+          : `createTheme: ${name} { l, c, h } must be finite, with 0 <= l <= 1 and 0 <= c <= 0.5`,
       );
     }
     return { l, c, h: ((h % 360) + 360) % 360 };
@@ -96,11 +106,13 @@ export function parseColour(input: string | Oklch, name: string): Oklch {
   const ok = /^oklch\(\s*(\d*\.?\d+)(%?)\s+(\d*\.?\d+)\s+(\d*\.?\d+)(?:deg)?\s*\)$/i.exec(text);
   if (ok) {
     const l = Number(ok[1]) / (ok[2] ? 100 : 1);
-    return parseColour({ l, c: Number(ok[3]), h: Number(ok[4]) }, name);
+    return parseColour({ l, c: Number(ok[3]), h: Number(ok[4]) }, name, accepts);
   }
-  throw new Error(
-    `createTheme: ${name} must be #rgb, #rrggbb, oklch(L C H) or { l, c, h }; got ${JSON.stringify(text)}`, // conventions-ignore: the message names the accepted colour syntax
-  );
+  const forms =
+    accepts === "text"
+      ? "#rgb, #rrggbb or oklch(L C H)"
+      : "#rgb, #rrggbb, oklch(L C H) or { l, c, h }"; // conventions-ignore: the message names the accepted colour syntax
+  throw new Error(`createTheme: ${name} must be ${forms}; got ${JSON.stringify(text)}`);
 }
 
 /** Move lightness in one direction until `ok` holds, or give up after `limit`. */
