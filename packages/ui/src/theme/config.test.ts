@@ -66,6 +66,18 @@ describe("parseThemeConfig: valid input", () => {
     expect(() => parseThemeConfig({ brand: "#1D4E89", primary: "#1d4e89" })).not.toThrow();
   });
 
+  it("treats greys as the same colour whatever hue they carry", () => {
+    expect(() =>
+      parseThemeConfig({ brand: "oklch(0.6 0 0)", primary: "oklch(0.6 0 200)" }),
+    ).not.toThrow();
+    expect(() =>
+      parseThemeConfig({ brand: "oklch(0.6 0 0)", primary: "oklch(0.7 0 200)" }),
+    ).toThrow(ThemeConfigError);
+    expect(() =>
+      parseThemeConfig({ brand: "oklch(0.6 0.1 0)", primary: "oklch(0.6 0.1 200)" }),
+    ).toThrow(ThemeConfigError);
+  });
+
   it("accepts tint as a number from 0 to the maximum, or as brand", () => {
     for (const tint of [0, 0.01, TINT_MAX, "brand"]) {
       expect(() => parseThemeConfig({ brand: "#1D4E89", tint })).not.toThrow();
@@ -192,6 +204,18 @@ describe("parseThemeConfig: injection", () => {
     for (const bad of HOSTILE) {
       failure(() => parseThemeConfig({ brand: "#fff", radius: bad }));
       failure(() => parseThemeConfig({ brand: "#fff", font: bad }));
+    }
+  });
+
+  it("rejects bidirectional control characters in name and appName, but keeps Arabic and Hebrew text", () => {
+    // These reorder the text around them, so a name can read differently to how it is stored.
+    const bidi = ["؜", "‎", "‏", "‪", "‫", "‬", "‭", "‮"];
+    for (const mark of [...bidi, "⁦", "⁧", "⁨", "⁩"]) {
+      failure(() => parseThemeConfig({ brand: "#fff", name: `Acme${mark}Ltd` }));
+      failure(() => parseThemeConfig({ brand: "#fff", branding: { appName: `Acme${mark}Ltd` } }));
+    }
+    for (const fine of ["مؤسسة أزمارا", "אזמרה", "Azmara مؤسسة"]) {
+      expect(() => parseThemeConfig({ brand: "#fff", name: fine })).not.toThrow();
     }
   });
 

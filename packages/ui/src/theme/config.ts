@@ -67,15 +67,30 @@ function present(bag: Bag, key: string): boolean {
   return Object.hasOwn(bag, key) && bag[key] !== undefined;
 }
 
+/** Marks and overrides that change the order text is drawn in: ALM, LRM, RLM, LRE..RLO, LRI..PDI. */
+function isBidiControl(code: number): boolean {
+  return (
+    code === 0x061c ||
+    code === 0x200e ||
+    code === 0x200f ||
+    (code >= 0x202a && code <= 0x202e) ||
+    (code >= 0x2066 && code <= 0x2069)
+  );
+}
+
 function hasControlCharacter(text: string): boolean {
   for (const char of text) {
     const code = char.codePointAt(0) ?? 0;
-    if (code < 32 || (code >= 127 && code <= 159)) return true;
+    if (code < 32 || (code >= 127 && code <= 159) || isBidiControl(code)) return true;
   }
   return false;
 }
 
-/** Short display text such as a theme name: 1 to 80 characters, not blank, no control characters. */
+/**
+ * Short display text such as a theme name: 1 to 80 characters, not blank, and no control or
+ * bidirectional formatting characters (they can make a name read differently to how it is stored).
+ * Arabic, Hebrew and other right-to-left letters are fine.
+ */
 export function isDisplayText(value: unknown): value is string {
   return (
     typeof value === "string" &&

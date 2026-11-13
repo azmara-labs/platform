@@ -22,6 +22,7 @@ const FIXTURES: [name: string, input: unknown][] = [
   ["empty object", {}],
   ["primary alias", { primary: "#1D4E89" }],
   ["brand and primary equal", { brand: "#1D4E89", primary: "#1d4e89" }],
+  ["brand and primary the same grey", { brand: "oklch(0.6 0 0)", primary: "oklch(0.6 0 200)" }],
   ["oklch brand", { brand: "oklch(0.35 0.1 250)" }],
   [
     "all colours",
@@ -86,6 +87,7 @@ const FIXTURES: [name: string, input: unknown][] = [
   ["name blank", { name: "   " }],
   ["name too long", { name: "x".repeat(81) }],
   ["name with control character", { name: "a\u0000b" }],
+  ["name with bidi override", { name: "a‮b" }],
   ["appName too long", { branding: { appName: "x".repeat(81) } }],
   ["svg logo", { branding: { logo: "data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=" } }],
   ["http logo", { branding: { logo: "http://example.com/logo.png" } }],
