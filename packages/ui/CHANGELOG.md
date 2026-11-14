@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.13.0
+
+### Minor Changes
+
+- cdb3494: Add a `primary-text` colour role: the brand colour as text or an icon (`text-primary-text`), derived by `createTheme` like `warning-text` is. It is the brand colour itself when that already reads on the page and on cards in both modes, and otherwise the same hue moved only as far as it takes, so a bright brand such as cyan or yellow stays readable. It is overridable per mode like any role, has a default in `tokens.css`, and is checked against the page and cards by `validateTheme`.
+
+  A `createTheme` call that sets `primary` or `brand` now also emits `--primary-text`. Every other variable keeps its value and order.
+
+- 0cf7efe: Define themes per colour role for light and dark mode. `createTheme` now accepts `brand`, `tint`, `light` and `dark` overrides, `scope`, and checks contrast when a theme uses tint or overrides (`ThemeContrastError`). New: `validateTheme`, `parseThemeConfig` and `parseThemeJson` for stored themes, the Zod `ThemeConfigSchema` at `@azmr/ui/theme-schema`, and three presets at `@azmr/ui/theme-presets`. Existing `createTheme` calls return the same output as before.
+
+### Patch Changes
+
+- 3a00320: Refuse bidirectional control characters (such as U+202E, which reverses the text after it) in a theme `name` and in `branding.appName`. Arabic, Hebrew and other right-to-left text is still accepted.
+- 7e0f067: Narrow the `ThemeConfig` type to what a stored theme can hold: colours are text (no `{ l, c, h }` object) and there is no `scope`. Every `ThemeConfig` is still accepted by `createTheme`, and `parseThemeConfig` returns the same values as before.
+- d23d47c: Derive the colours `createTheme` makes (`primary`, `secondary`, status colours, warning text and focus rings) for the `background`, `card` and `popover` you override, and the sidebar ring for the `sidebar` you override. Before, they were always derived for the default surfaces, so a lighter dark mode, or a light mode with dark surfaces, could fail the contrast check on text the theme had derived. A mode whose surfaces are dark is derived the way a dark mode is. Output is unchanged when none of those roles is overridden.
+- 233c22f: Treat `brand` and `primary` as the same colour when both are greys of the same lightness, whatever hue each was given. Before, `oklch(0.6 0 0)` and `oklch(0.6 0 200)` were reported as different colours, though a grey has no hue.
+- f3d8f46: Stop suggesting an `{ l, c, h }` object in the errors for a stored theme. `parseThemeConfig` and `parseThemeJson` take JSON, which cannot hold one, so a bad colour now says `must be #rgb, #rrggbb or oklch(L C H)`. `createTheme` messages are unchanged.
+- 0bf77ad: `validateTheme` now refuses the same `radius`, `font`, `density` and `scope` values that `createTheme` refuses, so an editor that only calls `validateTheme` can no longer accept a theme that cannot be built. Its doc comment now lists what it throws for.
+
 ## 0.12.1
 
 ### Patch Changes
