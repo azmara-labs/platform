@@ -15,7 +15,7 @@ const changed = Object.keys(theme.cssVariables);
 // => ["--primary","--primary-foreground","--primary-text","--ring","--sidebar-primary","--sidebar-primary-foreground","--sidebar-ring","--radius"]
 ```
 
-Setting `primary` sets six variables: the colour, the text on it, the focus ring, and the same three for the sidebar. Each colour value is a `light-dark()` pair, so it follows the page's mode. These are the options:
+Setting `primary` sets seven variables: the colour, the text on it, the colour as text on the page (`--primary-text`), the focus ring, and the sidebar's colour, text and focus ring. Each colour value is a `light-dark()` pair, so it follows the page's mode. These are the options:
 
 <AutoTypeTable path="../../packages/ui/src/theme/create-theme.ts" name="ThemeOptions" />
 
@@ -79,7 +79,7 @@ They build on each other, so use as few as you need.
 2. **Tint.** Add `tint` and every neutral grey leans a few degrees toward the brand hue, so the app feels on-brand without coloured panels. `"brand"` is a light tint; a number from 0 to 0.04 sets the amount. A brand with no hue (black, white, grey) gets no tint.
 3. **Override.** Set any role for one mode with `light` or `dark`. The other mode keeps the derived or default value.
 
-Tint adds the neutral surface and sidebar roles after the six brand variables:
+Tint adds the neutral surface and sidebar roles after the seven brand variables:
 
 ```ts example=tint result=surfaces
 const theme = createTheme({ brand: "#0F4C5C", tint: "brand" });
