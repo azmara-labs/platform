@@ -95,6 +95,63 @@ describe("createTheme: status and secondary colours stay accessible for any inpu
   }
 });
 
+describe("createTheme: primary-text is the brand colour, readable as text", () => {
+  const oklch = converter("oklch");
+
+  for (const brand of BRANDS) {
+    describe(brand, () => {
+      const { cssVariables: vars } = createTheme({ primary: brand });
+
+      for (const mode of MODES) {
+        it(`${mode}: --primary-text is readable on every surface (>= 4.5:1)`, () => {
+          for (const surface of SURFACES[mode]) {
+            const ratio = wcagContrast(colour(vars, "--primary-text", mode), surface);
+            expect(ratio, `primary-text on ${surface}`).toBeGreaterThanOrEqual(4.5);
+          }
+        });
+      }
+    });
+  }
+
+  it("keeps a brand colour that already reads as text, where it can", () => {
+    // A deep blue reads on white, so light mode keeps it exactly.
+    const { cssVariables: vars } = createTheme({ primary: "#1E3A8A" });
+    const kept = oklch(colour(vars, "--primary-text", "light"));
+    const brand = oklch(parse("#1E3A8A"));
+    expect(Math.abs((kept?.l ?? 0) - (brand?.l ?? 1))).toBeLessThan(0.005);
+    expect(Math.abs((kept?.c ?? 0) - (brand?.c ?? 1))).toBeLessThan(0.005);
+  });
+
+  it("moves a bright brand colour toward readable but keeps its hue", () => {
+    // Cyan is far too light for text on white, so light mode darkens it and dark mode keeps it.
+    const { cssVariables: vars } = createTheme({ primary: "#00BCD4" });
+    const brand = oklch(parse("#00BCD4"));
+    const light = oklch(colour(vars, "--primary-text", "light"));
+    expect((light?.l ?? 1) < (brand?.l ?? 0) - 0.1).toBe(true);
+    expect(Math.abs((light?.h ?? 0) - (brand?.h ?? 99))).toBeLessThan(3);
+  });
+
+  it("follows brand and primary alike, and is absent without either", () => {
+    expect(createTheme({ brand: "#00BCD4" }).cssVariables["--primary-text"]).toBe(
+      createTheme({ primary: "#00BCD4" }).cssVariables["--primary-text"],
+    );
+    expect(createTheme({ success: "#2E7D32" }).cssVariables["--primary-text"]).toBeUndefined();
+  });
+
+  it("is overridable per mode like any other role", () => {
+    const { cssVariables: vars } = createTheme({
+      primary: "#00BCD4",
+      light: { "primary-text": "#0b4f5c" },
+    });
+    const light = colour(vars, "--primary-text", "light");
+    const wanted = parse("#0b4f5c");
+    if (!wanted) throw new Error("test colour did not parse");
+    expect(wcagContrast(light, wanted)).toBeLessThan(1.02); // the same colour, give or take rounding
+    // The dark half is still derived from the brand, not copied from the light override.
+    expect(wcagContrast(colour(vars, "--primary-text", "dark"), wanted)).toBeGreaterThan(1.5);
+  });
+});
+
 describe("createTheme: which variables each colour option sets", () => {
   const cases: [string, string[]][] = [
     ["secondary", ["--secondary", "--secondary-foreground"]],

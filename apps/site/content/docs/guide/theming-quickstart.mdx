@@ -14,10 +14,10 @@ import { createTheme } from "@azmr/ui/theme";
 
 const theme = createTheme({ primary: "#7B1FA2" });
 const variables = Object.keys(theme.cssVariables);
-// => ["--primary","--primary-foreground","--ring","--sidebar-primary","--sidebar-primary-foreground","--sidebar-ring"]
+// => ["--primary","--primary-foreground","--primary-text","--ring","--sidebar-primary","--sidebar-primary-foreground","--sidebar-ring"]
 ```
 
-One colour sets six variables: the colour itself, the text on it, the focus ring, and the same three for the sidebar. Put them on `<html>` as a `style` attribute and every component follows:
+One colour sets seven variables: the colour itself, the text on it, the colour as text on the page (`--primary-text`), the focus ring, and the sidebar's colour, text and focus ring. Put them on `<html>` as a `style` attribute and every component follows:
 
 ```tsx
 <html lang="en-NZ" style={theme.cssVariables}>

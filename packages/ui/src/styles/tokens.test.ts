@@ -208,7 +208,7 @@ describe("WCAG contrast of token pairs (text >= 4.5:1)", () => {
 // copy). `--warning` is a yellow surface colour and `--warning-foreground` is the dark text that
 // goes ON it, so neither reads as text on the page in both modes: `--warning-text` exists for that.
 describe("semantic tone colours as text on the page (>= 4.5:1)", () => {
-  const tones = ["destructive", "success", "warning-text", "info"];
+  const tones = ["destructive", "success", "warning-text", "info", "primary-text"];
   const surfaces = ["background", "card"];
   for (const mode of MODES) {
     for (const tone of tones) {
@@ -229,8 +229,9 @@ describe("semantic tone colours as text on the page (>= 4.5:1)", () => {
     expect(wcagContrast(colour("--warning-text", "dark"), darkPage)).toBeGreaterThanOrEqual(4.5);
   });
 
-  it("is mapped into the Tailwind theme as text-warning-text", () => {
+  it("is mapped into the Tailwind theme as text-warning-text and text-primary-text", () => {
     expect(css).toContain("--color-warning-text: var(--warning-text);");
+    expect(css).toContain("--color-primary-text: var(--primary-text);");
   });
 });
 

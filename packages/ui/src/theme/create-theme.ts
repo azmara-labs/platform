@@ -268,6 +268,17 @@ function warningColours(brand: Oklch, surfaces: Surfaces): { bg: Oklch; fg: Oklc
   return { bg: colour, fg: WARNING_FOREGROUND, text: colour };
 }
 
+/**
+ * The brand colour as text or an icon: itself when it already reads on every surface, otherwise
+ * the same hue moved only as far as it takes (darker on light surfaces, lighter on dark ones). A
+ * bright brand such as cyan or yellow is not readable as text on white, so it gets this role.
+ */
+function primaryText(brand: Oklch, surfaces: Surfaces): Oklch {
+  const light = surfaces.style === "light";
+  const found = shiftUntil(brand, light ? -1 : 1, 1, (c) => readsOn(c, surfaces));
+  return found ?? clampToGamut({ ...brand, l: light ? 0.2 : 0.9 });
+}
+
 /** Focus ring: the brand hue, shifted until it is visible against every surface. */
 function ringFor(brand: Oklch, surfaces: Surfaces): Oklch {
   const light = surfaces.style === "light";
@@ -399,6 +410,12 @@ function resolveTheme(options: ThemeOptions): Resolution {
     const ringDark = ringFor(brand, surfaces.dark);
     setRole(resolved, "primary", light.bg, dark.bg);
     setRole(resolved, "primary-foreground", light.fg, dark.fg);
+    setRole(
+      resolved,
+      "primary-text",
+      primaryText(brand, surfaces.light),
+      primaryText(brand, surfaces.dark),
+    );
     setRole(resolved, "ring", ringLight, ringDark);
     setRole(resolved, "sidebar-primary", light.bg, dark.bg);
     setRole(resolved, "sidebar-primary-foreground", light.fg, dark.fg);

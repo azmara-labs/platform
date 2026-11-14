@@ -12,10 +12,10 @@ import { createTheme } from "@azmr/ui/theme";
 
 const theme = createTheme({ primary: "#1E88E5", radius: "0.5rem" });
 const changed = Object.keys(theme.cssVariables);
-// => ["--primary","--primary-foreground","--ring","--sidebar-primary","--sidebar-primary-foreground","--sidebar-ring","--radius"]
+// => ["--primary","--primary-foreground","--primary-text","--ring","--sidebar-primary","--sidebar-primary-foreground","--sidebar-ring","--radius"]
 ```
 
-Setting `primary` sets six variables: the colour, the text on it, the focus ring, and the same three for the sidebar. Each colour value is a `light-dark()` pair, so it follows the page's mode. These are the options:
+Setting `primary` sets seven variables: the colour, the text on it, the colour as text on the page (`--primary-text`), the focus ring, and the sidebar's colour, text and focus ring. Each colour value is a `light-dark()` pair, so it follows the page's mode. These are the options:
 
 <AutoTypeTable path="../../packages/ui/src/theme/create-theme.ts" name="ThemeOptions" />
 
@@ -27,6 +27,7 @@ The colour you pass is a starting point. `createTheme` moves its lightness, and 
 
 - Each `-foreground` is at least **4.5:1** on its colour, **including on a solid button's hover surface**. A button blends with the page on hover, which can pull a colour that only just passes below 4.5:1, so the derivation checks the blended colour too.
 - `success`, `info` and `destructive` are also readable as **text** on the page and on cards (`Text tone`, form errors). `warning` is a yellow surface, so it gets a separate, darker `--warning-text` for text.
+- `--primary-text` is your brand colour as **text or an icon** (`text-primary-text`). It is the brand colour itself when that already reads on the page and on cards, and otherwise the same hue moved only as far as it takes, so a bright brand such as cyan or yellow stays readable. Use `bg-primary` for a surface and `text-primary-text` for brand-coloured text.
 - The focus ring is at least **3:1** on the page and on cards.
 
 Because of this, the result can differ from your input. The light-mode primary above is darker than `#1E88E5`, so that white text on it stays readable when the pointer is over it. A very light brand colour such as `#FFEB3B` goes the other way and gets dark text:
@@ -62,7 +63,7 @@ Beyond the brand colour, `createTheme` can set every colour **role**, and each r
 | Group | Roles |
 |---|---|
 | Page and surfaces | `background`, `foreground`, `card`, `card-foreground`, `popover`, `popover-foreground`, `muted`, `muted-foreground`, `accent`, `accent-foreground` |
-| Actions | `primary`, `primary-foreground`, `secondary`, `secondary-foreground` |
+| Actions | `primary`, `primary-foreground`, `primary-text`, `secondary`, `secondary-foreground` |
 | Status | `destructive`, `destructive-foreground`, `success`, `success-foreground`, `warning`, `warning-foreground`, `warning-text`, `info`, `info-foreground` |
 | Lines and focus | `border`, `input`, `ring` |
 | Overlay | `scrim` |
@@ -78,11 +79,11 @@ They build on each other, so use as few as you need.
 2. **Tint.** Add `tint` and every neutral grey leans a few degrees toward the brand hue, so the app feels on-brand without coloured panels. `"brand"` is a light tint; a number from 0 to 0.04 sets the amount. A brand with no hue (black, white, grey) gets no tint.
 3. **Override.** Set any role for one mode with `light` or `dark`. The other mode keeps the derived or default value.
 
-Tint adds the neutral surface and sidebar roles after the six brand variables:
+Tint adds the neutral surface and sidebar roles after the seven brand variables:
 
 ```ts example=tint result=surfaces
 const theme = createTheme({ brand: "#0F4C5C", tint: "brand" });
-const surfaces = Object.keys(theme.cssVariables).slice(6);
+const surfaces = Object.keys(theme.cssVariables).slice(7);
 // => ["--background","--foreground","--card","--card-foreground","--popover","--popover-foreground","--muted","--muted-foreground","--accent","--accent-foreground","--sidebar","--sidebar-foreground","--sidebar-accent","--sidebar-accent-foreground"]
 ```
 

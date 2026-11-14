@@ -44,6 +44,7 @@ function failure<T extends Error>(fn: () => unknown, type: new (...args: never[]
 const BRAND_VARS = [
   "--primary",
   "--primary-foreground",
+  "--primary-text",
   "--ring",
   "--sidebar-primary",
   "--sidebar-primary-foreground",
