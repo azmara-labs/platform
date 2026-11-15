@@ -1,0 +1,258 @@
+import { type FormEvent, useId, useMemo, useState } from "react";
+import { cn } from "../../lib/cn.js";
+import type { ThemeConfig } from "../../theme/index.js";
+import { Button } from "../button/index.js";
+import { Alert } from "../display/index.js";
+import { Field } from "../field/index.js";
+import { Fieldset } from "../form/index.js";
+import { ColourInput, Input } from "../input/index.js";
+import { LogoUpload } from "../logo-upload/index.js";
+import { ToggleGroup, ToggleGroupItem } from "../toggle/index.js";
+import { DEFAULT_MESSAGES, fill, type StudioMessages } from "./messages.js";
+import {
+  type ColourNote,
+  draftFromConfig,
+  evaluateDraft,
+  isDirty,
+  type StudioDraft,
+  type StudioField,
+  type StudioResult,
+} from "./studio-model.js";
+import { ThemePreview } from "./theme-preview.js";
+
+export interface ThemeStudioProps {
+  /**
+   * The current theme, or none. Reset returns to it. When the host passes a new value (after a
+   * save, say) it becomes the new starting point: the fields show it and there are no changes.
+   */
+  value?: ThemeConfig;
+  /**
+   * Called with the validated config when the admin saves. It may return a promise; if that
+   * rejects, the studio says the save failed and keeps what was typed. Storing the config is the
+   * host's job.
+   */
+  onSave: (config: ThemeConfig) => void | Promise<void>;
+  /** Disables every control, for example while the host loads the theme. */
+  disabled?: boolean;
+  /** Text for the screen. Anything left out uses the English default. */
+  messages?: Partial<StudioMessages>;
+  className?: string;
+}
+
+type Good = Extract<StudioResult, { ok: true }>;
+
+function noteText(note: ColourNote | undefined, text: StudioMessages): string | undefined {
+  if (!note) return undefined;
+  if (note.kind === "readable") return text.statusReadable;
+  if (note.kind === "dark-derived") return fill(text.statusDarkDerived, { shade: note.shade });
+  return fill(text.statusAdjusted, { shade: note.shade });
+}
+
+/**
+ * Brand settings for a business admin: app name, a brand colour for light and for dark, and
+ * logos, with a live preview. It returns a validated `ThemeConfig` through `onSave` and keeps
+ * every setting it does not show. It does not save, fetch or apply the theme to your app.
+ */
+export function ThemeStudio({ value, onSave, disabled, messages, className }: ThemeStudioProps) {
+  const text = useMemo(() => ({ ...DEFAULT_MESSAGES, ...messages }), [messages]);
+  const headingId = useId();
+
+  const baseKey = JSON.stringify(value ?? null);
+  const [seenKey, setSeenKey] = useState(baseKey);
+  const [draft, setDraft] = useState<StudioDraft>(() => draftFromConfig(value));
+  const [touched, setTouched] = useState<Partial<Record<StudioField, boolean>>>({});
+  const [busy, setBusy] = useState({ logo: false, logoDark: false });
+  const [saving, setSaving] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
+  const [mode, setMode] = useState<"light" | "dark">("light");
+  const [good, setGood] = useState<Good>();
+
+  // A new `value` from the host (after a save) is the new baseline.
+  if (seenKey !== baseKey) {
+    setSeenKey(baseKey);
+    setDraft(draftFromConfig(value));
+    setTouched({});
+    setSaveFailed(false);
+  }
+
+  const result = useMemo(() => evaluateDraft(value, draft, text), [value, draft, text]);
+  // An invalid draft keeps the last good preview.
+  if (result.ok && good !== result) setGood(result);
+  const shown = result.ok ? result : good;
+
+  const errors = result.ok ? {} : result.errors;
+  const conflict = result.ok ? undefined : result.conflict;
+  const dirty = isDirty(value, draft);
+  const preparing = busy.logo || busy.logoDark;
+  const cannotSave = disabled || !dirty || !result.ok || preparing;
+
+  const touch = (field: StudioField) => setTouched((t) => (t[field] ? t : { ...t, [field]: true }));
+  const set = (key: keyof StudioDraft, next: string | undefined) =>
+    setDraft((d) => ({ ...d, [key]: next ?? "" }));
+  const shownError = (field: StudioField) => (touched[field] ? errors[field] : undefined);
+  const note = (which: "light" | "dark") =>
+    result.ok
+      ? noteText(
+          result.notes.find((n) => n.mode === which),
+          text,
+        )
+      : undefined;
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (cannotSave || saving || !result.ok) return;
+    setSaving(true);
+    setSaveFailed(false);
+    try {
+      await onSave(result.config);
+    } catch {
+      setSaveFailed(true);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function reset() {
+    setDraft(draftFromConfig(value));
+    setTouched({});
+    setSaveFailed(false);
+  }
+
+  const branding = shown
+    ? shown.config.branding
+    : { appName: draft.appName, logo: draft.logo, logoDark: draft.logoDark };
+
+  return (
+    <div
+      data-slot="theme-studio"
+      className={cn("grid gap-6 lg:grid-cols-2 lg:items-start", className)}
+    >
+      <form noValidate onSubmit={submit} className="flex min-w-0 flex-col gap-6">
+        <Field
+          label={text.appNameLabel}
+          description={text.appNameHelp}
+          error={shownError("appName")}
+        >
+          <Input
+            value={draft.appName}
+            onValueChange={(next) => set("appName", next)}
+            onBlur={() => touch("appName")}
+            disabled={disabled}
+            autoComplete="off"
+          />
+        </Field>
+
+        <Fieldset legend={text.lightHeading} disabled={disabled}>
+          <Field label={text.brandLabel} description={note("light")} error={shownError("brand")}>
+            {(control) => (
+              <ColourInput
+                {...control}
+                swatchLabel={text.lightSwatch}
+                value={draft.brand}
+                onValueChange={(next) => set("brand", next)}
+                onBlur={() => touch("brand")}
+                disabled={disabled}
+              />
+            )}
+          </Field>
+          <Field label={text.logoLabel}>
+            {(control) => (
+              <LogoUpload
+                {...control}
+                value={draft.logo || undefined}
+                onValueChange={(next) => set("logo", next)}
+                onBusyChange={(on) => setBusy((b) => ({ ...b, logo: on }))}
+                disabled={disabled}
+              />
+            )}
+          </Field>
+        </Fieldset>
+
+        <Fieldset legend={text.darkHeading} description={text.darkOptional} disabled={disabled}>
+          <Field label={text.brandLabel} description={note("dark")} error={shownError("brandDark")}>
+            {(control) => (
+              <ColourInput
+                {...control}
+                swatchLabel={text.darkSwatch}
+                value={draft.brandDark}
+                onValueChange={(next) => set("brandDark", next)}
+                onBlur={() => touch("brandDark")}
+                disabled={disabled}
+              />
+            )}
+          </Field>
+          <Field label={text.logoLabel}>
+            {(control) => (
+              <LogoUpload
+                {...control}
+                value={draft.logoDark || undefined}
+                onValueChange={(next) => set("logoDark", next)}
+                onBusyChange={(on) => setBusy((b) => ({ ...b, logoDark: on }))}
+                disabled={disabled}
+              />
+            )}
+          </Field>
+        </Fieldset>
+
+        {conflict ? (
+          <Alert variant="warning">
+            <p>
+              {conflict.roles.length > 0
+                ? fill(text.conflict, { roles: conflict.roles.join(", ") })
+                : text.conflictNoRole}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {fill(text.conflictDetails, { issues: conflict.issues.join(" ") })}
+            </p>
+          </Alert>
+        ) : null}
+        {saveFailed ? <Alert variant="destructive">{text.saveFailed}</Alert> : null}
+
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="submit"
+            disabled={saving ? false : cannotSave}
+            loading={saving}
+            loadingText={text.saving}
+          >
+            {text.save}
+          </Button>
+          <Button type="button" variant="outline" disabled={disabled || !dirty} onClick={reset}>
+            {text.reset}
+          </Button>
+        </div>
+      </form>
+
+      <section
+        aria-labelledby={headingId}
+        className="flex min-w-0 flex-col gap-3 lg:sticky lg:top-4"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 id={headingId} className="text-base font-semibold">
+            {text.preview}
+          </h2>
+          <ToggleGroup
+            aria-label={text.previewMode}
+            value={[mode]}
+            onValueChange={(next: unknown) => {
+              const picked = Array.isArray(next) ? next[0] : undefined;
+              if (picked === "light" || picked === "dark") setMode(picked);
+            }}
+            variant="outline"
+          >
+            <ToggleGroupItem value="light">{text.modeLight}</ToggleGroupItem>
+            <ToggleGroupItem value="dark">{text.modeDark}</ToggleGroupItem>
+          </ToggleGroup>
+        </div>
+        <ThemePreview
+          cssVariables={shown?.cssVariables ?? {}}
+          mode={mode}
+          appName={branding?.appName}
+          logo={branding?.logo}
+          logoDark={branding?.logoDark}
+          messages={text}
+        />
+      </section>
+    </div>
+  );
+}
