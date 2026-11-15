@@ -189,6 +189,7 @@ An unknown name renders nothing and logs one development warning; it never crash
 | `@azmr/ui/input` | `Input`, `Textarea`, `ColourInput` | `"use client"` |
 | `@azmr/ui/input-group` | `InputGroup`, `InputGroupInput`, `InputGroupAddon`, `InputGroupButton` | `"use client"` |
 | `@azmr/ui/password-input` | `PasswordInput`, `passwordRequirements`, `defaultPasswordScorer` | `"use client"` |
+| `@azmr/ui/logo-upload` | `LogoUpload`, `shrinkImage`, `ShrinkError` (choose or drop a logo, shrunk in the browser to fit a data URI limit) | `"use client"` |
 | `@azmr/ui/number-field` | `NumberField`, `MoneyField`, `numberOrNull` | `"use client"` |
 | `@azmr/ui/field-array` | `FieldArray` (repeating rows: add, remove, drag or keyboard reorder, totals) | `"use client"` |
 | `@azmr/ui/rhf` | `Form`, `FormField`, `FormErrorSummary`, `FormFieldArray` (React Hook Form 7, optional peer) | `"use client"` |

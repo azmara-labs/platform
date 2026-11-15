@@ -79,6 +79,10 @@
       "types": "./dist/password-input.d.ts",
       "import": "./dist/password-input.js"
     },
+    "./logo-upload": {
+      "types": "./dist/logo-upload.d.ts",
+      "import": "./dist/logo-upload.js"
+    },
     "./number-field": {
       "types": "./dist/number-field.d.ts",
       "import": "./dist/number-field.js"

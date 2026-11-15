@@ -1,0 +1,105 @@
+---
+title: Logo upload
+description: Choose or drop a PNG, JPEG or WebP and get back a small data URI. The image is checked, shrunk and re-encoded in the browser to fit a size limit.
+group: Inputs
+status: new
+since: 0.14.0
+interactive: true
+aliases: [logo, image upload, file upload, drop zone, avatar upload, brand logo]
+---
+
+## Usage
+
+```tsx
+import { LogoUpload } from "@azmr/ui/logo-upload";
+```
+
+<Demo name="logo-upload/upload" />
+
+`LogoUpload` lets someone choose a file or drop one on the box, shows a preview, and lets them replace or remove it. It returns a string through `onValueChange`: a `data:` URI of a small image. It does not save anything. Storing the string, and showing it later, is your app's job.
+
+Put it in a [Field](/docs/components/field) with a function child, so the label, description and error are joined to it:
+
+```tsx
+<Field label="Company logo" error={errors.logo}>
+  {(control) => <LogoUpload {...control} value={logo} onValueChange={setLogo} />}
+</Field>
+```
+
+Use `value` and `onValueChange` for a controlled upload, or `defaultValue` to let the component keep the value itself. Add `name` to carry the value in a native form post through a hidden input.
+
+## What it does to the file
+
+Most logo exports and every phone photo are far bigger than a theme, a profile or an API field can hold. The component does the shrinking, so the person never has to:
+
+1. It reads the file's first bytes to see what it is. The extension and the type the browser reports are never trusted, so a `logo.png` that is really something else is refused.
+2. It decodes the image to prove it is one. A file over 10 MB, or an image over 40 million pixels, is refused before it can use much memory.
+3. It draws the image onto a canvas and re-encodes it as WebP (or PNG, in a browser that cannot encode WebP), trying a longest side of 512, then 384, 256, 192, 128, 96 and 64 pixels, and four qualities at each size, until the result fits `maxChars`. Transparency is kept and a small image is never made bigger.
+
+If nothing fits, the component says so and keeps the logo the person already had. It never fetches a URL.
+
+**SVG is refused.** An SVG can carry script, so it is never read, drawn or stored. Ask for a PNG, JPEG or WebP; if a logo must be SVG, your app should render it from its own files.
+
+`maxChars` is the most characters the data URI may have. It defaults to 32,768, the limit the `@azmr/ui` theme accepts for an image. Set it to your own storage limit.
+
+## Errors
+
+A refused file shows its message under the controls, in an alert, and calls `onError` with a code. The code is the stable part; change the words with `errors`.
+
+| Code | Default message |
+| --- | --- |
+| `not-an-image` | That file is not a PNG, JPEG or WebP image. |
+| `svg` | SVG logos cannot be used here. Export your logo as a PNG, JPEG or WebP. |
+| `file-too-large` | That file is larger than 10 MB. Choose a smaller image. |
+| `too-many-pixels` | That image is too large to open. Choose a smaller one. |
+| `cannot-fit` | This logo cannot be made small enough. Try a simpler image. |
+| `unsupported-browser` | This browser cannot prepare images. Try a current browser. |
+
+The error clears, and `onError(undefined)` is called, when a later file works or the logo is removed.
+
+## With react-hook-form
+
+```tsx
+<FormField
+  name="logo"
+  label="Company logo"
+  render={({ value, onChange, control }) => (
+    <LogoUpload {...control} value={value} onValueChange={onChange} />
+  )}
+/>
+```
+
+## Using the shrinking on its own
+
+`shrinkImage(file, maxChars)` is exported for a custom control. It returns `{ dataUri, width, height }` or throws a `ShrinkError` with the same codes. It needs a browser, so call it from an event handler, not while rendering.
+
+## When not to use it
+
+For photos, anything that needs cropping, or a file that must be kept at full quality, upload the original to your own storage. This control is for small images that are stored inline, such as a brand logo.
+
+## Props
+
+<AutoTypeTable
+  path="../../packages/ui/src/components/logo-upload/index.ts"
+  name="LogoUploadDocProps"
+  type={`import type { LogoUploadProps } from "./logo-upload.js"
+export type LogoUploadDocProps = Pick<LogoUploadProps, "value" | "defaultValue" | "onValueChange" | "onError" | "maxChars" | "name" | "disabled" | "id" | "aria-labelledby" | "aria-describedby" | "aria-invalid" | "aria-required" | "aria-errormessage" | "chooseLabel" | "replaceLabel" | "removeLabel" | "dropLabel" | "previewAlt" | "busyLabel" | "readyLabel" | "errors" | "className">`}
+/>
+
+`id` and the `aria-*` props go on the choose button, which is why a `Field` function child can spread its `control` props straight in. `ref` is that button too.
+
+## Accessibility
+
+- Choosing a file is a real button. Dropping is an extra, never the only way, so the control works with a keyboard, a screen reader and a switch.
+- The preview has text alternative `previewAlt`. Change it to name the logo, such as "Harbour & Pine logo".
+- Progress and success are read politely ("Preparing your logo...", "Logo ready"). A refusal is read as an alert and is part of the button's description.
+- After Remove, focus moves to the choose button, so it is not lost.
+- Disabled turns off every button, the file chooser and dropping.
+
+<KeyboardMap
+  rows={[
+    { keys: ["Tab"], action: "Moves focus to the choose or replace button, then to Remove logo." },
+    { keys: ["Enter"], action: "On the choose or replace button, opens the file chooser." },
+    { keys: ["Space"], action: "On the choose or replace button, opens the file chooser." },
+  ]}
+/>
