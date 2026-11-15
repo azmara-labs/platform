@@ -90,7 +90,12 @@
   {
     "name": "@azmr/ui/password-input",
     "path": "dist/password-input.js",
-    "limit": "17 kB"
+    "limit": "17.5 kB"
+  },
+  {
+    "name": "@azmr/ui/logo-upload",
+    "path": "dist/logo-upload.js",
+    "limit": "15 kB"
   },
   {
     "name": "@azmr/ui/number-field",

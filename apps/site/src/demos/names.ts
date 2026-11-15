@@ -72,6 +72,7 @@ export const demoNames: ReadonlySet<string> = new Set([
   "pagination/state",
   "password-input/new-password",
   "password-input/sign-in",
+  "logo-upload/upload",
   "progress/basic",
   "progress/circular",
   "recipes/form-validation",

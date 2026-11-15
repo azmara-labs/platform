@@ -51,6 +51,7 @@ import LoadingBar from "./loading/bar.demo";
 import LoadingBasic from "./loading/basic.demo";
 import LoadingLogo from "./loading/logo.demo";
 import LoadingOverlay from "./loading/overlay.demo";
+import LogoUploadUpload from "./logo-upload/upload.demo";
 import MenuContext from "./menu/context.demo";
 import MenuOpensDialog from "./menu/dialog.demo";
 import MenuDropdown from "./menu/dropdown.demo";
@@ -177,6 +178,7 @@ export const demos = {
   "input-group/buttons": InputGroupButtons,
   "password-input/sign-in": PasswordInputSignIn,
   "password-input/new-password": PasswordInputNewPassword,
+  "logo-upload/upload": LogoUploadUpload,
   "field/basic": FieldBasic,
   "field/parts": FieldParts,
   "field/validation": FieldValidation,
