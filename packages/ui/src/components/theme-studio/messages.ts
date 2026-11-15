@@ -35,6 +35,14 @@ export interface StudioMessages {
   modeDark: string;
   /** `{mode}` is `modeLight` or `modeDark`, in lower case. */
   previewDescription: string;
+  /** What the preview header shows when there is no app name. */
+  previewAppName: string;
+  /** The sample card, link, badge and button in the preview. */
+  previewHeading: string;
+  previewBody: string;
+  previewLink: string;
+  previewBadge: string;
+  previewButton: string;
 }
 
 export const DEFAULT_MESSAGES: StudioMessages = {
@@ -72,6 +80,12 @@ export const DEFAULT_MESSAGES: StudioMessages = {
   modeDark: "Dark",
   previewDescription:
     "Preview of the {mode} theme: a header with your logo and app name, a card, a link and a button.",
+  previewAppName: "Your app name",
+  previewHeading: "Welcome back",
+  previewBody: "This is how your colours and logo look in the app.",
+  previewLink: "View details",
+  previewBadge: "Active",
+  previewButton: "Primary action",
 };
 
 /** Replace each `{name}` in `template` with its value. A name with no value is left as it is. */
