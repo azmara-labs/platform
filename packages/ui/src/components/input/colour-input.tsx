@@ -73,13 +73,16 @@ export const ColourInput = forwardRef<HTMLInputElement, ColourInputProps>(functi
     [ref],
   );
 
-  // The text, for the swatch. Read from the input on mount because react-hook-form writes
-  // defaultValues to the element without an event.
+  // The text, for the swatch. Uncontrolled, the element is the source of truth: react-hook-form
+  // writes defaultValues and reset() values to it without an event, so read it after every render
+  // and follow it when it differs. It converges in one extra render.
   const [typed, setTyped] = useState(String(defaultValue ?? ""));
   const current = value === undefined ? typed : String(value);
   useEffect(() => {
-    if (value === undefined && element.current) setTyped(element.current.value);
-  }, [value]);
+    if (value === undefined && element.current && element.current.value !== typed) {
+      setTyped(element.current.value);
+    }
+  });
 
   function handleChange(event: Parameters<NonNullable<InputProps["onChange"]>>[0]) {
     setTyped(event.target.value);
