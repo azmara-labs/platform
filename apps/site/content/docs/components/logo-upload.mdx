@@ -26,17 +26,17 @@ Put it in a [Field](/docs/components/field) with a function child, so the label,
 </Field>
 ```
 
-Use `value` and `onValueChange` for a controlled upload, or `defaultValue` to let the component keep the value itself. Add `name` to carry the value in a native form post through a hidden input.
+Use `value` and `onValueChange` for a controlled upload, or `defaultValue` to let the component keep the value itself. Passing `value` at all makes it controlled, even as `undefined` or `null`, so state that starts empty (`useState<string>()`) can be passed straight back. `onValueChange(undefined)` means the logo was removed. Add `name` to carry the value in a native form post through a hidden input.
 
 ## What it does to the file
 
 Most logo exports and every phone photo are far bigger than a theme, a profile or an API field can hold. The component does the shrinking, so the person never has to:
 
 1. It reads the file's first bytes to see what it is. The extension and the type the browser reports are never trusted, so a `logo.png` that is really something else is refused.
-2. It decodes the image to prove it is one. A file over 10 MB, or an image over 40 million pixels, is refused before it can use much memory.
+2. It refuses a file over 10 MB before reading it. It reads the image's own header, and refuses one that says it is over 40 million pixels before decoding it, so a tiny file that describes a huge picture costs nothing. It then decodes the image to prove it is one, and checks the decoded size too, for a file whose header could not be read.
 3. It draws the image onto a canvas and re-encodes it as WebP (or PNG, in a browser that cannot encode WebP), trying a longest side of 512, then 384, 256, 192, 128, 96 and 64 pixels, and four qualities at each size, until the result fits `maxChars`. Transparency is kept and a small image is never made bigger.
 
-If nothing fits, the component says so and keeps the logo the person already had. It never fetches a URL.
+If nothing fits, the component says so and keeps the logo the person already had. It never fetches a URL to read or upload an image. (A value you pass in that is an `https:` URL is shown in the preview, which makes the browser load it.)
 
 **SVG is refused.** An SVG can carry script, so it is never read, drawn or stored. Ask for a PNG, JPEG or WebP; if a logo must be SVG, your app should render it from its own files.
 
@@ -83,7 +83,7 @@ For photos, anything that needs cropping, or a file that must be kept at full qu
   path="../../packages/ui/src/components/logo-upload/index.ts"
   name="LogoUploadDocProps"
   type={`import type { LogoUploadProps } from "./logo-upload.js"
-export type LogoUploadDocProps = Pick<LogoUploadProps, "value" | "defaultValue" | "onValueChange" | "onError" | "maxChars" | "name" | "disabled" | "id" | "aria-labelledby" | "aria-describedby" | "aria-invalid" | "aria-required" | "aria-errormessage" | "chooseLabel" | "replaceLabel" | "removeLabel" | "dropLabel" | "previewAlt" | "busyLabel" | "readyLabel" | "errors" | "className">`}
+export type LogoUploadDocProps = Pick<LogoUploadProps, "value" | "defaultValue" | "onValueChange" | "onError" | "maxChars" | "name" | "disabled" | "id" | "aria-labelledby" | "aria-describedby" | "aria-invalid" | "aria-required" | "aria-errormessage" | "chooseLabel" | "replaceLabel" | "removeLabel" | "dropLabel" | "previewAlt" | "busyLabel" | "readyLabel" | "requiredLabel" | "errors" | "className">`}
 />
 
 `id` and the `aria-*` props go on the choose button, which is why a `Field` function child can spread its `control` props straight in. `ref` is that button too.
@@ -94,6 +94,7 @@ export type LogoUploadDocProps = Pick<LogoUploadProps, "value" | "defaultValue" 
 - The preview has text alternative `previewAlt`. Change it to name the logo, such as "Harbour & Pine logo".
 - Progress and success are read politely ("Preparing your logo...", "Logo ready"). A refusal is read as an alert and is part of the button's description.
 - After Remove, focus moves to the choose button, so it is not lost.
+- A button cannot take `aria-required`, so a required logo is said in the button's description: the words in `requiredLabel`, "Required" by default.
 - Disabled turns off every button, the file chooser and dropping.
 
 <KeyboardMap

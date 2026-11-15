@@ -26,8 +26,11 @@ export interface ShrinkResult {
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const MAX_PIXELS = 40_000_000;
-/** Enough to see past a byte order mark and leading whitespace to `<svg` or `<?xml`. */
-const SNIFF_BYTES = 64;
+/**
+ * How much of the start of the file is read before decoding: enough to sniff the type (a byte
+ * order mark and whitespace before `<svg`) and to find a JPEG's frame header past its metadata.
+ */
+const HEADER_BYTES = 256 * 1024;
 /** Longest side to try, largest first. Each is capped at the image's own longest side. */
 const SIDES = [512, 384, 256, 192, 128, 96, 64] as const;
 /** WebP qualities to try at each size, best first. */
@@ -54,6 +57,65 @@ export function sniffImageType(bytes: Uint8Array): "png" | "jpeg" | "webp" | "sv
   while (i < bytes.length && [0x09, 0x0a, 0x0d, 0x20].includes(bytes[i] as number)) i++;
   const head = String.fromCharCode(...bytes.subarray(i, i + 5)).toLowerCase();
   return head.startsWith("<svg") || head === "<?xml" ? "svg" : undefined;
+}
+
+const be16 = (b: Uint8Array, at: number) => ((b[at] as number) << 8) | (b[at + 1] as number);
+const be32 = (b: Uint8Array, at: number) => (be16(b, at) * 65_536 + be16(b, at + 2)) >>> 0;
+const le16 = (b: Uint8Array, at: number) => (b[at] as number) | ((b[at + 1] as number) << 8);
+const le24 = (b: Uint8Array, at: number) => le16(b, at) | ((b[at + 2] as number) << 16);
+const le32 = (b: Uint8Array, at: number) => (le24(b, at) | ((b[at + 3] as number) << 24)) >>> 0;
+
+/**
+ * The width and height an image's own header claims, without decoding it, so a tiny file that
+ * describes a huge picture can be refused before it costs any memory. `undefined` when the header
+ * is cut short or the size is not where it should be; the decoded size is checked as well.
+ */
+export function readImageSize(
+  bytes: Uint8Array,
+  kind: "png" | "jpeg" | "webp",
+): { width: number; height: number } | undefined {
+  if (kind === "png") {
+    if (bytes.length < 24 || !startsWith(bytes, 12, [0x49, 0x48, 0x44, 0x52])) return undefined;
+    return { width: be32(bytes, 16), height: be32(bytes, 20) };
+  }
+
+  if (kind === "webp") {
+    if (startsWith(bytes, 12, [0x56, 0x50, 0x38, 0x58]) && bytes.length >= 30)
+      return { width: le24(bytes, 24) + 1, height: le24(bytes, 27) + 1 };
+    if (startsWith(bytes, 12, [0x56, 0x50, 0x38, 0x4c]) && bytes.length >= 25) {
+      if (bytes[20] !== 0x2f) return undefined;
+      const bits = le32(bytes, 21);
+      return { width: (bits & 0x3fff) + 1, height: ((bits >>> 14) & 0x3fff) + 1 };
+    }
+    if (startsWith(bytes, 12, [0x56, 0x50, 0x38, 0x20]) && bytes.length >= 30) {
+      if (!startsWith(bytes, 23, [0x9d, 0x01, 0x2a])) return undefined;
+      return { width: le16(bytes, 26) & 0x3fff, height: le16(bytes, 28) & 0x3fff };
+    }
+    return undefined;
+  }
+
+  // JPEG: walk the segments after the start marker until a frame header (SOF0-SOF15, but not
+  // DHT 0xc4, JPG 0xc8 or DAC 0xcc). The scan data (0xda) starts after every header.
+  let at = 2;
+  while (at + 4 <= bytes.length) {
+    if (bytes[at] !== 0xff) return undefined;
+    const marker = bytes[at + 1] as number;
+    if (marker === 0xff) {
+      at += 1;
+      continue;
+    }
+    if (marker === 0x01 || (marker >= 0xd0 && marker <= 0xd7)) {
+      at += 2;
+      continue;
+    }
+    if (marker === 0xd9 || marker === 0xda) return undefined;
+    if (marker >= 0xc0 && marker <= 0xcf && marker !== 0xc4 && marker !== 0xc8 && marker !== 0xcc) {
+      if (at + 9 > bytes.length) return undefined;
+      return { width: be16(bytes, at + 7), height: be16(bytes, at + 5) };
+    }
+    at += 2 + be16(bytes, at + 2);
+  }
+  return undefined;
 }
 
 function encodeToFit(bitmap: ImageBitmap, maxChars: number): ShrinkResult {
@@ -88,10 +150,14 @@ function encodeToFit(bitmap: ImageBitmap, maxChars: number): ShrinkResult {
 export async function shrinkImage(file: Blob, maxChars: number): Promise<ShrinkResult> {
   if (file.size > MAX_FILE_BYTES) throw new ShrinkError("file-too-large");
 
-  const head = new Uint8Array(await file.slice(0, SNIFF_BYTES).arrayBuffer());
+  const head = new Uint8Array(await file.slice(0, HEADER_BYTES).arrayBuffer());
   const kind = sniffImageType(head);
   if (kind === "svg") throw new ShrinkError("svg");
   if (kind === undefined) throw new ShrinkError("not-an-image");
+  // Decoding spends memory for every pixel, so refuse what the header says is too big first.
+  const claimed = readImageSize(head, kind);
+  if (claimed && claimed.width * claimed.height > MAX_PIXELS)
+    throw new ShrinkError("too-many-pixels");
   if (typeof createImageBitmap !== "function") throw new ShrinkError("unsupported-browser");
 
   let bitmap: ImageBitmap;

@@ -15,8 +15,10 @@ import { ShrinkError, type ShrinkErrorCode, shrinkImage } from "./shrink-image.j
 
 export interface LogoUploadProps {
   /**
-   * The logo, for a controlled upload: a `data:` image or an `https:` URL. `null` or `""` means
-   * none. Leave it out to let the component keep the value itself.
+   * The logo, for a controlled upload: a `data:` image or an `https:` URL. `null`, `undefined` or
+   * `""` means none. Passing the prop at all, even as `undefined`, makes the upload controlled, so
+   * a parent that starts empty and passes its state back works. Leave it out to let the component
+   * keep the value itself.
    */
   value?: string | null;
   /** The logo an uncontrolled upload starts with. */
@@ -43,6 +45,10 @@ export interface LogoUploadProps {
   "aria-labelledby"?: string;
   "aria-describedby"?: string;
   "aria-invalid"?: boolean;
+  /**
+   * Marks the logo as required. A button cannot take `aria-required`, so it is not put on the
+   * button; `requiredLabel` is read as part of its description instead.
+   */
   "aria-required"?: boolean;
   "aria-errormessage"?: string;
   /** @default "Choose a logo" */
@@ -59,6 +65,11 @@ export interface LogoUploadProps {
   busyLabel?: string;
   /** @default "Logo ready" */
   readyLabel?: string;
+  /**
+   * Read after the button's name when `aria-required` is set.
+   * @default "Required"
+   */
+  requiredLabel?: string;
   /** Text for each refusal. Anything you leave out uses the default. */
   errors?: Partial<Record<ShrinkErrorCode, string>>;
 }
@@ -97,178 +108,194 @@ const hasFiles = (event: DragEvent) =>
  * SVG is refused and nothing is fetched. It returns the string and stores nothing: saving it is
  * your app's job. `ref` and `id` are the choose button, so a `Field` label points at it.
  */
-export const LogoUpload = forwardRef<HTMLButtonElement, LogoUploadProps>(function LogoUpload(
-  {
-    value,
-    defaultValue,
-    onValueChange,
-    onError,
-    maxChars = DEFAULT_MAX_CHARS,
-    name,
-    disabled = false,
-    id,
-    className,
-    "aria-labelledby": labelledBy,
-    "aria-describedby": describedBy,
-    "aria-invalid": invalid,
-    "aria-required": required,
-    "aria-errormessage": errorMessage,
-    chooseLabel = "Choose a logo",
-    replaceLabel = "Replace logo",
-    removeLabel = "Remove logo",
-    dropLabel = "or drop an image here",
-    previewAlt = "Logo preview",
-    busyLabel = "Preparing your logo...",
-    readyLabel = "Logo ready",
-    errors,
-  },
-  ref,
-) {
-  const generated = useId();
-  const buttonId = id ?? generated;
-  const errorId = useId();
-  const fileInput = useRef<HTMLInputElement>(null);
-  const button = useRef<HTMLButtonElement>(null);
-  useImperativeHandle(ref, () => button.current as HTMLButtonElement);
+export const LogoUpload = forwardRef<HTMLButtonElement, LogoUploadProps>(
+  function LogoUpload(props, ref) {
+    const {
+      value,
+      defaultValue,
+      onValueChange,
+      onError,
+      maxChars = DEFAULT_MAX_CHARS,
+      name,
+      disabled = false,
+      id,
+      className,
+      "aria-labelledby": labelledBy,
+      "aria-describedby": describedBy,
+      "aria-invalid": invalid,
+      "aria-required": required,
+      "aria-errormessage": errorMessage,
+      chooseLabel = "Choose a logo",
+      replaceLabel = "Replace logo",
+      removeLabel = "Remove logo",
+      dropLabel = "or drop an image here",
+      previewAlt = "Logo preview",
+      busyLabel = "Preparing your logo...",
+      readyLabel = "Logo ready",
+      requiredLabel = "Required",
+      errors,
+    } = props;
+    // Controlled means the `value` prop is passed at all, even as `undefined` or `null`: a parent
+    // that starts with no logo and passes its state straight back must stay in charge.
+    const controlled = "value" in props;
+    const generated = useId();
+    const buttonId = id ?? generated;
+    const errorId = useId();
+    const requiredId = useId();
+    const fileInput = useRef<HTMLInputElement>(null);
+    const button = useRef<HTMLButtonElement>(null);
+    useImperativeHandle(ref, () => button.current as HTMLButtonElement);
 
-  const [kept, setKept] = useState<string | undefined>(defaultValue || undefined);
-  const current = value === undefined ? kept : value || undefined;
-  const [busy, setBusy] = useState(false);
-  const [ready, setReady] = useState(false);
-  const [code, setCode] = useState<ShrinkErrorCode>();
-  const [dragging, setDragging] = useState(false);
+    const [kept, setKept] = useState<string | undefined>(defaultValue || undefined);
+    const current = controlled ? value || undefined : kept;
+    const [busy, setBusy] = useState(false);
+    const [ready, setReady] = useState(false);
+    const [code, setCode] = useState<ShrinkErrorCode>();
+    const [dragging, setDragging] = useState(false);
 
-  // Each choice takes a ticket; only the newest ticket may apply its result. Remove and unmount
-  // take one too, so a slow file never lands after the person has moved on.
-  const latest = useRef(0);
-  useEffect(
-    () => () => {
-      latest.current += 1;
-    },
-    [],
-  );
+    // Each choice takes a ticket; only the newest ticket may apply its result. Remove and unmount
+    // take one too, so a slow file never lands after the person has moved on.
+    const latest = useRef(0);
+    useEffect(
+      () => () => {
+        latest.current += 1;
+      },
+      [],
+    );
 
-  const shownError = useRef<ShrinkErrorCode | undefined>(undefined);
-  function report(next: ShrinkErrorCode | undefined) {
-    if (next === undefined && shownError.current === undefined) return;
-    shownError.current = next;
-    setCode(next);
-    onError?.(next);
-  }
-
-  async function choose(file: File) {
-    const ticket = ++latest.current;
-    setBusy(true);
-    setReady(false);
-    try {
-      const result = await shrinkImage(file, maxChars);
-      if (ticket !== latest.current) return;
-      setBusy(false);
-      report(undefined);
-      if (value === undefined) setKept(result.dataUri);
-      setReady(true);
-      onValueChange?.(result.dataUri);
-    } catch (error) {
-      if (ticket !== latest.current) return;
-      setBusy(false);
-      report(error instanceof ShrinkError ? error.code : "not-an-image");
+    const shownError = useRef<ShrinkErrorCode | undefined>(undefined);
+    function report(next: ShrinkErrorCode | undefined) {
+      if (next === undefined && shownError.current === undefined) return;
+      shownError.current = next;
+      setCode(next);
+      onError?.(next);
     }
-  }
 
-  function remove() {
-    latest.current += 1;
-    setBusy(false);
-    setReady(false);
-    report(undefined);
-    if (value === undefined) setKept(undefined);
-    onValueChange?.(undefined);
-    button.current?.focus();
-  }
+    async function choose(file: File) {
+      const ticket = ++latest.current;
+      setBusy(true);
+      setReady(false);
+      try {
+        const result = await shrinkImage(file, maxChars);
+        if (ticket !== latest.current) return;
+        setBusy(false);
+        report(undefined);
+        if (!controlled) setKept(result.dataUri);
+        setReady(true);
+        onValueChange?.(result.dataUri);
+      } catch (error) {
+        if (ticket !== latest.current) return;
+        setBusy(false);
+        report(error instanceof ShrinkError ? error.code : "not-an-image");
+      }
+    }
 
-  function onDragOver(event: DragEvent) {
-    if (disabled || !hasFiles(event)) return;
-    event.preventDefault();
-    setDragging(true);
-  }
+    function remove() {
+      latest.current += 1;
+      setBusy(false);
+      setReady(false);
+      report(undefined);
+      if (!controlled) setKept(undefined);
+      onValueChange?.(undefined);
+      button.current?.focus();
+    }
 
-  function onDrop(event: DragEvent) {
-    if (!hasFiles(event)) return;
-    event.preventDefault();
-    setDragging(false);
-    const file = event.dataTransfer.files[0];
-    if (!disabled && file) void choose(file);
-  }
+    function onDragOver(event: DragEvent) {
+      if (disabled || !hasFiles(event)) return;
+      event.preventDefault();
+      setDragging(true);
+    }
 
-  const describedByIds = [describedBy, code ? errorId : undefined].filter(Boolean).join(" ");
-  // A `Field` label names the control; keep the button's own text in the name too.
-  const labelledByIds = labelledBy ? `${labelledBy} ${buttonId}` : undefined;
+    function onDrop(event: DragEvent) {
+      if (!hasFiles(event)) return;
+      event.preventDefault();
+      setDragging(false);
+      const file = event.dataTransfer.files[0];
+      if (!disabled && file) void choose(file);
+    }
 
-  return (
-    <fieldset
-      data-slot="logo-upload"
-      data-dragging={dragging ? "" : undefined}
-      onDragEnter={onDragOver}
-      onDragOver={onDragOver}
-      onDragLeave={() => setDragging(false)}
-      onDrop={onDrop}
-      className={cn(
-        "m-0 flex w-full min-w-0 flex-wrap items-center gap-3 rounded-md border border-dashed border-input p-3",
-        "transition-colors duration-(--motion-duration-fast) ease-standard",
-        "data-[dragging]:border-ring data-[dragging]:bg-accent",
-        className,
-      )}
-    >
-      <input
-        ref={fileInput}
-        type="file"
-        hidden
-        accept="image/png,image/jpeg,image/webp"
-        disabled={disabled}
-        onChange={(event) => {
-          const file = event.target.files?.[0];
-          // Clear it so choosing the same file again still fires `change`.
-          event.target.value = "";
-          if (file) void choose(file);
-        }}
-      />
-      {name ? <input type="hidden" name={name} value={current ?? ""} /> : null}
-      {current !== undefined && previewable(current) ? (
-        <img
-          src={current}
-          alt={previewAlt}
-          className="h-16 max-w-40 rounded-md border border-input bg-background object-contain p-1"
-        />
-      ) : null}
-      <Button
-        ref={button}
-        id={buttonId}
-        type="button"
-        variant="outline"
-        disabled={disabled}
-        loading={busy}
-        aria-labelledby={labelledByIds}
-        aria-describedby={describedByIds || undefined}
-        aria-invalid={invalid || code ? true : undefined}
-        aria-required={required || undefined}
-        aria-errormessage={errorMessage}
-        onClick={() => fileInput.current?.click()}
+    // `aria-required` is not allowed on a button, so a required logo is said in the description.
+    const describedByIds = [
+      describedBy,
+      required ? requiredId : undefined,
+      code ? errorId : undefined,
+    ]
+      .filter(Boolean)
+      .join(" ");
+    // A `Field` label names the control; keep the button's own text in the name too.
+    const labelledByIds = labelledBy ? `${labelledBy} ${buttonId}` : undefined;
+
+    return (
+      <fieldset
+        data-slot="logo-upload"
+        data-dragging={dragging ? "" : undefined}
+        onDragEnter={onDragOver}
+        onDragOver={onDragOver}
+        onDragLeave={() => setDragging(false)}
+        onDrop={onDrop}
+        className={cn(
+          "m-0 flex w-full min-w-0 flex-wrap items-center gap-3 rounded-md border border-dashed border-input p-3",
+          "transition-colors duration-(--motion-duration-fast) ease-standard",
+          "data-[dragging]:border-ring data-[dragging]:bg-accent",
+          className,
+        )}
       >
-        {current !== undefined ? replaceLabel : chooseLabel}
-      </Button>
-      {current !== undefined ? (
-        <Button type="button" variant="ghost" disabled={disabled} onClick={remove}>
-          {removeLabel}
+        <input
+          ref={fileInput}
+          type="file"
+          hidden
+          accept="image/png,image/jpeg,image/webp"
+          disabled={disabled}
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            // Clear it so choosing the same file again still fires `change`.
+            event.target.value = "";
+            if (file) void choose(file);
+          }}
+        />
+        {name ? <input type="hidden" name={name} value={current ?? ""} /> : null}
+        {current !== undefined && previewable(current) ? (
+          <img
+            src={current}
+            alt={previewAlt}
+            className="h-16 max-w-40 rounded-md border border-input bg-background object-contain p-1"
+          />
+        ) : null}
+        <Button
+          ref={button}
+          id={buttonId}
+          type="button"
+          variant="outline"
+          disabled={disabled}
+          loading={busy}
+          aria-labelledby={labelledByIds}
+          aria-describedby={describedByIds || undefined}
+          aria-invalid={invalid || code ? true : undefined}
+          aria-errormessage={errorMessage}
+          onClick={() => fileInput.current?.click()}
+        >
+          {current !== undefined ? replaceLabel : chooseLabel}
         </Button>
-      ) : null}
-      <span className="text-sm text-muted-foreground">{dropLabel}</span>
-      <p role="status" className="w-full text-sm text-muted-foreground empty:hidden">
-        {busy ? busyLabel : ready ? readyLabel : ""}
-      </p>
-      {code ? (
-        <p id={errorId} role="alert" className="w-full text-sm text-destructive">
-          {errors?.[code] ?? DEFAULT_ERRORS[code]}
+        {current !== undefined ? (
+          <Button type="button" variant="ghost" disabled={disabled} onClick={remove}>
+            {removeLabel}
+          </Button>
+        ) : null}
+        {required ? (
+          <span id={requiredId} className="sr-only">
+            {requiredLabel}
+          </span>
+        ) : null}
+        <span className="text-sm text-muted-foreground">{dropLabel}</span>
+        <p role="status" className="w-full text-sm text-muted-foreground empty:hidden">
+          {busy ? busyLabel : ready ? readyLabel : ""}
         </p>
-      ) : null}
-    </fieldset>
-  );
-});
+        {code ? (
+          <p id={errorId} role="alert" className="w-full text-sm text-destructive">
+            {errors?.[code] ?? DEFAULT_ERRORS[code]}
+          </p>
+        ) : null}
+      </fieldset>
+    );
+  },
+);
