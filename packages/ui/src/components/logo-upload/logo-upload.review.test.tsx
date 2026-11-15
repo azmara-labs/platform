@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { expectNoA11yViolations, renderUi, setupUser } from "../../test-utils/index.js";
 import { Field } from "../field/index.js";
 import { LogoUpload } from "./logo-upload.js";
-import { PNG, stubBrowser } from "./test-support.js";
+import { GIF, PNG, stubBrowser } from "./test-support.js";
 
 const GOOD = "data:image/webp;base64,QUJD";
 const png = () => new File([PNG as BlobPart], "logo.png", { type: "image/png" });
@@ -96,5 +96,58 @@ describe("LogoUpload: required", () => {
     expect(
       screen.getByRole("button", { name: "Choose a logo" }).hasAttribute("aria-describedby"),
     ).toBe(false);
+  });
+});
+
+describe("LogoUpload: onBusyChange", () => {
+  const GIF_FILE = () => new File([GIF as BlobPart], "logo.png", { type: "image/png" });
+
+  it("reports true then false around a good upload", async () => {
+    stubBrowser({ width: 800, height: 600 }, () => GOOD);
+    const onBusyChange = vi.fn();
+    const user = setupUser();
+    const { container } = renderUi(<LogoUpload onBusyChange={onBusyChange} />);
+    await user.upload(fileInput(container), png());
+    await waitFor(() => expect(img(container)?.getAttribute("src")).toBe(GOOD));
+    await waitFor(() => expect(onBusyChange.mock.calls).toEqual([[true], [false]]));
+  });
+
+  it("reports false after a refused file", async () => {
+    stubBrowser({ width: 800, height: 600 }, () => GOOD);
+    const onBusyChange = vi.fn();
+    const user = setupUser();
+    const { container } = renderUi(<LogoUpload onBusyChange={onBusyChange} />);
+    await user.upload(fileInput(container), GIF_FILE());
+    await waitFor(() => expect(screen.getByRole("alert")).not.toBeNull());
+    await waitFor(() => expect(onBusyChange.mock.calls).toEqual([[true], [false]]));
+  });
+
+  it("stays busy while a second file supersedes the first and reports false once", async () => {
+    const { decode } = stubBrowser({ width: 800, height: 600 }, () => GOOD);
+    const releases: Array<() => void> = [];
+    decode.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          releases.push(() => resolve({ width: 800, height: 600, close: vi.fn() }));
+        }),
+    );
+    const onBusyChange = vi.fn();
+    const user = setupUser();
+    const { container } = renderUi(<LogoUpload onBusyChange={onBusyChange} />);
+    await user.upload(fileInput(container), png());
+    await user.upload(fileInput(container), png());
+    await waitFor(() => expect(releases).toHaveLength(2));
+    releases[0]?.();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(onBusyChange.mock.calls).toEqual([[true]]);
+    releases[1]?.();
+    await waitFor(() => expect(img(container)?.getAttribute("src")).toBe(GOOD));
+    await waitFor(() => expect(onBusyChange.mock.calls).toEqual([[true], [false]]));
+  });
+
+  it("is not called when nothing is chosen", () => {
+    const onBusyChange = vi.fn();
+    renderUi(<LogoUpload onBusyChange={onBusyChange} />);
+    expect(onBusyChange).not.toHaveBeenCalled();
   });
 });

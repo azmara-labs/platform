@@ -57,6 +57,8 @@ A refused file shows its message under the controls, in an alert, and calls `onE
 
 The error clears, and `onError(undefined)` is called, when a later file works or the logo is removed.
 
+`onBusyChange(true)` is called when a file starts being prepared and `onBusyChange(false)` when the latest choice is done (fitted, refused or failed) or the logo is removed. Use it to keep a Save button off until the logo is ready.
+
 ## With react-hook-form
 
 ```tsx
@@ -83,7 +85,7 @@ For photos, anything that needs cropping, or a file that must be kept at full qu
   path="../../packages/ui/src/components/logo-upload/index.ts"
   name="LogoUploadDocProps"
   type={`import type { LogoUploadProps } from "./logo-upload.js"
-export type LogoUploadDocProps = Pick<LogoUploadProps, "value" | "defaultValue" | "onValueChange" | "onError" | "maxChars" | "name" | "disabled" | "id" | "aria-labelledby" | "aria-describedby" | "aria-invalid" | "aria-required" | "aria-errormessage" | "chooseLabel" | "replaceLabel" | "removeLabel" | "dropLabel" | "previewAlt" | "busyLabel" | "readyLabel" | "requiredLabel" | "errors" | "className">`}
+export type LogoUploadDocProps = Pick<LogoUploadProps, "value" | "defaultValue" | "onValueChange" | "onError" | "onBusyChange" | "maxChars" | "name" | "disabled" | "id" | "aria-labelledby" | "aria-describedby" | "aria-invalid" | "aria-required" | "aria-errormessage" | "chooseLabel" | "replaceLabel" | "removeLabel" | "dropLabel" | "previewAlt" | "busyLabel" | "readyLabel" | "requiredLabel" | "errors" | "className">`}
 />
 
 `id` and the `aria-*` props go on the choose button, which is why a `Field` function child can spread its `control` props straight in. `ref` is that button too.
