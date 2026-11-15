@@ -37,6 +37,7 @@ import FormsSignup from "./forms/signup.demo";
 import IconBasic from "./icon/basic.demo";
 import IconNamed from "./icon/named.demo";
 import InputBasic from "./input/basic.demo";
+import InputColour from "./input/colour.demo";
 import InputDebounce from "./input/debounce.demo";
 import InputStates from "./input/states.demo";
 import InputTextarea from "./input/textarea.demo";
@@ -161,6 +162,7 @@ export const demos = {
   "icon/basic": IconBasic,
   "icon/named": IconNamed,
   "input/basic": InputBasic,
+  "input/colour": InputColour,
   "layout/container": LayoutContainer,
   "layout/grid": LayoutGrid,
   "layout/stack": LayoutStack,

@@ -186,7 +186,7 @@ An unknown name renders nothing and logs one development warning; it never crash
 | `@azmr/ui/theme` | server-safe theme helpers: `createTheme`, cookies, `htmlAttributes`, `createLocale` | none, importable from Server Components and middleware |
 | `@azmr/ui/react` | `ThemeProvider`, `useTheme`, `LocaleProvider`, `useLocale` | `"use client"` |
 | `@azmr/ui/button` | `Button`, `buttonVariants` | `"use client"` |
-| `@azmr/ui/input` | `Input`, `Textarea` | `"use client"` |
+| `@azmr/ui/input` | `Input`, `Textarea`, `ColourInput` | `"use client"` |
 | `@azmr/ui/input-group` | `InputGroup`, `InputGroupInput`, `InputGroupAddon`, `InputGroupButton` | `"use client"` |
 | `@azmr/ui/password-input` | `PasswordInput`, `passwordRequirements`, `defaultPasswordScorer` | `"use client"` |
 | `@azmr/ui/number-field` | `NumberField`, `MoneyField`, `numberOrNull` | `"use client"` |
