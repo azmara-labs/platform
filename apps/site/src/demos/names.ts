@@ -41,6 +41,7 @@ export const demoNames: ReadonlySet<string> = new Set([
   "input-group/money",
   "input-group/search",
   "input/basic",
+  "input/colour",
   "input/debounce",
   "input/states",
   "input/textarea",
