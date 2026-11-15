@@ -37,6 +37,18 @@ describe("ColourInput in a Field", () => {
     expect(describedBy(text(container))).toEqual(["A hex colour, such as #1f7a5c."]);
   });
 
+  it("a disabled Field disables the swatch too, and a pick changes nothing", () => {
+    const { container } = renderUi(
+      <Field label="Brand colour" disabled>
+        <ColourInput defaultValue="#112233" />
+      </Field>,
+    );
+    expect(text(container).disabled).toBe(true);
+    expect(swatch(container).disabled).toBe(true);
+    fireEvent.change(swatch(container), { target: { value: "#ff8800" } });
+    expect(text(container).value).toBe("#112233");
+  });
+
   it("marks the text input invalid and points at the error", () => {
     const { container } = renderUi(
       <Field label="Brand colour" error="Use a hex colour">
@@ -82,6 +94,22 @@ describe("ColourInput with react-hook-form", () => {
     await user.type(text(container), "#0f4c5c");
     expect(form.getValues("brand")).toBe("#0f4c5c");
     expect(swatch(container).value).toBe("#0f4c5c");
+  });
+
+  it("a native form reset moves the swatch back", async () => {
+    const { container } = renderUi(
+      <form>
+        <ColourInput defaultValue="#112233" />
+      </form>,
+    );
+    fireEvent.change(swatch(container), { target: { value: "#ff8800" } });
+    expect(swatch(container).value).toBe("#ff8800");
+    await act(async () => {
+      (container.querySelector("form") as HTMLFormElement).reset();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(text(container).value).toBe("#112233");
+    expect(swatch(container).value).toBe("#112233");
   });
 
   it("reset() moves the swatch", () => {

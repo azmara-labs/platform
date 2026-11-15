@@ -40,7 +40,8 @@ For a currency, a unit, a search icon or a clear button inside the border, use [
 - The swatch follows the text when it is `#rgb` or `#rrggbb`. For anything else (empty, `oklch(...)`, a colour name) the swatch is dimmed and carries `data-empty`; the text is never rewritten.
 - `swatchLabel` names the swatch (default "Choose a colour"). The text field is named by its own label, for example a `Field`.
 - It does not check that the text is a colour. Pair it with a `Field` `error` or `aria-invalid`, and validate with your schema.
-- With React Hook Form, `reset()` and `defaultValues` move the swatch the next time the form re-renders, which `reset()` triggers when anything reads `formState`.
+- With React Hook Form, `defaultValues`, `reset()` and a native form reset all move the swatch. `setValue()` on a field you `register()` changes the text but not the swatch, because nothing tells the component; for a field you set from code, use `FormField` with `controlled`.
+- Leaving the swatch after picking a colour blurs the text field, so `onCommit` and validation on blur run as they do after typing.
 
 ## Debounce and commit
 

@@ -75,14 +75,35 @@ export const ColourInput = forwardRef<HTMLInputElement, ColourInputProps>(functi
 
   // The text, for the swatch. Uncontrolled, the element is the source of truth: react-hook-form
   // writes defaultValues and reset() values to it without an event, so read it after every render
-  // and follow it when it differs. It converges in one extra render.
+  // and follow it when it differs. It converges in one extra render. The same read mirrors whether
+  // the text input is disabled or read-only, which a surrounding `Field` can set without a prop.
   const [typed, setTyped] = useState(String(defaultValue ?? ""));
+  const [locked, setLocked] = useState(false);
   const current = value === undefined ? typed : String(value);
   useEffect(() => {
-    if (value === undefined && element.current && element.current.value !== typed) {
-      setTyped(element.current.value);
-    }
+    const input = element.current;
+    if (!input) return;
+    if (value === undefined && input.value !== typed) setTyped(input.value);
+    if ((input.disabled || input.readOnly) !== locked) setLocked(input.disabled || input.readOnly);
   });
+
+  // A form's native reset puts the text back without an event, and the browser does it after the
+  // reset event, so read it on the next tick.
+  useEffect(() => {
+    const form = element.current?.form;
+    if (!form || value !== undefined) return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const onReset = () => {
+      timer = setTimeout(() => {
+        if (element.current) setTyped(element.current.value);
+      }, 0);
+    };
+    form.addEventListener("reset", onReset);
+    return () => {
+      form.removeEventListener("reset", onReset);
+      clearTimeout(timer);
+    };
+  }, [value]);
 
   function handleChange(event: Parameters<NonNullable<InputProps["onChange"]>>[0]) {
     setTyped(event.target.value);
@@ -91,11 +112,22 @@ export const ColourInput = forwardRef<HTMLInputElement, ColourInputProps>(functi
 
   // Write the pick into the text input and let it report the change as if it were typed, so
   // onChange, onValueChange and register() all see it through one path.
+  const picked = useRef(false);
   function handlePick(event: ChangeEvent<HTMLInputElement>) {
     const input = element.current;
-    if (!input || !setNativeValue || disabled || readOnly) return;
+    if (!input || !setNativeValue || input.disabled || input.readOnly) return;
     setNativeValue.call(input, event.target.value.toLowerCase());
     input.dispatchEvent(new Event("input", { bubbles: true }));
+    picked.current = true;
+  }
+
+  // Leaving the swatch after a pick is the end of the edit, so the text input is blurred for
+  // `onCommit` and for a form library that validates on blur. Tabbing through it changes nothing.
+  function handleSwatchBlur() {
+    const input = element.current;
+    if (!picked.current || !input) return;
+    picked.current = false;
+    input.dispatchEvent(new FocusEvent("focusout", { bubbles: true }));
   }
 
   const colour = swatchValue(current);
@@ -108,12 +140,14 @@ export const ColourInput = forwardRef<HTMLInputElement, ColourInputProps>(functi
         aria-label={swatchLabel}
         value={colour ?? EMPTY}
         onChange={handlePick}
-        disabled={disabled || readOnly}
+        onBlur={handleSwatchBlur}
+        disabled={disabled || readOnly || locked}
         className={cn(
           "h-(--density-control-height) w-11 shrink-0 cursor-pointer rounded-md border border-input bg-background p-1",
           "outline-none transition-colors duration-(--motion-duration-fast) ease-standard",
           "focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring",
-          "data-[empty]:opacity-40 disabled:cursor-not-allowed disabled:opacity-50",
+          "disabled:cursor-not-allowed disabled:opacity-50",
+          "data-[empty]:[&::-webkit-color-swatch]:opacity-40 data-[empty]:[&::-moz-color-swatch]:opacity-40",
           "[&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-sm [&::-webkit-color-swatch]:border-0",
           "[&::-moz-color-swatch]:rounded-sm [&::-moz-color-swatch]:border-0",
         )}

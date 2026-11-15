@@ -139,3 +139,44 @@ describe("ColourInput: disabled and read-only", () => {
     expect(text(container).value).toBe("#112233");
   });
 });
+
+describe("ColourInput: finishing a pick", () => {
+  it("leaving the swatch after a pick commits the value and blurs the text input", () => {
+    const onCommit = vi.fn();
+    const onBlur = vi.fn();
+    const { container } = renderUi(
+      <ColourInput defaultValue="#112233" onCommit={onCommit} onBlur={onBlur} />,
+    );
+    pick(container, "#FF8800");
+    expect(onCommit).not.toHaveBeenCalled();
+    fireEvent.focusOut(swatch(container));
+    expect(onCommit).toHaveBeenCalledTimes(1);
+    expect(onCommit).toHaveBeenCalledWith("#ff8800");
+    expect(onBlur).toHaveBeenCalledTimes(1);
+  });
+
+  it("tabbing through the swatch without a pick does not blur or commit the text input", () => {
+    const onCommit = vi.fn();
+    const onBlur = vi.fn();
+    const { container } = renderUi(
+      <ColourInput defaultValue="#112233" onCommit={onCommit} onBlur={onBlur} />,
+    );
+    fireEvent.focusOut(swatch(container));
+    expect(onCommit).not.toHaveBeenCalled();
+    expect(onBlur).not.toHaveBeenCalled();
+  });
+});
+
+describe("ColourInput: the empty state", () => {
+  it("dims only the swatch's colour, so the border and focus ring stay full strength", () => {
+    const { container } = renderUi(<ColourInput />);
+    const classes = swatch(container).className.split(/\s+/);
+    expect(classes.some((c) => /^data-\[empty\]:opacity-/.test(c))).toBe(false);
+    expect(
+      classes.some((c) => c.startsWith("data-[empty]:[&::-webkit-color-swatch]:opacity-")),
+    ).toBe(true);
+    expect(classes.some((c) => c.startsWith("data-[empty]:[&::-moz-color-swatch]:opacity-"))).toBe(
+      true,
+    );
+  });
+});
