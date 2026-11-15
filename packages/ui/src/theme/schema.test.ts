@@ -124,6 +124,18 @@ const FIXTURES: [name: string, input: unknown][] = [
   ["tint with an undefined brand", { tint: 0.02, brand: undefined }],
   ["tint with brand", { tint: "brand", brand: "#1D4E89" }],
   ["tint with primary", { tint: 0.02, primary: "#1D4E89" }],
+  // brandDark needs a brand to pair with
+  ["brandDark with brand", { brand: "#1D4E89", brandDark: "#0F4C5C" }],
+  ["brandDark with primary", { primary: "#1D4E89", brandDark: "#0F4C5C" }],
+  ["brandDark without a brand", { brandDark: "#0F4C5C" }],
+  ["brandDark with an undefined brand", { brandDark: "#0F4C5C", brand: undefined }],
+  ["brandDark not a colour", { brand: "#1D4E89", brandDark: "red" }],
+  ["brandDark a number", { brand: "#1D4E89", brandDark: 3 }],
+  ["undefined brandDark", { brand: "#1D4E89", brandDark: undefined }],
+  ...HOSTILE.map((bad): [string, unknown] => [
+    `hostile brandDark ${JSON.stringify(bad)}`,
+    { brand: "#1D4E89", brandDark: bad },
+  ]),
   // keys that only exist in parsed JSON
   ["__proto__ key", JSON.parse('{"brand":"#1D4E89","__proto__":{"polluted":true}}')],
   ["__proto__ role", JSON.parse('{"light":{"__proto__":"#fff"}}')],
@@ -191,6 +203,18 @@ describe("ThemeConfigSchema", () => {
     });
     expect(byName.get("brand")?.required).toBe(false);
   });
+
+  it("describes brandDark for a generated form", () => {
+    const byName = new Map(fieldsFromSchema(ThemeConfigSchema).map((f) => [f.name, f]));
+    expect(byName.get("brandDark")).toMatchObject({
+      label: "Dark mode brand colour",
+      type: "text",
+      required: false,
+    });
+    expect(byName.get("brandDark")?.meta?.help).toBe(
+      "Optional. A separate brand colour for dark mode. Leave empty to use the brand colour.",
+    );
+  });
 });
 
 // The fixture table only holds cases someone thought of. This pass builds thousands of inputs from
@@ -217,6 +241,7 @@ describe("ThemeConfigSchema, generated parity", () => {
     version: [1, 2, "1", undefined],
     name: ["Harbourline", "", "   ", "x".repeat(81), 5, undefined],
     brand: ["#1D4E89", "oklch(0.5 0.1 200)", "red", 12, "#fff;", undefined],
+    brandDark: ["#0F4C5C", "oklch(0.7 0.1 200)", "red", 3, undefined],
     primary: ["#1D4E89", "#C2410C", "red", undefined],
     secondary: ["#222", "bad", undefined],
     success: ["#2E7D32", "nope", undefined],

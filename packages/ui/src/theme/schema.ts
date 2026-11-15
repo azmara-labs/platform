@@ -55,6 +55,11 @@ export const ThemeConfigSchema = z
       "Brand colour",
       "Your main colour. Buttons, links and focus rings use it.",
     ),
+    brandDark: field(
+      colour,
+      "Dark mode brand colour",
+      "Optional. A separate brand colour for dark mode. Leave empty to use the brand colour.",
+    ),
     primary: field(
       colour,
       "Primary colour",
@@ -98,6 +103,11 @@ export const ThemeConfigSchema = z
     (config) =>
       config.tint === undefined || config.brand !== undefined || config.primary !== undefined,
     { message: "tint needs a brand colour to lean toward", path: ["tint"] },
+  )
+  .refine(
+    (config) =>
+      config.brandDark === undefined || config.brand !== undefined || config.primary !== undefined,
+    { message: "brandDark needs a brand colour to pair with", path: ["brandDark"] },
   );
 
 /** A theme config as a form or a JSON document supplies it, before validation. */
