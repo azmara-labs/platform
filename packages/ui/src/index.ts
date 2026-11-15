@@ -1,5 +1,10 @@
 export { Button, type ButtonProps, buttonVariants } from "./components/button/index.js";
-export { Input, type InputProps } from "./components/input/index.js";
+export {
+  ColourInput,
+  type ColourInputProps,
+  Input,
+  type InputProps,
+} from "./components/input/index.js";
 export { Spinner, type SpinnerProps } from "./components/spinner/index.js";
 export {
   Code,
