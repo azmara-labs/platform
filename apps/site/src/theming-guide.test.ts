@@ -36,6 +36,7 @@ describe("the Theming guide's examples", () => {
       "invalid",
       "tint",
       "override",
+      "brand-dark",
       "contrast-error",
       "sidebar-brand",
       "presets",
