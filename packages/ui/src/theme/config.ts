@@ -9,6 +9,7 @@ import { assertFont, assertRadius } from "./validate.js";
 
 type ColourOption =
   | "brand"
+  | "brandDark"
   | "primary"
   | "secondary"
   | "success"
@@ -23,6 +24,7 @@ type ColourOption =
  */
 export interface ThemeConfig extends Omit<ThemeOptions, ColourOption | "light" | "dark" | "scope"> {
   brand?: string;
+  brandDark?: string;
   primary?: string;
   secondary?: string;
   success?: string;
@@ -175,6 +177,7 @@ const TOP_LEVEL_KEYS = new Set([
   "version",
   "name",
   "brand",
+  "brandDark",
   "primary",
   "secondary",
   "success",
@@ -191,6 +194,7 @@ const TOP_LEVEL_KEYS = new Set([
 ]);
 const COLOUR_KEYS = [
   "brand",
+  "brandDark",
   "primary",
   "secondary",
   "success",
@@ -292,6 +296,10 @@ export function parseThemeConfig(input: unknown): ThemeConfig {
 
   if (out.tint !== undefined && !present(input, "brand") && !present(input, "primary")) {
     issues.push("tint needs a brand colour to lean toward");
+  }
+
+  if (out.brandDark !== undefined && !present(input, "brand") && !present(input, "primary")) {
+    issues.push("brandDark needs a brand colour to pair with");
   }
 
   for (const mode of ["light", "dark"] as const) {

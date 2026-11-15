@@ -10,7 +10,7 @@ import {
   TINT_BRAND,
   TINT_MAX,
 } from "./config.js";
-import type { ThemeOptions } from "./create-theme.js";
+import { createTheme, type ThemeOptions } from "./create-theme.js";
 import { ROLES } from "./roles.js";
 
 const PNG = "data:image/png;base64,iVBORw0KGgo=";
@@ -402,5 +402,45 @@ describe("tint needs a brand", () => {
   it("accepts tint with brand, and with the primary alias", () => {
     expect(() => parseThemeConfig({ tint: "brand", brand: "#1D4E89" })).not.toThrow();
     expect(() => parseThemeConfig({ tint: 0.02, primary: "#1D4E89" })).not.toThrow();
+  });
+});
+
+describe("brandDark", () => {
+  const BRAND = "#1D4E89";
+  const DARK = "#0F4C5C";
+
+  it("keeps brandDark", () => {
+    expect(parseThemeConfig({ brand: BRAND, brandDark: DARK })).toEqual({
+      brand: BRAND,
+      brandDark: DARK,
+    });
+  });
+
+  it("accepts brandDark with the primary alias", () => {
+    expect(parseThemeConfig({ primary: BRAND, brandDark: DARK }).brandDark).toBe(DARK);
+  });
+
+  it("refuses brandDark without a brand colour, so every accepted theme can be built", () => {
+    const error = failure(() => parseThemeConfig({ brandDark: DARK }));
+    expect(error.issues.join("\n")).toContain("brandDark needs a brand colour to pair with");
+    failure(() => parseThemeConfig({ brandDark: DARK, brand: undefined }));
+  });
+
+  it("refuses a brandDark that is not a colour", () => {
+    for (const bad of ["red; }", "#12345", 3, null]) {
+      const error = failure(() => parseThemeConfig({ brand: BRAND, brandDark: bad }));
+      expect(error.issues.join("\n")).toContain("brandDark");
+    }
+  });
+
+  it("counts undefined as absent", () => {
+    const config = parseThemeConfig({ brand: BRAND, brandDark: undefined });
+    expect(config).toEqual({ brand: BRAND });
+    expect("brandDark" in config).toBe(false);
+  });
+
+  it("gives a config that createTheme can build", () => {
+    const config: ThemeConfig = parseThemeConfig({ brand: BRAND, brandDark: DARK });
+    expect(() => createTheme(config)).not.toThrow();
   });
 });
