@@ -54,6 +54,12 @@ export interface ThemeOptions {
   name?: string;
   /** The brand colour. An alias of `primary`: give one of them. */
   brand?: string | Oklch;
+  /**
+   * A separate brand colour for dark mode, derived and adjusted for contrast like `brand`. It
+   * sets the dark half of `primary`, `primary-foreground`, `primary-text`, `ring` and the sidebar
+   * versions; nothing else follows it. Needs `brand` or `primary`.
+   */
+  brandDark?: string | Oklch;
   /** Chroma added to the neutral greys, leaning toward the brand hue. `"brand"` is a light tint. */
   tint?: number | "brand";
   /** Explicit per-role colours for light mode. They replace the derived value for that role. */
@@ -400,21 +406,27 @@ function resolveTheme(options: ThemeOptions): Resolution {
     setRole(resolved, "warning-text", light.text, dark.text);
   }
   const brandInput = brandOption(options);
+  if (options.brandDark !== undefined && brandInput === undefined) {
+    throw new ThemeConfigError(["brandDark needs a brand colour to pair with"]);
+  }
   let brandColour: Oklch | undefined;
   if (brandInput !== undefined) {
     const brand = parseColour(brandInput, options.primary !== undefined ? "primary" : "brand");
     brandColour = brand;
+    // Dark mode has its own brand colour when one is given; the light half and tint use `brand`.
+    const darkBrand =
+      options.brandDark === undefined ? brand : parseColour(options.brandDark, "brandDark");
     const light = pairFor(brand, surfaces.light);
-    const dark = pairFor(brand, surfaces.dark);
+    const dark = pairFor(darkBrand, surfaces.dark);
     const ringLight = ringFor(brand, surfaces.light);
-    const ringDark = ringFor(brand, surfaces.dark);
+    const ringDark = ringFor(darkBrand, surfaces.dark);
     setRole(resolved, "primary", light.bg, dark.bg);
     setRole(resolved, "primary-foreground", light.fg, dark.fg);
     setRole(
       resolved,
       "primary-text",
       primaryText(brand, surfaces.light),
-      primaryText(brand, surfaces.dark),
+      primaryText(darkBrand, surfaces.dark),
     );
     setRole(resolved, "ring", ringLight, ringDark);
     setRole(resolved, "sidebar-primary", light.bg, dark.bg);
@@ -423,7 +435,7 @@ function resolveTheme(options: ThemeOptions): Resolution {
       resolved,
       "sidebar-ring",
       ringFor(brand, surfacesFor(options, "light", ["sidebar"])),
-      ringFor(brand, surfacesFor(options, "dark", ["sidebar"])),
+      ringFor(darkBrand, surfacesFor(options, "dark", ["sidebar"])),
     );
   }
 

@@ -100,6 +100,16 @@ const background = theme.cssVariables["--background"];
 
 Override values are `#rgb`, `#rrggbb` or `oklch(L C H)`. A role name that does not exist is an error, and so is `scrim`. In dark mode `border`, `input` and `sidebar-border` default to a translucent white, which stays unless you override it with an opaque colour.
 
+### A different brand colour for dark mode
+
+Some brands use one colour on white and another on a dark page. Add `brandDark` and the dark half of the brand roles (`primary`, `primary-foreground`, `primary-text`, `ring` and the sidebar versions) is derived from it, and adjusted for contrast the same way as `brand`. It needs a `brand` to pair with. Tint, the secondary and status colours and every other role keep following `brand`, and a `dark` override still wins for its own role.
+
+```ts example=brand-dark result=darkPrimary
+const theme = createTheme({ brand: "#1E88E5", brandDark: "#0F4C5C" });
+const darkPrimary = theme.cssVariables["--primary"];
+// => "light-dark(oklch(0.508 0.147 250.9), oklch(0.7 0.064 220.1))"
+```
+
 ### Contrast is checked
 
 Once you use `tint`, `light` or `dark`, the finished theme is checked in both modes: every foreground on its surface at **4.5:1**, the status colours as text on the page and on cards at 4.5:1, and the focus rings at **3:1**. A theme that fails is rejected with a message that names the pair, so you cannot ship text that is unreadable:
@@ -158,7 +168,7 @@ const config = parseThemeJson('{"version":1,"brand":"#0F4C5C","tint":"brand"}');
 // => {"version":1,"brand":"#0F4C5C","tint":"brand"}
 ```
 
-It is strict because the result becomes CSS. It refuses text over 131,072 characters before parsing it, any key it does not know, and any value that is not exactly a colour, size or name it accepts. A `tint` needs a `brand` to lean toward, and a value of `undefined` counts as absent. Images must be `https:` URLs or `data:` PNG, JPEG or WebP images of at most 32,768 characters each, so three images and every role override always fit in the text limit; **SVG is not accepted**, because it can carry script. Every problem is reported at once:
+It is strict because the result becomes CSS. It refuses text over 131,072 characters before parsing it, any key it does not know, and any value that is not exactly a colour, size or name it accepts. A `tint` and a `brandDark` each need a `brand` to pair with, and a value of `undefined` counts as absent. Images must be `https:` URLs or `data:` PNG, JPEG or WebP images of at most 32,768 characters each, so three images and every role override always fit in the text limit; **SVG is not accepted**, because it can carry script. Every problem is reported at once:
 
 ```ts example=json-invalid result=message
 let message;

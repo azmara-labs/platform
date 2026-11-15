@@ -1,6 +1,7 @@
 import { differenceCiede2000, parse, wcagContrast } from "culori";
 import { describe, expect, it } from "vitest";
-import { createTheme } from "./create-theme.js";
+import { ThemeConfigError } from "./config.js";
+import { createTheme, validateTheme } from "./create-theme.js";
 
 // Independent oracle: the maths under test lives in create-theme.ts, so all checks here
 // go through culori, not through that code.
@@ -181,4 +182,111 @@ describe("createTheme: rejects input that could inject CSS", () => {
   it.each(cases)("%s", (_label, options) => {
     expect(() => createTheme(options)).toThrow();
   });
+});
+
+describe("createTheme: brandDark", () => {
+  // The roles derived from the brand colour. Only their dark half follows brandDark.
+  const BRAND_VARS = [
+    "--primary",
+    "--primary-foreground",
+    "--primary-text",
+    "--ring",
+    "--sidebar-primary",
+    "--sidebar-primary-foreground",
+    "--sidebar-ring",
+  ];
+  const LIGHT_BRAND = "#1E88E5";
+  const DARK_BRAND = "#0F4C5C";
+
+  it("takes the light half from brand and the dark half from brandDark for every brand role", () => {
+    const split = createTheme({ brand: LIGHT_BRAND, brandDark: DARK_BRAND }).cssVariables;
+    const lightOnly = createTheme({ brand: LIGHT_BRAND }).cssVariables;
+    const darkOnly = createTheme({ brand: DARK_BRAND }).cssVariables;
+    for (const name of BRAND_VARS) {
+      expect(pick(split[name] as string, "light"), `${name} light`).toBe(
+        pick(lightOnly[name] as string, "light"),
+      );
+      expect(pick(split[name] as string, "dark"), `${name} dark`).toBe(
+        pick(darkOnly[name] as string, "dark"),
+      );
+    }
+  });
+
+  it("gives the same output as brand alone when it equals brand", () => {
+    expect(createTheme({ brand: LIGHT_BRAND, brandDark: LIGHT_BRAND }).cssVariables).toEqual(
+      createTheme({ brand: LIGHT_BRAND }).cssVariables,
+    );
+  });
+
+  it("works with primary instead of brand", () => {
+    expect(createTheme({ primary: LIGHT_BRAND, brandDark: DARK_BRAND }).cssVariables).toEqual(
+      createTheme({ brand: LIGHT_BRAND, brandDark: DARK_BRAND }).cssVariables,
+    );
+  });
+
+  it("leaves tint, secondary and status roles alone", () => {
+    const base = {
+      brand: LIGHT_BRAND,
+      tint: "brand",
+      secondary: "#808080",
+      success: "#2E7D32",
+    } as const;
+    const without = createTheme(base).cssVariables;
+    const withDark = createTheme({ ...base, brandDark: DARK_BRAND }).cssVariables;
+    for (const name of Object.keys(without)) {
+      if (BRAND_VARS.includes(name)) continue;
+      expect(withDark[name], name).toBe(without[name]);
+    }
+    expect(Object.keys(withDark)).toEqual(Object.keys(without));
+  });
+
+  it.each(["#000000", "#ffffff", "#ffff00"])(
+    "derives %s and passes the contrast checks",
+    (dark) => {
+      expect(validateTheme({ brand: LIGHT_BRAND, brandDark: dark })).toEqual([]);
+      expect(() => createTheme({ brand: LIGHT_BRAND, brandDark: dark })).not.toThrow();
+    },
+  );
+
+  it("lets a dark.primary override win while the other brand roles follow brandDark", () => {
+    const override = "#9ad0ff";
+    const theme = createTheme({
+      brand: LIGHT_BRAND,
+      brandDark: DARK_BRAND,
+      dark: { primary: override },
+    }).cssVariables;
+    const darkOnly = createTheme({ brand: DARK_BRAND }).cssVariables;
+    const wanted = parse(override);
+    const got = parse(pick(theme["--primary"] as string, "dark"));
+    if (!got || !wanted) throw new Error("override or result unparseable");
+    expect(differenceCiede2000()(got, wanted)).toBeLessThan(1);
+    for (const name of BRAND_VARS.filter((n) => n !== "--primary")) {
+      expect(pick(theme[name] as string, "dark"), name).toBe(
+        pick(darkOnly[name] as string, "dark"),
+      );
+    }
+  });
+
+  it("needs a brand colour to pair with", () => {
+    for (const run of [
+      () => createTheme({ brandDark: DARK_BRAND }),
+      () => validateTheme({ brandDark: DARK_BRAND }),
+    ]) {
+      expect(run).toThrow(ThemeConfigError);
+      expect(run).toThrow("brandDark needs a brand colour to pair with");
+    }
+  });
+
+  it("counts undefined as absent", () => {
+    expect(createTheme({ brand: LIGHT_BRAND, brandDark: undefined }).cssVariables).toEqual(
+      createTheme({ brand: LIGHT_BRAND }).cssVariables,
+    );
+  });
+
+  it.each(["#fff; } body { display: none", "url(https://evil.example/x)", "red", "#12345"])(
+    "refuses %s as brandDark",
+    (bad) => {
+      expect(() => createTheme({ brand: LIGHT_BRAND, brandDark: bad })).toThrow();
+    },
+  );
 });
