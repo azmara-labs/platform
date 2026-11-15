@@ -79,6 +79,7 @@ const lazyDemos: Record<DemoName, ComponentType> = {
   "password-input/new-password": dynamic(() => import("./password-input/new-password.demo")),
   "password-input/sign-in": dynamic(() => import("./password-input/sign-in.demo")),
   "logo-upload/upload": dynamic(() => import("./logo-upload/upload.demo")),
+  "theme-studio/studio": dynamic(() => import("./theme-studio/studio.demo")),
   "progress/basic": dynamic(() => import("./progress/basic.demo")),
   "progress/circular": dynamic(() => import("./progress/circular.demo")),
   "recipes/form-validation": dynamic(() => import("./recipes/form-validation.demo")),

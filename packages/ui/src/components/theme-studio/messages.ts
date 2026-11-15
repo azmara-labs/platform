@@ -63,7 +63,7 @@ export const DEFAULT_MESSAGES: StudioMessages = {
   statusDarkDerived:
     "Uses your light mode colour, adjusted for dark. Links and labels use {shade}.",
   errorAppName: "App name must be 1 to 80 characters, with no control characters.",
-  errorColour: "{field} must be a colour such as #1a73e8.",
+  errorColour: "{field} must be a colour such as #1a73e8.", // conventions-ignore: an example colour in the message text, not a style
   errorDarkNeedsLight: "Choose a light mode colour first, or clear this one.",
   conflict:
     "A setting made by a developer conflicts with this change, so it cannot be saved yet. Ask a developer to look at: {roles}.",

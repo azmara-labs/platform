@@ -84,6 +84,7 @@ import StateViewStates from "./state-view/states.demo";
 import StepperBasic from "./stepper/basic.demo";
 import TableBasic from "./table/basic.demo";
 import TableSticky from "./table/sticky.demo";
+import ThemeStudioStudio from "./theme-studio/studio.demo";
 import ThemingPresets from "./theming/presets.demo";
 import ToastActions from "./toast/actions.demo";
 import ToastPromise from "./toast/promise.demo";
@@ -179,6 +180,7 @@ export const demos = {
   "password-input/sign-in": PasswordInputSignIn,
   "password-input/new-password": PasswordInputNewPassword,
   "logo-upload/upload": LogoUploadUpload,
+  "theme-studio/studio": ThemeStudioStudio,
   "field/basic": FieldBasic,
   "field/parts": FieldParts,
   "field/validation": FieldValidation,
