@@ -1,0 +1,104 @@
+---
+title: Theme studio
+description: A ready-made screen where an admin sets the app name, a brand colour for light and for dark, and logos, with a live preview. It returns a validated theme and keeps every setting it does not show.
+group: Inputs
+status: new
+since: 0.14.0
+interactive: true
+aliases: [branding, brand settings, theme editor, white label, logo and colour, tenant theme]
+---
+
+## Usage
+
+```tsx
+import { ThemeStudio } from "@azmr/ui/theme-studio";
+```
+
+<Demo name="theme-studio/studio" />
+
+`ThemeStudio` is one screen for a business admin who is not a developer. They type the app name, pick a brand colour for light mode and (optionally) one for dark mode, add a logo for each, and watch a small made-up app change as they go. The Light and Dark buttons above the preview switch which mode they are looking at.
+
+It does **not** save anything, fetch anything, or restyle your app. When the admin presses Save it calls `onSave` with a `ThemeConfig` that has already been checked. Storing it, loading it back, and applying it in your layout are your app's job.
+
+```tsx
+<ThemeStudio
+  value={storedTheme}            // the current ThemeConfig, or leave it out
+  onSave={async (config) => {
+    await saveTheme(config);     // your code; throw if it fails
+    setStoredTheme(config);      // pass the saved value back in
+  }}
+/>
+```
+
+While a save is running the fields are disabled, so nothing typed can be lost. If you show a different organisation's theme in the same place, give the studio a `key` for it so no draft carries over. When you pass a new `value` back in after a save, the studio treats it as the new starting point: Reset goes to it and there are no unsaved changes. If `onSave` throws or rejects, the studio says the save failed and keeps what was typed.
+
+## What the admin sees
+
+- **App name** is shown next to the logo. It is 1 to 80 characters with no control characters, and it is rendered as text.
+- **Light mode** has a brand colour and a logo. **Dark mode** has the same, both optional. Leave the dark colour empty and dark mode uses the light colour, adjusted for dark. Leave the dark logo empty and the light logo is used.
+- **A note under each colour** says whether it is readable as it is, or adjusted slightly so buttons and text stay readable, and names the shade that links and labels use (for example `#777508`). The shade comes from `createTheme`'s own result, not a second calculation, and the note never promises the button keeps the exact colour.
+- **The preview** is coloured only by the admin's values, in the mode picked with the toggle. The page around it never changes: every colour role and `color-scheme` are set on the preview's own box, so a role the theme leaves alone shows the library default, not your app's current colour.
+- **Mistakes are plain sentences** that name the field, such as "Light mode colour must be a colour such as #1a73e8.", shown once the admin leaves the field or presses Enter (an error on a field they have not touched, such as the dark colour after the light one is cleared, shows at once). The preview keeps the last good result while a value is wrong, and Save stays off.
+
+## What it keeps
+
+The studio shows four things. A stored theme can hold much more: `secondary` and the status colours, `tint`, `radius`, `font`, `density`, `light` and `dark` role overrides, a `favicon`, a `name`. All of that passes through a save **unchanged**. Only the keys the admin edited are written (plus `version: 1` when the stored config had none), and an emptied optional value is removed, never saved as an empty string. Values are trimmed. Keys the studio writes may move to the end of the object, so compare configs by content, not by text.
+
+If the config uses `primary` instead of `brand` (they mean the same thing), the colour is written back to `primary`.
+
+## When Save is off
+
+Save is available only when something has changed, every value is valid, and no logo is still being prepared. A colour the admin picks is adjusted rather than refused, so their own choices should never block a save.
+
+A block can still come from a setting the admin cannot see, such as a developer's `light` override that makes white button text unreadable on a pale new colour, or a stored theme that already fails. The studio then explains, in plain words, that a setting made by a developer conflicts with this change, names the roles involved, and quotes the library's own message for the developer. It never drops or edits the hidden setting to get past the check.
+
+## Wire it into your app
+
+1. **Store the JSON** the studio gives you, for example in a column per organisation.
+2. **Validate it again on the server.** The browser's copy is not trusted:
+
+   ```ts
+   import { parseThemeJson, validateTheme } from "@azmr/ui/theme";
+
+   const config = parseThemeJson(body); // throws a ThemeConfigError with every problem
+   const issues = validateTheme(config); // [] when text is readable in both modes
+   if (issues.length > 0) throw new Error("This theme is not readable");
+   ```
+
+3. **Render it in your layout** with `createTheme(config)`: put `cssVariables` on the root element (and use `config.branding` for the name and logos). See [theming](/docs/guide/theming#apply-the-theme).
+
+## What the studio leaves out
+
+- Saving, loading, who may edit, and per-organisation storage.
+- The advanced settings listed above. They stay in the schema for developers and are not shown.
+- Choosing light, dark or system mode. That stays each person's own preference.
+- SVG logos, fetching an image from a link, and any image editing beyond shrinking to fit.
+- Previewing density. The preview shows colours, logos and the corner radius.
+
+## Parts
+
+`ThemePreview` is exported too, if you want the preview on its own: give it `cssVariables` from `createTheme`, a `mode`, and optionally `appName`, `logo` and `logoDark`.
+
+## Props
+
+<AutoTypeTable path="../../packages/ui/src/components/theme-studio/theme-studio.tsx" name="ThemeStudioProps" />
+
+`messages` takes a partial map of every string the screen shows (labels, notes, errors, buttons, the preview's sample text). Placeholders such as `{shade}` and `{field}` are filled in for you. The logo upload's own text (its buttons, drop hint and refusal messages) is not reachable through `messages` yet and stays in English.
+
+## Accessibility
+
+- Every control has a visible label. Light mode and Dark mode are groups with a legend, so a screen reader reads the group before each field.
+- The note under a colour is the field's description, so it is read when the field is focused. Errors are read when they appear.
+- The preview is illustrative. Its sample is inert and hidden from assistive technology, and one sentence describes it instead.
+- The Light and Dark buttons are a single-choice group: one is always pressed.
+- Colour is never the only signal. Notes and errors are text.
+- Controls keep the density control height, and every control shows a focus ring in both modes.
+
+<KeyboardMap
+  rows={[
+    { keys: ["Tab"], action: "Moves through the app name, each colour swatch and text field, each logo button, Save, Reset and the Light/Dark buttons." },
+    { keys: ["Enter"], action: "In a text field or on Save, saves when saving is allowed." },
+    { keys: ["Left", "Right"], action: "On the Light/Dark buttons, moves between them." },
+    { keys: ["Space"], action: "On the Light/Dark buttons, picks the focused mode." },
+  ]}
+/>

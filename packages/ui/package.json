@@ -83,6 +83,10 @@
       "types": "./dist/logo-upload.d.ts",
       "import": "./dist/logo-upload.js"
     },
+    "./theme-studio": {
+      "types": "./dist/theme-studio.d.ts",
+      "import": "./dist/theme-studio.js"
+    },
     "./number-field": {
       "types": "./dist/number-field.d.ts",
       "import": "./dist/number-field.js"
