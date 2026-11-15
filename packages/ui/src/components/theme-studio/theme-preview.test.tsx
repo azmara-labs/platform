@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { expectNoA11yViolations, renderServer, renderUi } from "../../test-utils/index.js";
-import { createTheme } from "../../theme/index.js";
+import { createTheme, ROLES } from "../../theme/index.js";
 import { ThemePreview } from "./theme-preview.js";
 
 const LOGO = "data:image/webp;base64,QUJD";
@@ -101,5 +101,20 @@ describe("ThemePreview", () => {
       <ThemePreview cssVariables={cssVariables} mode={mode} appName="Harbour & Pine" logo={LOGO} />,
     );
     await expectNoA11yViolations(container);
+  });
+});
+
+describe("ThemePreview: isolation from the page's theme", () => {
+  it("sets every colour role, so the page's own theme never shows through", () => {
+    document.documentElement.style.setProperty("--primary", "light-dark(red, red)");
+    const { container } = renderUi(<ThemePreview cssVariables={{}} mode="light" />);
+    const style = root(container).style;
+    for (const role of ROLES) expect(style.getPropertyValue(`--${role}`)).toMatch(/^light-dark\(/);
+    expect(style.getPropertyValue("--primary")).not.toContain("red");
+  });
+
+  it("the theme's own values win over the defaults", () => {
+    const { container } = renderUi(<ThemePreview cssVariables={cssVariables} mode="dark" />);
+    expect(root(container).style.getPropertyValue("--primary")).toBe(cssVariables["--primary"]);
   });
 });

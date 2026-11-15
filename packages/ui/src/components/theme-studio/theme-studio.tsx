@@ -1,4 +1,4 @@
-import { type FormEvent, useId, useMemo, useState } from "react";
+import { type FormEvent, type KeyboardEvent, useId, useMemo, useState } from "react";
 import { cn } from "../../lib/cn.js";
 import type { ThemeConfig } from "../../theme/index.js";
 import { Button } from "../button/index.js";
@@ -41,6 +41,15 @@ export interface ThemeStudioProps {
 
 type Good = Extract<StudioResult, { ok: true }>;
 
+/** JSON with object keys in a fixed order, so equal content is equal text whatever order a database returns it in. */
+function stableKey(value: unknown): string {
+  return JSON.stringify(value ?? null, (_key, v: unknown) =>
+    v && typeof v === "object" && !Array.isArray(v)
+      ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)))
+      : v,
+  );
+}
+
 function noteText(note: ColourNote | undefined, text: StudioMessages): string | undefined {
   if (!note) return undefined;
   if (note.kind === "readable") return text.statusReadable;
@@ -57,10 +66,11 @@ export function ThemeStudio({ value, onSave, disabled, messages, className }: Th
   const text = useMemo(() => ({ ...DEFAULT_MESSAGES, ...messages }), [messages]);
   const headingId = useId();
 
-  const baseKey = JSON.stringify(value ?? null);
+  const baseKey = stableKey(value);
   const [seenKey, setSeenKey] = useState(baseKey);
   const [draft, setDraft] = useState<StudioDraft>(() => draftFromConfig(value));
-  const [touched, setTouched] = useState<Partial<Record<StudioField, boolean>>>({});
+  // The field being typed in: its error waits until the admin leaves it or presses Enter.
+  const [editing, setEditing] = useState<StudioField>();
   const [busy, setBusy] = useState({ logo: false, logoDark: false });
   const [saving, setSaving] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
@@ -71,7 +81,7 @@ export function ThemeStudio({ value, onSave, disabled, messages, className }: Th
   if (seenKey !== baseKey) {
     setSeenKey(baseKey);
     setDraft(draftFromConfig(value));
-    setTouched({});
+    setEditing(undefined);
     setSaveFailed(false);
   }
 
@@ -84,12 +94,19 @@ export function ThemeStudio({ value, onSave, disabled, messages, className }: Th
   const conflict = result.ok ? undefined : result.conflict;
   const dirty = isDirty(value, draft);
   const preparing = busy.logo || busy.logoDark;
+  const locked = disabled || saving;
   const cannotSave = disabled || !dirty || !result.ok || preparing;
 
-  const touch = (field: StudioField) => setTouched((t) => (t[field] ? t : { ...t, [field]: true }));
+  const track = (field: StudioField) => ({
+    onFocus: () => setEditing(field),
+    onBlur: () => setEditing((now) => (now === field ? undefined : now)),
+    onKeyDown: (event: KeyboardEvent) => {
+      if (event.key === "Enter") setEditing(undefined);
+    },
+  });
   const set = (key: keyof StudioDraft, next: string | undefined) =>
     setDraft((d) => ({ ...d, [key]: next ?? "" }));
-  const shownError = (field: StudioField) => (touched[field] ? errors[field] : undefined);
+  const shownError = (field: StudioField) => (editing === field ? undefined : errors[field]);
   const note = (which: "light" | "dark") =>
     result.ok
       ? noteText(
@@ -114,7 +131,7 @@ export function ThemeStudio({ value, onSave, disabled, messages, className }: Th
 
   function reset() {
     setDraft(draftFromConfig(value));
-    setTouched({});
+    setEditing(undefined);
     setSaveFailed(false);
   }
 
@@ -136,13 +153,13 @@ export function ThemeStudio({ value, onSave, disabled, messages, className }: Th
           <Input
             value={draft.appName}
             onValueChange={(next) => set("appName", next)}
-            onBlur={() => touch("appName")}
-            disabled={disabled}
+            {...track("appName")}
+            disabled={locked}
             autoComplete="off"
           />
         </Field>
 
-        <Fieldset legend={text.lightHeading} disabled={disabled}>
+        <Fieldset legend={text.lightHeading} disabled={locked}>
           <Field label={text.brandLabel} description={note("light")} error={shownError("brand")}>
             {(control) => (
               <ColourInput
@@ -150,8 +167,8 @@ export function ThemeStudio({ value, onSave, disabled, messages, className }: Th
                 swatchLabel={text.lightSwatch}
                 value={draft.brand}
                 onValueChange={(next) => set("brand", next)}
-                onBlur={() => touch("brand")}
-                disabled={disabled}
+                {...track("brand")}
+                disabled={locked}
               />
             )}
           </Field>
@@ -162,13 +179,13 @@ export function ThemeStudio({ value, onSave, disabled, messages, className }: Th
                 value={draft.logo || undefined}
                 onValueChange={(next) => set("logo", next)}
                 onBusyChange={(on) => setBusy((b) => ({ ...b, logo: on }))}
-                disabled={disabled}
+                disabled={locked}
               />
             )}
           </Field>
         </Fieldset>
 
-        <Fieldset legend={text.darkHeading} description={text.darkOptional} disabled={disabled}>
+        <Fieldset legend={text.darkHeading} description={text.darkOptional} disabled={locked}>
           <Field label={text.brandLabel} description={note("dark")} error={shownError("brandDark")}>
             {(control) => (
               <ColourInput
@@ -176,8 +193,8 @@ export function ThemeStudio({ value, onSave, disabled, messages, className }: Th
                 swatchLabel={text.darkSwatch}
                 value={draft.brandDark}
                 onValueChange={(next) => set("brandDark", next)}
-                onBlur={() => touch("brandDark")}
-                disabled={disabled}
+                {...track("brandDark")}
+                disabled={locked}
               />
             )}
           </Field>
@@ -188,7 +205,7 @@ export function ThemeStudio({ value, onSave, disabled, messages, className }: Th
                 value={draft.logoDark || undefined}
                 onValueChange={(next) => set("logoDark", next)}
                 onBusyChange={(on) => setBusy((b) => ({ ...b, logoDark: on }))}
-                disabled={disabled}
+                disabled={locked}
               />
             )}
           </Field>
@@ -217,7 +234,7 @@ export function ThemeStudio({ value, onSave, disabled, messages, className }: Th
           >
             {text.save}
           </Button>
-          <Button type="button" variant="outline" disabled={disabled || !dirty} onClick={reset}>
+          <Button type="button" variant="outline" disabled={locked || !dirty} onClick={reset}>
             {text.reset}
           </Button>
         </div>

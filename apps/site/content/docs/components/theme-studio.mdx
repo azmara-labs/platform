@@ -30,19 +30,19 @@ It does **not** save anything, fetch anything, or restyle your app. When the adm
 />
 ```
 
-When you pass a new `value` back in after a save, the studio treats it as the new starting point: Reset goes to it and there are no unsaved changes. If `onSave` throws or rejects, the studio says the save failed and keeps what was typed.
+While a save is running the fields are disabled, so nothing typed can be lost. If you show a different organisation's theme in the same place, give the studio a `key` for it so no draft carries over. When you pass a new `value` back in after a save, the studio treats it as the new starting point: Reset goes to it and there are no unsaved changes. If `onSave` throws or rejects, the studio says the save failed and keeps what was typed.
 
 ## What the admin sees
 
 - **App name** is shown next to the logo. It is 1 to 80 characters with no control characters, and it is rendered as text.
 - **Light mode** has a brand colour and a logo. **Dark mode** has the same, both optional. Leave the dark colour empty and dark mode uses the light colour, adjusted for dark. Leave the dark logo empty and the light logo is used.
 - **A note under each colour** says whether it is readable as it is, or adjusted slightly so buttons and text stay readable, and names the shade that links and labels use (for example `#777508`). The shade comes from `createTheme`'s own result, not a second calculation, and the note never promises the button keeps the exact colour.
-- **The preview** is coloured only by the admin's values, in the mode picked with the toggle. The page around it never changes: the theme's variables and `color-scheme` are set on the preview's own box.
-- **Mistakes are plain sentences** that name the field, such as "Light mode colour must be a colour such as #1a73e8.", shown after the field is left. The preview keeps the last good result while a value is wrong, and Save stays off.
+- **The preview** is coloured only by the admin's values, in the mode picked with the toggle. The page around it never changes: every colour role and `color-scheme` are set on the preview's own box, so a role the theme leaves alone shows the library default, not your app's current colour.
+- **Mistakes are plain sentences** that name the field, such as "Light mode colour must be a colour such as #1a73e8.", shown once the admin leaves the field or presses Enter (an error on a field they have not touched, such as the dark colour after the light one is cleared, shows at once). The preview keeps the last good result while a value is wrong, and Save stays off.
 
 ## What it keeps
 
-The studio shows four things. A stored theme can hold much more: `secondary` and the status colours, `tint`, `radius`, `font`, `density`, `light` and `dark` role overrides, a `favicon`, a `name`. All of that passes through a save **unchanged**. Only the keys the admin edited are written, and an emptied optional value is removed, never saved as an empty string.
+The studio shows four things. A stored theme can hold much more: `secondary` and the status colours, `tint`, `radius`, `font`, `density`, `light` and `dark` role overrides, a `favicon`, a `name`. All of that passes through a save **unchanged**. Only the keys the admin edited are written (plus `version: 1` when the stored config had none), and an emptied optional value is removed, never saved as an empty string. Values are trimmed. Keys the studio writes may move to the end of the object, so compare configs by content, not by text.
 
 If the config uses `primary` instead of `brand` (they mean the same thing), the colour is written back to `primary`.
 
@@ -73,7 +73,7 @@ A block can still come from a setting the admin cannot see, such as a developer'
 - The advanced settings listed above. They stay in the schema for developers and are not shown.
 - Choosing light, dark or system mode. That stays each person's own preference.
 - SVG logos, fetching an image from a link, and any image editing beyond shrinking to fit.
-- Previewing density. The preview shows colours, logos, corner radius and font.
+- Previewing density. The preview shows colours, logos and the corner radius.
 
 ## Parts
 
@@ -83,7 +83,7 @@ A block can still come from a setting the admin cannot see, such as a developer'
 
 <AutoTypeTable path="../../packages/ui/src/components/theme-studio/theme-studio.tsx" name="ThemeStudioProps" />
 
-`messages` takes a partial map of every string the screen shows (labels, notes, errors, buttons, the preview's sample text). Placeholders such as `{shade}` and `{field}` are filled in for you. The logo upload's own messages are a [separate set](/docs/components/logo-upload#errors).
+`messages` takes a partial map of every string the screen shows (labels, notes, errors, buttons, the preview's sample text). Placeholders such as `{shade}` and `{field}` are filled in for you. The logo upload's own text (its buttons, drop hint and refusal messages) is not reachable through `messages` yet and stays in English.
 
 ## Accessibility
 

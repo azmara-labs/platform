@@ -1,8 +1,19 @@
 import { cn } from "../../lib/cn.js";
 import { isAssetRef } from "../../theme/config.js";
+import { ROLES } from "../../theme/index.js";
+import { ROLE_DEFAULTS } from "../../theme/roles.js";
 import { Button } from "../button/index.js";
 import { Badge, Card, CardContent, CardHeader, CardTitle } from "../display/index.js";
 import { DEFAULT_MESSAGES, fill, type StudioMessages } from "./messages.js";
+
+// Every colour role at its default. The theme only writes the roles it derived, so without this a
+// role the theme leaves alone would show the page's own value in the preview.
+const DEFAULTS: Record<string, string> = Object.fromEntries(
+  ROLES.map((role) => [
+    `--${role}`,
+    `light-dark(${ROLE_DEFAULTS[role].light}, ${ROLE_DEFAULTS[role].dark})`,
+  ]),
+);
 
 type PreviewMessages = Pick<
   StudioMessages,
@@ -52,7 +63,7 @@ export function ThemePreview({
     <div
       data-slot="theme-preview"
       data-mode={mode}
-      style={{ ...cssVariables, colorScheme: mode }}
+      style={{ ...DEFAULTS, ...cssVariables, colorScheme: mode }}
       className={cn(
         "overflow-hidden rounded-lg border border-border bg-background text-foreground",
         className,

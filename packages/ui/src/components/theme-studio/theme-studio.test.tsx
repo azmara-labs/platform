@@ -411,3 +411,73 @@ describe("ThemeStudio: keyboard and accessibility", () => {
     await expectNoA11yViolations(container);
   });
 });
+
+describe("ThemeStudio: review fixes", () => {
+  it("clearing the light colour explains the dark colour error without touching it", async () => {
+    const user = setupUser();
+    renderUi(
+      <ThemeStudio
+        value={{ version: 1, brand: "#1d4ed8", brandDark: "#93c5fd" }}
+        onSave={vi.fn()}
+      />,
+    );
+    await user.clear(light().getByLabelText("Brand colour"));
+    expect(screen.getByText(DEFAULT_MESSAGES.errorDarkNeedsLight)).not.toBeNull();
+    expect(dark().getByLabelText("Brand colour").getAttribute("aria-invalid")).toBe("true");
+    expect(save().hasAttribute("disabled")).toBe(true);
+  });
+
+  it("an incoming value that already fails in a visible field is explained at once", () => {
+    renderUi(<ThemeStudio value={{ version: 1, brand: "red" } as ThemeConfig} onSave={vi.fn()} />);
+    expect(screen.getByText("Light mode colour must be a colour such as #1a73e8.")).not.toBeNull();
+    expect(save().hasAttribute("disabled")).toBe(true);
+  });
+
+  it("pressing Enter in an invalid field shows its error", async () => {
+    const user = setupUser();
+    renderUi(<ThemeStudio onSave={vi.fn()} />);
+    await user.type(light().getByLabelText("Brand colour"), "1d4ed8");
+    expect(screen.queryByText(/must be a colour such as/)).toBeNull();
+    await user.keyboard("{Enter}");
+    expect(screen.getByText(/must be a colour such as/)).not.toBeNull();
+  });
+
+  it("the fields are disabled while a save is running, so nothing typed can be lost", async () => {
+    const user = setupUser();
+    let finish: () => void = () => {};
+    const onSave = vi.fn(() => new Promise<void>((resolve) => (finish = resolve)));
+    renderUi(<ThemeStudio value={BASE} onSave={onSave} />);
+    await user.type(screen.getByLabelText("App name"), " 2");
+    await user.click(save());
+    expect((screen.getByLabelText("App name") as HTMLInputElement).disabled).toBe(true);
+    expect((light().getByLabelText("Brand colour") as HTMLInputElement).disabled).toBe(true);
+    finish();
+    await waitFor(() =>
+      expect((screen.getByLabelText("App name") as HTMLInputElement).disabled).toBe(false),
+    );
+  });
+
+  it("a value with the same content in a different key order is not a new value", async () => {
+    const user = setupUser();
+    const { rerender } = renderUi(<ThemeStudio value={BASE} onSave={vi.fn()} />);
+    await user.type(screen.getByLabelText("App name"), " 2");
+    const reordered = Object.fromEntries(Object.entries(BASE).reverse()) as ThemeConfig;
+    reordered.branding = Object.fromEntries(
+      Object.entries(BASE.branding ?? {}).reverse(),
+    ) as ThemeConfig["branding"];
+    rerender(<ThemeStudio value={reordered} onSave={vi.fn()} />);
+    expect((screen.getByLabelText("App name") as HTMLInputElement).value).toBe("Harbour & Pine 2");
+  });
+
+  it("clearing the brand colour shows the default colours, not the page's", async () => {
+    const user = setupUser();
+    document.documentElement.style.setProperty("--primary", "light-dark(red, red)");
+    const { container } = renderUi(
+      <ThemeStudio value={{ version: 1, brand: "#1d4ed8" }} onSave={vi.fn()} />,
+    );
+    await user.clear(light().getByLabelText("Brand colour"));
+    const primary = preview(container).style.getPropertyValue("--primary");
+    expect(primary).toMatch(/^light-dark\(oklch/);
+    expect(primary).not.toBe(createTheme({ brand: "#1d4ed8" }).cssVariables["--primary"]);
+  });
+});
