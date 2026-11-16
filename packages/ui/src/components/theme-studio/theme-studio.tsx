@@ -6,7 +6,7 @@ import { Alert } from "../display/index.js";
 import { Field } from "../field/index.js";
 import { Fieldset } from "../form/index.js";
 import { ColourInput, Input } from "../input/index.js";
-import { LogoUpload } from "../logo-upload/index.js";
+import { LogoUpload, type LogoUploadProps } from "../logo-upload/index.js";
 import { ToggleGroup, ToggleGroupItem } from "../toggle/index.js";
 import { DEFAULT_MESSAGES, fill, type StudioMessages } from "./messages.js";
 import {
@@ -19,6 +19,19 @@ import {
   type StudioResult,
 } from "./studio-model.js";
 import { ThemePreview } from "./theme-preview.js";
+
+type LogoLabels = Pick<
+  LogoUploadProps,
+  | "chooseLabel"
+  | "replaceLabel"
+  | "removeLabel"
+  | "dropLabel"
+  | "previewAlt"
+  | "busyLabel"
+  | "readyLabel"
+  | "requiredLabel"
+  | "errors"
+>;
 
 export interface ThemeStudioProps {
   /**
@@ -36,6 +49,8 @@ export interface ThemeStudioProps {
   disabled?: boolean;
   /** Text for the screen. Anything left out uses the English default. */
   messages?: Partial<StudioMessages>;
+  /** Text for the two logo uploads: their buttons, drop hint and refusal messages. */
+  logoLabels?: Partial<LogoLabels>;
   className?: string;
 }
 
@@ -53,6 +68,7 @@ function stableKey(value: unknown): string {
 function noteText(note: ColourNote | undefined, text: StudioMessages): string | undefined {
   if (!note) return undefined;
   if (note.kind === "readable") return text.statusReadable;
+  if (note.kind === "button") return text.statusButtonAdjusted;
   if (note.kind === "dark-derived") return fill(text.statusDarkDerived, { shade: note.shade });
   return fill(text.statusAdjusted, { shade: note.shade });
 }
@@ -62,7 +78,14 @@ function noteText(note: ColourNote | undefined, text: StudioMessages): string | 
  * logos, with a live preview. It returns a validated `ThemeConfig` through `onSave` and keeps
  * every setting it does not show. It does not save, fetch or apply the theme to your app.
  */
-export function ThemeStudio({ value, onSave, disabled, messages, className }: ThemeStudioProps) {
+export function ThemeStudio({
+  value,
+  onSave,
+  disabled,
+  messages,
+  logoLabels,
+  className,
+}: ThemeStudioProps) {
   const text = useMemo(() => ({ ...DEFAULT_MESSAGES, ...messages }), [messages]);
   const headingId = useId();
 
@@ -76,10 +99,16 @@ export function ThemeStudio({ value, onSave, disabled, messages, className }: Th
   const [saveFailed, setSaveFailed] = useState(false);
   const [mode, setMode] = useState<"light" | "dark">("light");
   const [good, setGood] = useState<Good>();
+  // Bumped on Reset and on a new baseline, so a logo still being prepared is discarded with its control.
+  const [generation, setGeneration] = useState(0);
 
   // A new `value` from the host (after a save) is the new baseline.
-  if (seenKey !== baseKey) {
+  const rebasing = seenKey !== baseKey;
+  if (rebasing) {
     setSeenKey(baseKey);
+    setGood(undefined);
+    setGeneration((g) => g + 1);
+    setBusy({ logo: false, logoDark: false });
     setDraft(draftFromConfig(value));
     setEditing(undefined);
     setSaveFailed(false);
@@ -87,8 +116,8 @@ export function ThemeStudio({ value, onSave, disabled, messages, className }: Th
 
   const result = useMemo(() => evaluateDraft(value, draft, text), [value, draft, text]);
   // An invalid draft keeps the last good preview.
-  if (result.ok && good !== result) setGood(result);
-  const shown = result.ok ? result : good;
+  if (!rebasing && result.ok && good !== result) setGood(result);
+  const shown = rebasing ? undefined : result.ok ? result : good;
 
   const errors = result.ok ? {} : result.errors;
   const conflict = result.ok ? undefined : result.conflict;
@@ -131,6 +160,8 @@ export function ThemeStudio({ value, onSave, disabled, messages, className }: Th
 
   function reset() {
     setDraft(draftFromConfig(value));
+    setGeneration((g) => g + 1);
+    setBusy({ logo: false, logoDark: false });
     setEditing(undefined);
     setSaveFailed(false);
   }
@@ -176,6 +207,8 @@ export function ThemeStudio({ value, onSave, disabled, messages, className }: Th
             {(control) => (
               <LogoUpload
                 {...control}
+                {...logoLabels}
+                key={generation}
                 value={draft.logo || undefined}
                 onValueChange={(next) => set("logo", next)}
                 onBusyChange={(on) => setBusy((b) => ({ ...b, logo: on }))}
@@ -202,6 +235,8 @@ export function ThemeStudio({ value, onSave, disabled, messages, className }: Th
             {(control) => (
               <LogoUpload
                 {...control}
+                {...logoLabels}
+                key={generation}
                 value={draft.logoDark || undefined}
                 onValueChange={(next) => set("logoDark", next)}
                 onBusyChange={(on) => setBusy((b) => ({ ...b, logoDark: on }))}
@@ -212,16 +247,19 @@ export function ThemeStudio({ value, onSave, disabled, messages, className }: Th
         </Fieldset>
 
         {conflict ? (
-          <Alert variant="warning">
-            <p>
-              {conflict.roles.length > 0
-                ? fill(text.conflict, { roles: conflict.roles.join(", ") })
-                : text.conflictNoRole}
-            </p>
+          <div className="flex flex-col gap-2">
+            <Alert variant="warning">
+              <p>
+                {conflict.roles.length > 0
+                  ? fill(text.conflict, { roles: conflict.roles.join(", ") })
+                  : text.conflictNoRole}
+              </p>
+            </Alert>
+            {/* Outside the alert: the ratios change as a colour is dragged and must not be re-announced. */}
             <p className="text-xs text-muted-foreground">
               {fill(text.conflictDetails, { issues: conflict.issues.join(" ") })}
             </p>
-          </Alert>
+          </div>
         ) : null}
         {saveFailed ? <Alert variant="destructive">{text.saveFailed}</Alert> : null}
 

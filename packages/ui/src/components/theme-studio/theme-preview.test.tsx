@@ -118,3 +118,20 @@ describe("ThemePreview: isolation from the page's theme", () => {
     expect(root(container).style.getPropertyValue("--primary")).toBe(cssVariables["--primary"]);
   });
 });
+
+describe("ThemePreview: only custom properties are applied", () => {
+  it("ignores any key that is not a --variable", () => {
+    const hostile = {
+      "--primary": "light-dark(red, red)",
+      position: "fixed",
+      zIndex: "99999",
+      backgroundImage: "url(https://tracker.example/p.gif)",
+    } as Record<string, string>;
+    const { container } = renderUi(<ThemePreview cssVariables={hostile} mode="light" />);
+    const style = root(container).style;
+    expect(style.getPropertyValue("--primary")).toBe("light-dark(red, red)");
+    expect(style.position).toBe("");
+    expect(style.zIndex).toBe("");
+    expect(style.backgroundImage).toBe("");
+  });
+});

@@ -15,6 +15,8 @@ export interface StudioMessages {
   statusReadable: string;
   /** `{shade}` is the colour links and labels use, as `#rrggbb`. */
   statusAdjusted: string;
+  /** Only the button colour was adjusted; links and labels use the colour as typed. */
+  statusButtonAdjusted: string;
   statusDarkDerived: string;
   errorAppName: string;
   /** `{field}` is `lightColourName` or `darkColourName`. */
@@ -60,6 +62,8 @@ export const DEFAULT_MESSAGES: StudioMessages = {
   statusReadable: "Readable as it is.",
   statusAdjusted:
     "Adjusted slightly so buttons and text stay readable. Links and labels use {shade}.",
+  statusButtonAdjusted:
+    "Adjusted slightly so buttons stay readable. Links and labels use your colour as it is.",
   statusDarkDerived:
     "Uses your light mode colour, adjusted for dark. Links and labels use {shade}.",
   errorAppName: "App name must be 1 to 80 characters, with no control characters.",

@@ -36,13 +36,13 @@ While a save is running the fields are disabled, so nothing typed can be lost. I
 
 - **App name** is shown next to the logo. It is 1 to 80 characters with no control characters, and it is rendered as text.
 - **Light mode** has a brand colour and a logo. **Dark mode** has the same, both optional. Leave the dark colour empty and dark mode uses the light colour, adjusted for dark. Leave the dark logo empty and the light logo is used.
-- **A note under each colour** says whether it is readable as it is, or adjusted slightly so buttons and text stay readable, and names the shade that links and labels use (for example `#777508`). The shade comes from `createTheme`'s own result, not a second calculation, and the note never promises the button keeps the exact colour.
+- **A note under each colour** says whether it is readable as it is, or adjusted slightly so buttons and text stay readable, and names the shade that links and labels use (for example `#777508`). The shade comes from `createTheme`'s own result, not a second calculation, and the note never promises the button keeps the exact colour. When only the button had to move, the note says so and that links and labels keep the colour as typed.
 - **The preview** is coloured only by the admin's values, in the mode picked with the toggle. The page around it never changes: every colour role and `color-scheme` are set on the preview's own box, so a role the theme leaves alone shows the library default, not your app's current colour.
 - **Mistakes are plain sentences** that name the field, such as "Light mode colour must be a colour such as #1a73e8.", shown once the admin leaves the field or presses Enter (an error on a field they have not touched, such as the dark colour after the light one is cleared, shows at once). The preview keeps the last good result while a value is wrong, and Save stays off.
 
 ## What it keeps
 
-The studio shows four things. A stored theme can hold much more: `secondary` and the status colours, `tint`, `radius`, `font`, `density`, `light` and `dark` role overrides, a `favicon`, a `name`. All of that passes through a save **unchanged**. Only the keys the admin edited are written (plus `version: 1` when the stored config had none), and an emptied optional value is removed, never saved as an empty string. Values are trimmed. Keys the studio writes may move to the end of the object, so compare configs by content, not by text.
+The studio shows four things. A stored theme can hold much more: `secondary` and the status colours, `tint`, `radius`, `font`, `density`, `light` and `dark` role overrides, a `favicon`, a `name`. All of that passes through a save **unchanged**. Only the keys the admin edited are written (plus `version: 1` when the stored config had none), and an emptied optional value is removed, never saved as an empty string. Values the admin edits are trimmed. A key the studio does not change keeps its value, spelling and place; a key it adds goes at the end. A problem in a stored value the admin did not touch (a `brand` and `primary` that disagree, a non-text colour) is reported, not repaired behind their back.
 
 If the config uses `primary` instead of `brand` (they mean the same thing), the colour is written back to `primary`.
 
@@ -83,7 +83,7 @@ A block can still come from a setting the admin cannot see, such as a developer'
 
 <AutoTypeTable path="../../packages/ui/src/components/theme-studio/theme-studio.tsx" name="ThemeStudioProps" />
 
-`messages` takes a partial map of every string the screen shows (labels, notes, errors, buttons, the preview's sample text). Placeholders such as `{shade}` and `{field}` are filled in for you. The logo upload's own text (its buttons, drop hint and refusal messages) is not reachable through `messages` yet and stays in English.
+`messages` takes a partial map of every string the screen shows (labels, notes, errors, buttons, the preview's sample text). Placeholders such as `{shade}` and `{field}` are filled in for you. The two logo uploads' own text (their buttons, drop hint, status and refusal messages) goes through `logoLabels`, which takes the same label props as [`LogoUpload`](/docs/components/logo-upload#errors).
 
 ## Accessibility
 

@@ -33,9 +33,10 @@ export interface LogoUploadProps {
   onError?: (code: ShrinkErrorCode | undefined) => void;
   /**
    * Called with `true` when a chosen file starts being prepared and with `false` once the latest
-   * choice has finished (fitted, refused or failed) or Remove was pressed. A file that a newer
-   * choice replaced does not report `false`. Use it to keep a Save button off while a logo is
-   * still being shrunk.
+   * choice has finished (fitted, refused or failed), Remove was pressed, or the control was
+   * removed from the page mid-preparation. A file that a newer choice replaced does not report
+   * `false`. A file that finishes after `disabled` turned on is dropped. Use it to keep a Save
+   * button off while a logo is still being shrunk.
    */
   onBusyChange?: (busy: boolean) => void;
   /**
@@ -178,9 +179,14 @@ export const LogoUpload = forwardRef<HTMLButtonElement, LogoUploadProps>(
     useEffect(
       () => () => {
         latest.current += 1;
+        // A file that was still being prepared will never finish here, so say it is not busy.
+        if (wasBusy.current) busyCallback.current?.(false);
       },
       [],
     );
+    // A file that finishes after the control was disabled is dropped, not applied.
+    const isDisabled = useRef(disabled);
+    isDisabled.current = disabled;
 
     const shownError = useRef<ShrinkErrorCode | undefined>(undefined);
     function report(next: ShrinkErrorCode | undefined) {
@@ -198,6 +204,7 @@ export const LogoUpload = forwardRef<HTMLButtonElement, LogoUploadProps>(
         const result = await shrinkImage(file, maxChars);
         if (ticket !== latest.current) return;
         setBusy(false);
+        if (isDisabled.current) return;
         report(undefined);
         if (!controlled) setKept(result.dataUri);
         setReady(true);
