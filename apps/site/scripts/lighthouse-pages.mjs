@@ -85,19 +85,26 @@ async function launchChrome(attempts = 3) {
 const WARM_UP_ATTEMPTS = 2;
 const MAX_CHROME_LAUNCHES = 5;
 
-/** Whether Chrome painted the page, within a short wait. */
+/** Whether Chrome painted the page, within a short wait. A load that throws counts as not painted. */
 async function warmUp(chrome, url) {
   for (let attempt = 1; attempt <= WARM_UP_ATTEMPTS; attempt++) {
-    const result = await lighthouse(url, {
-      port: chrome.port,
-      output: "json",
-      logLevel: "error",
-      onlyCategories: ["performance"],
-      maxWaitForFcp: 8000,
-    });
-    const error = result?.lhr.runtimeError;
-    if (!error) return true;
-    console.warn(`  warm-up ${attempt} of ${WARM_UP_ATTEMPTS} for ${url}: ${error.code}`);
+    let problem;
+    try {
+      const result = await lighthouse(url, {
+        port: chrome.port,
+        output: "json",
+        logLevel: "error",
+        onlyCategories: ["performance"],
+        maxWaitForFcp: 8000,
+      });
+      problem = result?.lhr.runtimeError?.code;
+      if (!problem && result) return true;
+      problem ??= "no result";
+    } catch (error) {
+      problem = String(error.message ?? error).split("
+")[0];
+    }
+    console.warn(`  warm-up ${attempt} of ${WARM_UP_ATTEMPTS} for ${url}: ${problem}`);
   }
   return false;
 }
