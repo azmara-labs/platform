@@ -101,8 +101,7 @@ async function warmUp(chrome, url) {
       if (!problem && result) return true;
       problem ??= "no result";
     } catch (error) {
-      problem = String(error.message ?? error).split("
-")[0];
+      problem = String(error.message ?? error).split("\n")[0];
     }
     console.warn(`  warm-up ${attempt} of ${WARM_UP_ATTEMPTS} for ${url}: ${problem}`);
   }
