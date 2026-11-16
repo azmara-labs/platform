@@ -1,4 +1,5 @@
 import { cn } from "../../lib/cn.js";
+import { inertProps } from "../../motion/presets/collapse.js";
 import { isAssetRef } from "../../theme/config.js";
 import { ROLES } from "../../theme/index.js";
 import { ROLE_DEFAULTS } from "../../theme/roles.js";
@@ -27,6 +28,11 @@ type PreviewMessages = Pick<
   | "modeLight"
   | "modeDark"
 >;
+
+/** Only `--name` keys: a stray `position` or `background-image` must not reach the page. */
+function customProperties(vars: Record<string, string>): Record<string, string> {
+  return Object.fromEntries(Object.entries(vars).filter(([key]) => key.startsWith("--")));
+}
 
 export interface ThemePreviewProps {
   /** What `createTheme` returned: set on the preview's own box, never on the page. */
@@ -63,14 +69,14 @@ export function ThemePreview({
     <div
       data-slot="theme-preview"
       data-mode={mode}
-      style={{ ...DEFAULTS, ...cssVariables, colorScheme: mode }}
+      style={{ ...DEFAULTS, ...customProperties(cssVariables), colorScheme: mode }}
       className={cn(
         "overflow-hidden rounded-lg border border-border bg-background text-foreground",
         className,
       )}
     >
       <p className="sr-only">{fill(text.previewDescription, { mode: modeName.toLowerCase() })}</p>
-      <div inert aria-hidden="true">
+      <div {...inertProps()} aria-hidden="true">
         <div className="flex items-center gap-3 border-b border-border bg-card px-4 py-3 text-card-foreground">
           {shown && isAssetRef(shown) ? (
             <img src={shown} alt="" className="h-8 max-w-32 object-contain" />

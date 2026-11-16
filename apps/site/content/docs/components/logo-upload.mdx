@@ -57,7 +57,7 @@ A refused file shows its message under the controls, in an alert, and calls `onE
 
 The error clears, and `onError(undefined)` is called, when a later file works or the logo is removed.
 
-`onBusyChange(true)` is called when a file starts being prepared and `onBusyChange(false)` when the latest choice is done (fitted, refused or failed) or the logo is removed. Use it to keep a Save button off until the logo is ready.
+`onBusyChange(true)` is called when a file starts being prepared and `onBusyChange(false)` when the latest choice is done (fitted, refused or failed) the logo is removed, or the control leaves the page mid-preparation. A file that finishes after `disabled` turned on is dropped, never applied. Use it to keep a Save button off until the logo is ready.
 
 ## With react-hook-form
 

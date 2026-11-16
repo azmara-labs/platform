@@ -481,3 +481,112 @@ describe("ThemeStudio: review fixes", () => {
     expect(primary).not.toBe(createTheme({ brand: "#1d4ed8" }).cssVariables["--primary"]);
   });
 });
+
+describe("ThemeStudio: second review pass", () => {
+  it("a new failing value does not leave the previous preview up", async () => {
+    const user = setupUser();
+    const a: ThemeConfig = {
+      version: 1,
+      brand: "#1d4ed8",
+      branding: { appName: "Org A", logo: LOGO },
+    };
+    const b: ThemeConfig = {
+      version: 1,
+      brand: "#ffee00",
+      light: { "primary-foreground": "#ffffff" },
+      branding: { appName: "Org B" },
+    };
+    const { container, rerender } = renderUi(<ThemeStudio value={a} onSave={vi.fn()} />);
+    await user.type(screen.getByLabelText("App name"), " typed");
+    rerender(<ThemeStudio value={b} onSave={vi.fn()} />);
+    expect(preview(container).textContent).toContain("Org B");
+    expect(preview(container).textContent).not.toContain("Org A");
+    expect(preview(container).querySelector("img")).toBeNull();
+  });
+
+  it("a logo still being prepared is discarded by Reset", async () => {
+    const { decode } = stubBrowser({ width: 800, height: 600 }, () => NEW_LOGO);
+    let release: () => void = () => {};
+    decode.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          release = () => resolve({ width: 800, height: 600, close: vi.fn() });
+        }),
+    );
+    const user = setupUser();
+    const { container } = renderUi(<ThemeStudio value={BASE} onSave={vi.fn()} />);
+    await user.type(screen.getByLabelText("App name"), " 2");
+    await user.upload(logoInput(light()), png());
+    await waitFor(() => expect(save().hasAttribute("disabled")).toBe(true));
+    await user.click(reset());
+    release();
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(preview(container).querySelector("img")?.getAttribute("src")).toBe(LOGO);
+    expect(save().hasAttribute("disabled")).toBe(true);
+    expect(reset().hasAttribute("disabled")).toBe(true);
+  });
+
+  it("keeps the developer details out of the alert so a colour drag does not re-announce them", async () => {
+    const user = setupUser();
+    renderUi(<ThemeStudio value={BASE} onSave={vi.fn()} />);
+    await replaceText(user, light().getByLabelText("Brand colour"), "#ffee00");
+    const alert = screen
+      .getByText(/A setting made by a developer conflicts/)
+      .closest("[role=alert]");
+    expect(alert?.textContent).not.toContain("Details for the developer");
+    expect(screen.getByText(/Details for the developer:/)).not.toBeNull();
+  });
+
+  it("passes the logo upload's own labels through logoLabels", () => {
+    renderUi(
+      <ThemeStudio
+        onSave={vi.fn()}
+        logoLabels={{ chooseLabel: "Kōwhiri he tohu", dropLabel: "Whakatukua" }}
+      />,
+    );
+    // jsdom ignores a self-reference in aria-labelledby, so look at the button text.
+    expect(light().getByText("Kōwhiri he tohu")).not.toBeNull();
+    expect(dark().getByText("Kōwhiri he tohu")).not.toBeNull();
+    expect(light().getByText("Whakatukua")).not.toBeNull();
+  });
+
+  it("says only the button was adjusted when links and labels keep the typed colour", async () => {
+    const user = setupUser();
+    renderUi(<ThemeStudio onSave={vi.fn()} />);
+    await replaceText(user, light().getByLabelText("Brand colour"), "#0066cc");
+    expect(light().getByText(DEFAULT_MESSAGES.statusButtonAdjusted)).not.toBeNull();
+  });
+});
+
+describe("ThemeStudio: wording that blames the right person", () => {
+  it("shows a stored http logo as a logo error next to the logo, with no developer alert", () => {
+    renderUi(
+      <ThemeStudio
+        value={
+          { version: 1, branding: { logo: "http://harbourandpine.example/l.png" } } as ThemeConfig
+        }
+        onSave={vi.fn()}
+      />,
+    );
+    expect(light().getByText(DEFAULT_MESSAGES.errorLogo)).not.toBeNull();
+    expect(screen.queryByText(/A setting made by a developer/)).toBeNull();
+  });
+
+  it("says a developer set the colour directly when an override is in the way", () => {
+    renderUi(
+      <ThemeStudio
+        value={{
+          version: 1,
+          brand: "#1d4ed8",
+          light: { primary: "#1d4ed8", "primary-foreground": "#ffffff" },
+        }}
+        onSave={vi.fn()}
+      />,
+    );
+    expect(
+      light().getByText(
+        /A developer has set the light mode colour directly, so the colour above may not be the one used\. Links and labels use #[0-9a-f]{6}\./,
+      ),
+    ).not.toBeNull();
+  });
+});
