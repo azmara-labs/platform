@@ -341,3 +341,62 @@ describe("evaluateDraft: a colour whose text shade is unchanged but whose button
     expect(note?.kind).toBe("button");
   });
 });
+
+describe("evaluateDraft: wording that blames the right person", () => {
+  const HTTP_LOGO = "http://harbourandpine.example/logo.png";
+
+  it("a stored http logo is a logo error the admin can fix, not a developer conflict", () => {
+    const base = { version: 1, branding: { logo: HTTP_LOGO } } as ThemeConfig;
+    const result = bad(evaluateDraft(base, draftFromConfig(base)));
+    expect(result.errors.logo).toBe(DEFAULT_MESSAGES.errorLogo);
+    expect(result.conflict).toBeUndefined();
+    expect(ok(evaluateDraft(base, draftOf({ logo: LOGO }, base))).config.branding?.logo).toBe(LOGO);
+    expect(ok(evaluateDraft(base, draftOf({ logo: "" }, base))).config.branding).toBeUndefined();
+  });
+
+  it("a bad dark logo is reported on the dark logo", () => {
+    const base = { version: 1, branding: { logoDark: HTTP_LOGO } } as ThemeConfig;
+    const result = bad(evaluateDraft(base, draftFromConfig(base)));
+    expect(result.errors.logoDark).toBe(DEFAULT_MESSAGES.errorLogo);
+    expect(result.errors.logo).toBeUndefined();
+  });
+
+  it("a bad favicon, which the studio cannot edit, stays a developer conflict", () => {
+    const base = { version: 1, branding: { favicon: HTTP_LOGO } } as ThemeConfig;
+    const result = bad(evaluateDraft(base, draftFromConfig(base)));
+    expect(result.errors.logo).toBeUndefined();
+    expect(result.conflict?.issues.join(" ")).toContain("branding.favicon");
+  });
+
+  it("reports both when a logo and a hidden setting are wrong", () => {
+    const base = {
+      version: 1,
+      brand: "#ffee00",
+      light: { "primary-foreground": "#ffffff" },
+      branding: { logo: HTTP_LOGO },
+    } as ThemeConfig;
+    const result = bad(evaluateDraft(base, draftFromConfig(base)));
+    expect(result.errors.logo).toBe(DEFAULT_MESSAGES.errorLogo);
+    expect(result.conflict?.roles).toContain("primary-foreground");
+    expect(result.conflict?.issues.join(" ")).not.toContain("branding.logo");
+  });
+
+  it("a developer override of primary or primary-text gets the overridden note, per mode", () => {
+    const base: ThemeConfig = {
+      version: 1,
+      brand: "#1d4ed8",
+      light: { primary: "#1d4ed8", "primary-foreground": "#ffffff" },
+    };
+    const result = ok(evaluateDraft(base, draftOf({ brand: "#0e7490" }, base)));
+    expect(result.notes.find((n) => n.mode === "light")?.kind).toBe("overridden");
+    expect(result.notes.find((n) => n.mode === "dark")?.kind).toBe("dark-derived");
+    const text = ok(
+      evaluateDraft(
+        { version: 1, brand: "#1d4ed8", dark: { "primary-text": "#93c5fd" } },
+        draftOf({ brand: "#0e7490" }, { version: 1, brand: "#1d4ed8" }),
+      ),
+    );
+    expect(text.notes.find((n) => n.mode === "dark")?.kind).toBe("overridden");
+    expect(text.notes.find((n) => n.mode === "light")?.kind).not.toBe("overridden");
+  });
+});

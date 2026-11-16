@@ -557,3 +557,36 @@ describe("ThemeStudio: second review pass", () => {
     expect(light().getByText(DEFAULT_MESSAGES.statusButtonAdjusted)).not.toBeNull();
   });
 });
+
+describe("ThemeStudio: wording that blames the right person", () => {
+  it("shows a stored http logo as a logo error next to the logo, with no developer alert", () => {
+    renderUi(
+      <ThemeStudio
+        value={
+          { version: 1, branding: { logo: "http://harbourandpine.example/l.png" } } as ThemeConfig
+        }
+        onSave={vi.fn()}
+      />,
+    );
+    expect(light().getByText(DEFAULT_MESSAGES.errorLogo)).not.toBeNull();
+    expect(screen.queryByText(/A setting made by a developer/)).toBeNull();
+  });
+
+  it("says a developer set the colour directly when an override is in the way", () => {
+    renderUi(
+      <ThemeStudio
+        value={{
+          version: 1,
+          brand: "#1d4ed8",
+          light: { primary: "#1d4ed8", "primary-foreground": "#ffffff" },
+        }}
+        onSave={vi.fn()}
+      />,
+    );
+    expect(
+      light().getByText(
+        /A developer has set the light mode colour directly, so the colour above may not be the one used\. Links and labels use #[0-9a-f]{6}\./,
+      ),
+    ).not.toBeNull();
+  });
+});

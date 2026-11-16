@@ -69,6 +69,10 @@ function noteText(note: ColourNote | undefined, text: StudioMessages): string | 
   if (!note) return undefined;
   if (note.kind === "readable") return text.statusReadable;
   if (note.kind === "button") return text.statusButtonAdjusted;
+  if (note.kind === "overridden") {
+    const mode = (note.mode === "dark" ? text.modeDark : text.modeLight).toLowerCase();
+    return fill(text.statusOverridden, { mode, shade: note.shade });
+  }
   if (note.kind === "dark-derived") return fill(text.statusDarkDerived, { shade: note.shade });
   return fill(text.statusAdjusted, { shade: note.shade });
 }
@@ -203,7 +207,7 @@ export function ThemeStudio({
               />
             )}
           </Field>
-          <Field label={text.logoLabel}>
+          <Field label={text.logoLabel} error={shownError("logo")}>
             {(control) => (
               <LogoUpload
                 {...control}
@@ -231,7 +235,7 @@ export function ThemeStudio({
               />
             )}
           </Field>
-          <Field label={text.logoLabel}>
+          <Field label={text.logoLabel} error={shownError("logoDark")}>
             {(control) => (
               <LogoUpload
                 {...control}
