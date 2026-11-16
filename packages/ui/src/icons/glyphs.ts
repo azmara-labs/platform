@@ -84,9 +84,11 @@ export const ChevronsRight = /* @__PURE__ */ createGlyph("chevrons-right", Chevr
 export const ChevronsUpDown = /* @__PURE__ */ createGlyph("chevrons-up-down", ChevronsUpDownNode);
 export const ChevronUp = /* @__PURE__ */ createGlyph("chevron-up", ChevronUpNode);
 export const Circle = /* @__PURE__ */ createGlyph("circle", CircleNode);
-export const CircleAlert = /* @__PURE__ */ createGlyph("circle-alert", CircleAlertNode, [
-  "alert-circle",
-]);
+export const CircleAlert = /* @__PURE__ */ createGlyph(
+  "circle-exclamation-point",
+  CircleAlertNode,
+  ["alert-circle", "circle-alert"],
+);
 export const CircleCheck = /* @__PURE__ */ createGlyph("circle-check", CircleCheckNode, [
   "check-circle-2",
 ]);
@@ -137,9 +139,11 @@ export const SquareMinus = /* @__PURE__ */ createGlyph("square-minus", SquareMin
 export const Star = /* @__PURE__ */ createGlyph("star", StarNode);
 export const Sun = /* @__PURE__ */ createGlyph("sun", SunNode);
 export const Trash2 = /* @__PURE__ */ createGlyph("trash", Trash2Node, ["trash-2"]);
-export const TriangleAlert = /* @__PURE__ */ createGlyph("triangle-alert", TriangleAlertNode, [
-  "alert-triangle",
-]);
+export const TriangleAlert = /* @__PURE__ */ createGlyph(
+  "triangle-exclamation-point",
+  TriangleAlertNode,
+  ["alert-triangle", "triangle-alert"],
+);
 export const Upload = /* @__PURE__ */ createGlyph("upload", UploadNode);
 export const User = /* @__PURE__ */ createGlyph("user", UserNode);
 export const Users = /* @__PURE__ */ createGlyph("users", UsersNode);
