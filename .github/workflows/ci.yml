@@ -152,6 +152,10 @@ jobs:
       - name: Lighthouse against the budgets
         run: pnpm --filter @azmr/site check:lighthouse
 
+      - name: Show the site log if Lighthouse failed
+        if: failure()
+        run: tail -n 60 site.log || true
+
       - name: Keep the results
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
