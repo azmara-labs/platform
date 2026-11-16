@@ -15,11 +15,17 @@ export interface StudioMessages {
   statusReadable: string;
   /** `{shade}` is the colour links and labels use, as `#rrggbb`. */
   statusAdjusted: string;
+  /** Only the button colour was adjusted; links and labels use the colour as typed. */
+  statusButtonAdjusted: string;
+  /** A developer set the primary or primary-text colour for this mode directly. `{mode}`, `{shade}`. */
+  statusOverridden: string;
   statusDarkDerived: string;
   errorAppName: string;
   /** `{field}` is `lightColourName` or `darkColourName`. */
   errorColour: string;
   errorDarkNeedsLight: string;
+  /** A stored logo that is not an https URL or a PNG, JPEG or WebP data URI: the admin can replace it. */
+  errorLogo: string;
   /** `{roles}` lists the theme roles that fail, such as "primary-foreground, primary". */
   conflict: string;
   conflictNoRole: string;
@@ -60,11 +66,16 @@ export const DEFAULT_MESSAGES: StudioMessages = {
   statusReadable: "Readable as it is.",
   statusAdjusted:
     "Adjusted slightly so buttons and text stay readable. Links and labels use {shade}.",
+  statusButtonAdjusted:
+    "Adjusted slightly so buttons stay readable. Links and labels use your colour as it is.",
+  statusOverridden:
+    "A developer has set the {mode} mode colour directly, so the colour above may not be the one used. Links and labels use {shade}.",
   statusDarkDerived:
     "Uses your light mode colour, adjusted for dark. Links and labels use {shade}.",
   errorAppName: "App name must be 1 to 80 characters, with no control characters.",
   errorColour: "{field} must be a colour such as #1a73e8.", // conventions-ignore: an example colour in the message text, not a style
   errorDarkNeedsLight: "Choose a light mode colour first, or clear this one.",
+  errorLogo: "This logo cannot be used. Choose a PNG, JPEG or WebP image to replace it.",
   conflict:
     "A setting made by a developer conflicts with this change, so it cannot be saved yet. Ask a developer to look at: {roles}.",
   conflictNoRole:

@@ -100,7 +100,7 @@
   {
     "name": "@azmr/ui/theme-studio",
     "path": "dist/theme-studio.js",
-    "limit": "35.5 kB"
+    "limit": "36 kB"
   },
   {
     "name": "@azmr/ui/number-field",

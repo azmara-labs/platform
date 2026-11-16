@@ -281,3 +281,122 @@ describe("isDirty", () => {
     expect(isDirty(HIDDEN, { ...draft, appName: `${draft.appName}  ` })).toBe(false);
   });
 });
+
+describe("evaluateDraft: only what the admin edited is written", () => {
+  const ORDERED: ThemeConfig = {
+    version: 1,
+    name: "Harbour & Pine",
+    brand: "#1d4ed8",
+    primary: "#1d4ed8",
+    brandDark: "#93c5fd",
+    radius: "0.5rem",
+    branding: { appName: " Harbour ", logo: LOGO },
+  };
+
+  it("keeps key order and untouched whitespace when only the logo changes", () => {
+    const result = ok(evaluateDraft(ORDERED, draftOf({ logo: LOGO_DARK }, ORDERED)));
+    expect(Object.keys(result.config)).toEqual(Object.keys(ORDERED));
+    expect(result.config.branding).toEqual({ appName: " Harbour ", logo: LOGO_DARK });
+    expect(Object.keys(result.config.branding ?? {})).toEqual(["appName", "logo"]);
+  });
+
+  it("changing the colour changes brand and primary together, in place", () => {
+    const result = ok(evaluateDraft(ORDERED, draftOf({ brand: "#0e7490" }, ORDERED)));
+    expect(result.config.brand).toBe("#0e7490");
+    expect(result.config.primary).toBe("#0e7490");
+    expect(Object.keys(result.config)).toEqual(Object.keys(ORDERED));
+  });
+
+  it("a brand and primary that disagree are a conflict, and primary is left alone", () => {
+    const broken: ThemeConfig = { version: 1, brand: "#1d4ed8", primary: "#ff0000" };
+    const result = bad(evaluateDraft(broken, draftOf({ appName: "Harbour" }, broken)));
+    expect(result.conflict?.issues.join(" ")).toContain("brand and primary");
+    expect(broken.primary).toBe("#ff0000");
+  });
+
+  it("a non-string incoming value does not crash and is explained until the admin replaces it", () => {
+    const odd = { version: 1, brand: 123, branding: { appName: 5 } } as unknown as ThemeConfig;
+    expect(draftFromConfig(odd)).toMatchObject({ brand: "", appName: "" });
+    const result = bad(evaluateDraft(odd, draftFromConfig(odd)));
+    expect(result.conflict?.issues.length).toBeGreaterThan(0);
+    const fixed = ok(evaluateDraft(odd, draftOf({ brand: "#1d4ed8", appName: "Harbour" }, odd)));
+    expect(fixed.config.brand).toBe("#1d4ed8");
+    expect(fixed.config.branding).toEqual({ appName: "Harbour" });
+  });
+
+  it("branding that is null is a conflict until the admin sets a branding value", () => {
+    const odd = { version: 1, branding: null } as unknown as ThemeConfig;
+    expect(bad(evaluateDraft(odd, draftFromConfig(odd))).conflict).toBeDefined();
+    expect(ok(evaluateDraft(odd, draftOf({ appName: "Harbour" }, odd))).config.branding).toEqual({
+      appName: "Harbour",
+    });
+  });
+});
+
+describe("evaluateDraft: a colour whose text shade is unchanged but whose button is adjusted", () => {
+  it("gets the button note, not a quoted shade", () => {
+    const note = ok(evaluateDraft(undefined, draftOf({ brand: "#0066cc" }))).notes.find(
+      (n) => n.mode === "light",
+    );
+    expect(note?.kind).toBe("button");
+  });
+});
+
+describe("evaluateDraft: wording that blames the right person", () => {
+  const HTTP_LOGO = "http://harbourandpine.example/logo.png";
+
+  it("a stored http logo is a logo error the admin can fix, not a developer conflict", () => {
+    const base = { version: 1, branding: { logo: HTTP_LOGO } } as ThemeConfig;
+    const result = bad(evaluateDraft(base, draftFromConfig(base)));
+    expect(result.errors.logo).toBe(DEFAULT_MESSAGES.errorLogo);
+    expect(result.conflict).toBeUndefined();
+    expect(ok(evaluateDraft(base, draftOf({ logo: LOGO }, base))).config.branding?.logo).toBe(LOGO);
+    expect(ok(evaluateDraft(base, draftOf({ logo: "" }, base))).config.branding).toBeUndefined();
+  });
+
+  it("a bad dark logo is reported on the dark logo", () => {
+    const base = { version: 1, branding: { logoDark: HTTP_LOGO } } as ThemeConfig;
+    const result = bad(evaluateDraft(base, draftFromConfig(base)));
+    expect(result.errors.logoDark).toBe(DEFAULT_MESSAGES.errorLogo);
+    expect(result.errors.logo).toBeUndefined();
+  });
+
+  it("a bad favicon, which the studio cannot edit, stays a developer conflict", () => {
+    const base = { version: 1, branding: { favicon: HTTP_LOGO } } as ThemeConfig;
+    const result = bad(evaluateDraft(base, draftFromConfig(base)));
+    expect(result.errors.logo).toBeUndefined();
+    expect(result.conflict?.issues.join(" ")).toContain("branding.favicon");
+  });
+
+  it("reports both when a logo and a hidden setting are wrong", () => {
+    const base = {
+      version: 1,
+      brand: "#ffee00",
+      light: { "primary-foreground": "#ffffff" },
+      branding: { logo: HTTP_LOGO },
+    } as ThemeConfig;
+    const result = bad(evaluateDraft(base, draftFromConfig(base)));
+    expect(result.errors.logo).toBe(DEFAULT_MESSAGES.errorLogo);
+    expect(result.conflict?.roles).toContain("primary-foreground");
+    expect(result.conflict?.issues.join(" ")).not.toContain("branding.logo");
+  });
+
+  it("a developer override of primary or primary-text gets the overridden note, per mode", () => {
+    const base: ThemeConfig = {
+      version: 1,
+      brand: "#1d4ed8",
+      light: { primary: "#1d4ed8", "primary-foreground": "#ffffff" },
+    };
+    const result = ok(evaluateDraft(base, draftOf({ brand: "#0e7490" }, base)));
+    expect(result.notes.find((n) => n.mode === "light")?.kind).toBe("overridden");
+    expect(result.notes.find((n) => n.mode === "dark")?.kind).toBe("dark-derived");
+    const text = ok(
+      evaluateDraft(
+        { version: 1, brand: "#1d4ed8", dark: { "primary-text": "#93c5fd" } },
+        draftOf({ brand: "#0e7490" }, { version: 1, brand: "#1d4ed8" }),
+      ),
+    );
+    expect(text.notes.find((n) => n.mode === "dark")?.kind).toBe("overridden");
+    expect(text.notes.find((n) => n.mode === "light")?.kind).not.toBe("overridden");
+  });
+});

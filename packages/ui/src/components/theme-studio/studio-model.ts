@@ -14,12 +14,12 @@ export interface StudioDraft {
   logoDark: string;
 }
 
-export type StudioField = "appName" | "brand" | "brandDark";
+export type StudioField = "appName" | "brand" | "brandDark" | "logo" | "logoDark";
 
 /** What to tell the admin about one colour. `shade` is what links and labels use, as `#rrggbb`. */
 export interface ColourNote {
   mode: "light" | "dark";
-  kind: "readable" | "adjusted" | "dark-derived";
+  kind: "readable" | "adjusted" | "button" | "overridden" | "dark-derived";
   shade: string;
 }
 
@@ -38,13 +38,20 @@ export type StudioResult =
       conflict?: { roles: string[]; issues: string[] };
     };
 
+/** The text, or "" for anything that is not text: a stored config is only as good as its source. */
+const text = (value: unknown): string => (typeof value === "string" ? value : "");
+
 export function draftFromConfig(config?: ThemeConfig): StudioDraft {
+  const branding: Record<string, unknown> =
+    config?.branding && typeof config.branding === "object"
+      ? (config.branding as Record<string, unknown>)
+      : {};
   return {
-    appName: config?.branding?.appName ?? "",
-    brand: config?.brand ?? config?.primary ?? "",
-    brandDark: config?.brandDark ?? "",
-    logo: config?.branding?.logo ?? "",
-    logoDark: config?.branding?.logoDark ?? "",
+    appName: text(branding.appName),
+    brand: text(config?.brand) || text(config?.primary),
+    brandDark: text(config?.brandDark),
+    logo: text(branding.logo),
+    logoDark: text(branding.logoDark),
   };
 }
 
@@ -74,34 +81,49 @@ function isColour(text: string): boolean {
   }
 }
 
-/** The config with the draft's values applied. Everything the draft does not cover is copied. */
+/**
+ * The config with the draft's changes applied. A key is written only when the admin changed its
+ * field, so every other key keeps its value, its spelling and its place, and a stored problem in a
+ * key the admin did not touch is reported, not repaired.
+ */
 function buildConfig(base: ThemeConfig | undefined, draft: StudioDraft): ThemeConfig {
   const config: ThemeConfig = structuredClone(base ?? {});
+  const before = trimmed(draftFromConfig(base));
 
-  // `brand` and `primary` are aliases: write to whichever the config already used.
-  const keys: ("brand" | "primary")[] =
-    base?.primary !== undefined
-      ? base.brand !== undefined
-        ? ["brand", "primary"]
-        : ["primary"]
-      : ["brand"];
-  delete config.brand;
-  delete config.primary;
-  if (draft.brand) for (const key of keys) config[key] = draft.brand;
+  if (draft.brand !== before.brand) {
+    // `brand` and `primary` are aliases: write to whichever the config already used.
+    const keys: ("brand" | "primary")[] =
+      base?.primary !== undefined
+        ? base.brand !== undefined
+          ? ["brand", "primary"]
+          : ["primary"]
+        : ["brand"];
+    if (draft.brand) for (const key of keys) config[key] = draft.brand;
+    else {
+      delete config.brand;
+      delete config.primary;
+    }
+  }
 
-  if (draft.brandDark) config.brandDark = draft.brandDark;
-  else delete config.brandDark;
+  if (draft.brandDark !== before.brandDark) {
+    if (draft.brandDark) config.brandDark = draft.brandDark;
+    else delete config.brandDark;
+  }
 
-  const branding = { ...config.branding };
-  const set = (key: "appName" | "logo" | "logoDark", value: string) => {
-    if (value) branding[key] = value;
-    else delete branding[key];
-  };
-  set("appName", draft.appName);
-  set("logo", draft.logo);
-  set("logoDark", draft.logoDark);
-  if (Object.keys(branding).length > 0) config.branding = branding;
-  else delete config.branding;
+  const fields = ["appName", "logo", "logoDark"] as const;
+  if (fields.some((key) => draft[key] !== before[key])) {
+    const branding: Record<string, unknown> =
+      config.branding && typeof config.branding === "object" && !Array.isArray(config.branding)
+        ? { ...config.branding }
+        : {};
+    for (const key of fields) {
+      if (draft[key] === before[key]) continue;
+      if (draft[key]) branding[key] = draft[key];
+      else delete branding[key];
+    }
+    if (Object.keys(branding).length > 0) config.branding = branding as ThemeConfig["branding"];
+    else delete config.branding;
+  }
 
   if (config.version === undefined && Object.keys(config).length > 0) config.version = 1;
   return config;
@@ -134,7 +156,17 @@ function modeValue(vars: Record<string, string>, role: string, mode: "light" | "
   return match?.[mode === "light" ? 1 : 2];
 }
 
-function notesFor(draft: StudioDraft, vars: Record<string, string>): ColourNote[] {
+/** Whether a developer set `primary` or `primary-text` for `mode` directly. */
+function overridden(base: ThemeConfig | undefined, mode: "light" | "dark"): boolean {
+  const roles: unknown = base?.[mode];
+  return !!roles && typeof roles === "object" && ("primary" in roles || "primary-text" in roles);
+}
+
+function notesFor(
+  base: ThemeConfig | undefined,
+  draft: StudioDraft,
+  vars: Record<string, string>,
+): ColourNote[] {
   if (!draft.brand) return [];
   const notes: ColourNote[] = [];
   for (const mode of ["light", "dark"] as const) {
@@ -142,14 +174,21 @@ function notesFor(draft: StudioDraft, vars: Record<string, string>): ColourNote[
     const text = modeValue(vars, "primary-text", mode);
     if (!primary || !text) continue;
     const shade = toHex(text);
+    if (overridden(base, mode)) {
+      notes.push({ mode, kind: "overridden", shade });
+      continue;
+    }
     const typed = mode === "light" ? draft.brand : draft.brandDark;
     if (!typed) {
       notes.push({ mode, kind: "dark-derived", shade });
       continue;
     }
     const wanted = toHex(typed);
-    const readable = sameHex(toHex(primary), wanted) && sameHex(shade, wanted);
-    notes.push({ mode, kind: readable ? "readable" : "adjusted", shade });
+    const buttonSame = sameHex(toHex(primary), wanted);
+    const textSame = sameHex(shade, wanted);
+    // Only the button was moved: the shade for links and labels is the colour as typed.
+    const kind = buttonSame && textSame ? "readable" : textSame ? "button" : "adjusted";
+    notes.push({ mode, kind, shade });
   }
   return notes;
 }
@@ -203,13 +242,36 @@ export function evaluateDraft(
   if (Object.keys(errors).length > 0) return { ok: false, errors };
 
   const config = buildConfig(base, draft);
+
+  // A stored logo the parser refuses is one the admin can replace or remove, so it is reported on
+  // the logo. Everything else the library refuses is a setting the studio does not show.
+  let parseIssues: string[] = [];
   try {
     parseThemeJson(JSON.stringify(config));
-    const issues = validateTheme(config);
-    if (issues.length > 0) return { ok: false, errors: {}, conflict: issueTexts({ issues }) };
-    const { cssVariables } = createTheme(config);
-    return { ok: true, config, cssVariables, notes: notesFor(draft, cssVariables) };
   } catch (error) {
-    return { ok: false, errors: {}, conflict: issueTexts(error) };
+    parseIssues = issueTexts(error).issues;
+  }
+  const badLogos = new Set<"logo" | "logoDark">();
+  const others: string[] = [];
+  for (const issue of parseIssues) {
+    const match = /^branding.(logo|logoDark) must be/.exec(issue);
+    if (match) badLogos.add(match[1] as "logo" | "logoDark");
+    else others.push(issue);
+  }
+  for (const key of badLogos) errors[key] = messages.errorLogo;
+  if (others.length > 0) return { ok: false, errors, conflict: { roles: [], issues: others } };
+
+  // Check the rest of the theme without the logos that cannot be used, so a contrast conflict is
+  // still reported next to a logo problem.
+  const checked = structuredClone(config);
+  if (checked.branding) for (const key of badLogos) delete checked.branding[key];
+  try {
+    const issues = validateTheme(checked);
+    if (issues.length > 0) return { ok: false, errors, conflict: issueTexts({ issues }) };
+    const { cssVariables } = createTheme(checked);
+    if (badLogos.size > 0) return { ok: false, errors };
+    return { ok: true, config, cssVariables, notes: notesFor(base, draft, cssVariables) };
+  } catch (error) {
+    return { ok: false, errors, conflict: issueTexts(error) };
   }
 }
