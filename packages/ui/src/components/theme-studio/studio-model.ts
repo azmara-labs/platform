@@ -14,12 +14,12 @@ export interface StudioDraft {
   logoDark: string;
 }
 
-export type StudioField = "appName" | "brand" | "brandDark";
+export type StudioField = "appName" | "brand" | "brandDark" | "logo" | "logoDark";
 
 /** What to tell the admin about one colour. `shade` is what links and labels use, as `#rrggbb`. */
 export interface ColourNote {
   mode: "light" | "dark";
-  kind: "readable" | "adjusted" | "button" | "dark-derived";
+  kind: "readable" | "adjusted" | "button" | "overridden" | "dark-derived";
   shade: string;
 }
 
@@ -156,7 +156,17 @@ function modeValue(vars: Record<string, string>, role: string, mode: "light" | "
   return match?.[mode === "light" ? 1 : 2];
 }
 
-function notesFor(draft: StudioDraft, vars: Record<string, string>): ColourNote[] {
+/** Whether a developer set `primary` or `primary-text` for `mode` directly. */
+function overridden(base: ThemeConfig | undefined, mode: "light" | "dark"): boolean {
+  const roles: unknown = base?.[mode];
+  return !!roles && typeof roles === "object" && ("primary" in roles || "primary-text" in roles);
+}
+
+function notesFor(
+  base: ThemeConfig | undefined,
+  draft: StudioDraft,
+  vars: Record<string, string>,
+): ColourNote[] {
   if (!draft.brand) return [];
   const notes: ColourNote[] = [];
   for (const mode of ["light", "dark"] as const) {
@@ -164,6 +174,10 @@ function notesFor(draft: StudioDraft, vars: Record<string, string>): ColourNote[
     const text = modeValue(vars, "primary-text", mode);
     if (!primary || !text) continue;
     const shade = toHex(text);
+    if (overridden(base, mode)) {
+      notes.push({ mode, kind: "overridden", shade });
+      continue;
+    }
     const typed = mode === "light" ? draft.brand : draft.brandDark;
     if (!typed) {
       notes.push({ mode, kind: "dark-derived", shade });
@@ -228,13 +242,36 @@ export function evaluateDraft(
   if (Object.keys(errors).length > 0) return { ok: false, errors };
 
   const config = buildConfig(base, draft);
+
+  // A stored logo the parser refuses is one the admin can replace or remove, so it is reported on
+  // the logo. Everything else the library refuses is a setting the studio does not show.
+  let parseIssues: string[] = [];
   try {
     parseThemeJson(JSON.stringify(config));
-    const issues = validateTheme(config);
-    if (issues.length > 0) return { ok: false, errors: {}, conflict: issueTexts({ issues }) };
-    const { cssVariables } = createTheme(config);
-    return { ok: true, config, cssVariables, notes: notesFor(draft, cssVariables) };
   } catch (error) {
-    return { ok: false, errors: {}, conflict: issueTexts(error) };
+    parseIssues = issueTexts(error).issues;
+  }
+  const badLogos = new Set<"logo" | "logoDark">();
+  const others: string[] = [];
+  for (const issue of parseIssues) {
+    const match = /^branding.(logo|logoDark) must be/.exec(issue);
+    if (match) badLogos.add(match[1] as "logo" | "logoDark");
+    else others.push(issue);
+  }
+  for (const key of badLogos) errors[key] = messages.errorLogo;
+  if (others.length > 0) return { ok: false, errors, conflict: { roles: [], issues: others } };
+
+  // Check the rest of the theme without the logos that cannot be used, so a contrast conflict is
+  // still reported next to a logo problem.
+  const checked = structuredClone(config);
+  if (checked.branding) for (const key of badLogos) delete checked.branding[key];
+  try {
+    const issues = validateTheme(checked);
+    if (issues.length > 0) return { ok: false, errors, conflict: issueTexts({ issues }) };
+    const { cssVariables } = createTheme(checked);
+    if (badLogos.size > 0) return { ok: false, errors };
+    return { ok: true, config, cssVariables, notes: notesFor(base, draft, cssVariables) };
+  } catch (error) {
+    return { ok: false, errors, conflict: issueTexts(error) };
   }
 }
