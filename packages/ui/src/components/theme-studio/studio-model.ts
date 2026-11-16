@@ -19,7 +19,7 @@ export type StudioField = "appName" | "brand" | "brandDark";
 /** What to tell the admin about one colour. `shade` is what links and labels use, as `#rrggbb`. */
 export interface ColourNote {
   mode: "light" | "dark";
-  kind: "readable" | "adjusted" | "dark-derived";
+  kind: "readable" | "adjusted" | "button" | "dark-derived";
   shade: string;
 }
 
@@ -38,13 +38,20 @@ export type StudioResult =
       conflict?: { roles: string[]; issues: string[] };
     };
 
+/** The text, or "" for anything that is not text: a stored config is only as good as its source. */
+const text = (value: unknown): string => (typeof value === "string" ? value : "");
+
 export function draftFromConfig(config?: ThemeConfig): StudioDraft {
+  const branding: Record<string, unknown> =
+    config?.branding && typeof config.branding === "object"
+      ? (config.branding as Record<string, unknown>)
+      : {};
   return {
-    appName: config?.branding?.appName ?? "",
-    brand: config?.brand ?? config?.primary ?? "",
-    brandDark: config?.brandDark ?? "",
-    logo: config?.branding?.logo ?? "",
-    logoDark: config?.branding?.logoDark ?? "",
+    appName: text(branding.appName),
+    brand: text(config?.brand) || text(config?.primary),
+    brandDark: text(config?.brandDark),
+    logo: text(branding.logo),
+    logoDark: text(branding.logoDark),
   };
 }
 
@@ -74,34 +81,49 @@ function isColour(text: string): boolean {
   }
 }
 
-/** The config with the draft's values applied. Everything the draft does not cover is copied. */
+/**
+ * The config with the draft's changes applied. A key is written only when the admin changed its
+ * field, so every other key keeps its value, its spelling and its place, and a stored problem in a
+ * key the admin did not touch is reported, not repaired.
+ */
 function buildConfig(base: ThemeConfig | undefined, draft: StudioDraft): ThemeConfig {
   const config: ThemeConfig = structuredClone(base ?? {});
+  const before = trimmed(draftFromConfig(base));
 
-  // `brand` and `primary` are aliases: write to whichever the config already used.
-  const keys: ("brand" | "primary")[] =
-    base?.primary !== undefined
-      ? base.brand !== undefined
-        ? ["brand", "primary"]
-        : ["primary"]
-      : ["brand"];
-  delete config.brand;
-  delete config.primary;
-  if (draft.brand) for (const key of keys) config[key] = draft.brand;
+  if (draft.brand !== before.brand) {
+    // `brand` and `primary` are aliases: write to whichever the config already used.
+    const keys: ("brand" | "primary")[] =
+      base?.primary !== undefined
+        ? base.brand !== undefined
+          ? ["brand", "primary"]
+          : ["primary"]
+        : ["brand"];
+    if (draft.brand) for (const key of keys) config[key] = draft.brand;
+    else {
+      delete config.brand;
+      delete config.primary;
+    }
+  }
 
-  if (draft.brandDark) config.brandDark = draft.brandDark;
-  else delete config.brandDark;
+  if (draft.brandDark !== before.brandDark) {
+    if (draft.brandDark) config.brandDark = draft.brandDark;
+    else delete config.brandDark;
+  }
 
-  const branding = { ...config.branding };
-  const set = (key: "appName" | "logo" | "logoDark", value: string) => {
-    if (value) branding[key] = value;
-    else delete branding[key];
-  };
-  set("appName", draft.appName);
-  set("logo", draft.logo);
-  set("logoDark", draft.logoDark);
-  if (Object.keys(branding).length > 0) config.branding = branding;
-  else delete config.branding;
+  const fields = ["appName", "logo", "logoDark"] as const;
+  if (fields.some((key) => draft[key] !== before[key])) {
+    const branding: Record<string, unknown> =
+      config.branding && typeof config.branding === "object" && !Array.isArray(config.branding)
+        ? { ...config.branding }
+        : {};
+    for (const key of fields) {
+      if (draft[key] === before[key]) continue;
+      if (draft[key]) branding[key] = draft[key];
+      else delete branding[key];
+    }
+    if (Object.keys(branding).length > 0) config.branding = branding as ThemeConfig["branding"];
+    else delete config.branding;
+  }
 
   if (config.version === undefined && Object.keys(config).length > 0) config.version = 1;
   return config;
@@ -148,8 +170,11 @@ function notesFor(draft: StudioDraft, vars: Record<string, string>): ColourNote[
       continue;
     }
     const wanted = toHex(typed);
-    const readable = sameHex(toHex(primary), wanted) && sameHex(shade, wanted);
-    notes.push({ mode, kind: readable ? "readable" : "adjusted", shade });
+    const buttonSame = sameHex(toHex(primary), wanted);
+    const textSame = sameHex(shade, wanted);
+    // Only the button was moved: the shade for links and labels is the colour as typed.
+    const kind = buttonSame && textSame ? "readable" : textSame ? "button" : "adjusted";
+    notes.push({ mode, kind, shade });
   }
   return notes;
 }

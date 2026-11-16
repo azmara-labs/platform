@@ -53,6 +53,7 @@ function stableKey(value: unknown): string {
 function noteText(note: ColourNote | undefined, text: StudioMessages): string | undefined {
   if (!note) return undefined;
   if (note.kind === "readable") return text.statusReadable;
+  if (note.kind === "button") return text.statusButtonAdjusted;
   if (note.kind === "dark-derived") return fill(text.statusDarkDerived, { shade: note.shade });
   return fill(text.statusAdjusted, { shade: note.shade });
 }
