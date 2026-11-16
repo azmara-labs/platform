@@ -151,3 +151,45 @@ describe("LogoUpload: onBusyChange", () => {
     expect(onBusyChange).not.toHaveBeenCalled();
   });
 });
+
+describe("LogoUpload: leaving while a file is being prepared", () => {
+  function holdDecode() {
+    const { decode } = stubBrowser({ width: 800, height: 600 }, () => GOOD);
+    const releases: Array<() => void> = [];
+    decode.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          releases.push(() => resolve({ width: 800, height: 600, close: vi.fn() }));
+        }),
+    );
+    return releases;
+  }
+
+  it("reports false when it unmounts while busy", async () => {
+    holdDecode();
+    const onBusyChange = vi.fn();
+    const user = setupUser();
+    const { container, unmount } = renderUi(<LogoUpload onBusyChange={onBusyChange} />);
+    await user.upload(fileInput(container), png());
+    await waitFor(() => expect(onBusyChange.mock.calls).toEqual([[true]]));
+    unmount();
+    expect(onBusyChange.mock.calls).toEqual([[true], [false]]);
+  });
+
+  it("does not apply a file that finishes after it was disabled, and reports false", async () => {
+    const releases = holdDecode();
+    const onBusyChange = vi.fn();
+    const onValueChange = vi.fn();
+    const user = setupUser();
+    const { container, rerender } = renderUi(
+      <LogoUpload onBusyChange={onBusyChange} onValueChange={onValueChange} />,
+    );
+    await user.upload(fileInput(container), png());
+    await waitFor(() => expect(releases).toHaveLength(1));
+    rerender(<LogoUpload disabled onBusyChange={onBusyChange} onValueChange={onValueChange} />);
+    releases[0]?.();
+    await waitFor(() => expect(onBusyChange.mock.calls).toEqual([[true], [false]]));
+    expect(onValueChange).not.toHaveBeenCalled();
+    expect(img(container)).toBeNull();
+  });
+});
