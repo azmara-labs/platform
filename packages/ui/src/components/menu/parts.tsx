@@ -1,4 +1,10 @@
-import { type ComponentPropsWithoutRef, forwardRef, type HTMLAttributes } from "react";
+import {
+  type ComponentPropsWithoutRef,
+  type ForwardRefExoticComponent,
+  forwardRef,
+  type HTMLAttributes,
+  type RefAttributes,
+} from "react";
 import { Check, ChevronRight, Circle } from "../../icons/glyphs.js";
 import { Icon } from "../../icons/icon.js";
 import { cn } from "../../lib/cn.js";
@@ -104,10 +110,15 @@ export const MenuLabel = forwardRef<
   );
 });
 
-export const MenuSeparator = forwardRef<
-  HTMLDivElement,
-  WithClassName<ComponentPropsWithoutRef<typeof MenuPrimitive.Separator>>
->(function MenuSeparator({ className, ...props }, ref) {
+type MenuSeparatorProps = WithClassName<ComponentPropsWithoutRef<typeof MenuPrimitive.Separator>>;
+
+// Annotated because tsup 9 cannot name the inferred type without reaching into Base UI's files.
+export const MenuSeparator: ForwardRefExoticComponent<
+  MenuSeparatorProps & RefAttributes<HTMLDivElement>
+> = forwardRef<HTMLDivElement, MenuSeparatorProps>(function MenuSeparator(
+  { className, ...props },
+  ref,
+) {
   return (
     <MenuPrimitive.Separator
       ref={ref}
