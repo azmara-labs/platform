@@ -32,6 +32,14 @@ export interface LogoUploadProps {
    */
   onError?: (code: ShrinkErrorCode | undefined) => void;
   /**
+   * Called with `true` when a chosen file starts being prepared and with `false` once the latest
+   * choice has finished (fitted, refused or failed), Remove was pressed, or the control was
+   * removed from the page mid-preparation. A file that a newer choice replaced does not report
+   * `false`. A file that finishes after `disabled` turned on is dropped. Use it to keep a Save
+   * button off while a logo is still being shrunk.
+   */
+  onBusyChange?: (busy: boolean) => void;
+  /**
    * The most characters the finished data URI may have. Set it to your storage limit.
    * @default 32768
    */
@@ -115,6 +123,7 @@ export const LogoUpload = forwardRef<HTMLButtonElement, LogoUploadProps>(
       defaultValue,
       onValueChange,
       onError,
+      onBusyChange,
       maxChars = DEFAULT_MAX_CHARS,
       name,
       disabled = false,
@@ -153,15 +162,31 @@ export const LogoUpload = forwardRef<HTMLButtonElement, LogoUploadProps>(
     const [code, setCode] = useState<ShrinkErrorCode>();
     const [dragging, setDragging] = useState(false);
 
+    // Report busy changes, not the first render. The latest callback is kept in a ref so an inline
+    // function does not report again.
+    const busyCallback = useRef(onBusyChange);
+    busyCallback.current = onBusyChange;
+    const wasBusy = useRef(false);
+    useEffect(() => {
+      if (busy === wasBusy.current) return;
+      wasBusy.current = busy;
+      busyCallback.current?.(busy);
+    }, [busy]);
+
     // Each choice takes a ticket; only the newest ticket may apply its result. Remove and unmount
     // take one too, so a slow file never lands after the person has moved on.
     const latest = useRef(0);
     useEffect(
       () => () => {
         latest.current += 1;
+        // A file that was still being prepared will never finish here, so say it is not busy.
+        if (wasBusy.current) busyCallback.current?.(false);
       },
       [],
     );
+    // A file that finishes after the control was disabled is dropped, not applied.
+    const isDisabled = useRef(disabled);
+    isDisabled.current = disabled;
 
     const shownError = useRef<ShrinkErrorCode | undefined>(undefined);
     function report(next: ShrinkErrorCode | undefined) {
@@ -179,6 +204,7 @@ export const LogoUpload = forwardRef<HTMLButtonElement, LogoUploadProps>(
         const result = await shrinkImage(file, maxChars);
         if (ticket !== latest.current) return;
         setBusy(false);
+        if (isDisabled.current) return;
         report(undefined);
         if (!controlled) setKept(result.dataUri);
         setReady(true);
