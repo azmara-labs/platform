@@ -72,18 +72,22 @@ async function launchChrome(attempts = 3) {
   }
 }
 
-// The first page Chrome loads after it starts often never paints with that flag, and Lighthouse
-// gives up after 30 s with NO_FCP (the page "did not paint any content"). Later loads in the same
-// Chrome paint normally. Measured on 16 Nov 2026: with the flag, 6 of 8 fresh Chrome launches
-// failed their first load locally and none of 8 without it; on CI, every one of the 10 Lighthouse
-// jobs that failed between 15 Nov 21:20 and 16 Nov 11:12 (of 36) died on the very first
-// measurement, never on a later page or run, so it was never a page or a pull request.
-// So load the first page once before anything is measured, give up on that load after 8 s, and
-// try up to 4 times. In 8 fresh launches, 5 warm-ups hit NO_FCP, all recovered, and none of the
-// 8 measured runs failed. If every warm-up fails the measured runs go ahead and report their own
-// error, so a page that never paints still fails the check.
-async function warmUp(chrome, url, attempts = 4) {
-  for (let attempt = 1; attempt <= attempts; attempt++) {
+// With that flag, Chrome on the CI runner sometimes never paints the first page, and Lighthouse
+// gives up after 30 s with NO_FCP (the page "did not paint any content"). On 15 to 16 Nov 2026, 10
+// of the last 36 Lighthouse jobs failed this way, every one on the very first measurement (never on
+// a later page or run), including pushes to main, so it is the Chrome process and not a page or a
+// pull request. In one job, 4 warm-up loads in a row failed in the same Chrome: a bad Chrome stays
+// bad. A new Chrome gets a fresh chance, so: load the first page once or twice with a short wait
+// (8 s), and if it never paints, throw that Chrome away and start another, up to 5 times. If every
+// one fails the measured runs go ahead and report their own error, so a page that never paints
+// still fails the check. (It did not reproduce locally with one Chrome per script run, so how
+// often this helps on CI is read from CI runs; see the pull request.)
+const WARM_UP_ATTEMPTS = 2;
+const MAX_CHROME_LAUNCHES = 5;
+
+/** Whether Chrome painted the page, within a short wait. */
+async function warmUp(chrome, url) {
+  for (let attempt = 1; attempt <= WARM_UP_ATTEMPTS; attempt++) {
     const result = await lighthouse(url, {
       port: chrome.port,
       output: "json",
@@ -92,9 +96,21 @@ async function warmUp(chrome, url, attempts = 4) {
       maxWaitForFcp: 8000,
     });
     const error = result?.lhr.runtimeError;
-    if (!error) return;
-    console.warn(`  warm-up ${attempt} of ${attempts} for ${url}: ${error.code}`);
+    if (!error) return true;
+    console.warn(`  warm-up ${attempt} of ${WARM_UP_ATTEMPTS} for ${url}: ${error.code}`);
   }
+  return false;
+}
+
+/** A Chrome that has painted `url` once, or a fresh one if none of the launches did. */
+async function startChrome(url) {
+  for (let launches = 1; launches <= MAX_CHROME_LAUNCHES; launches++) {
+    const chrome = await launchChrome();
+    if (await warmUp(chrome, url)) return chrome;
+    console.warn(`  Chrome ${launches} of ${MAX_CHROME_LAUNCHES} never painted; starting another`);
+    await chrome.kill();
+  }
+  return launchChrome();
 }
 
 async function measure(chrome, url) {
@@ -112,10 +128,9 @@ async function measure(chrome, url) {
 async function main() {
   const pages = budgets.pages.filter((p) => p.path.replace(/^\//, "").startsWith(only));
   if (pages.length === 0) throw new Error(`no page in lighthouse-budgets.json matches "${only}"`);
-  const chrome = await launchChrome();
+  const chrome = await startChrome(`${base}${pages[0].path}`);
   const results = [];
   try {
-    await warmUp(chrome, `${base}${pages[0].path}`);
     for (const page of pages) {
       const taken = [];
       for (let i = 0; i < runs; i++) {
