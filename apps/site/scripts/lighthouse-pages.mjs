@@ -72,6 +72,31 @@ async function launchChrome(attempts = 3) {
   }
 }
 
+// The first page Chrome loads after it starts often never paints with that flag, and Lighthouse
+// gives up after 30 s with NO_FCP (the page "did not paint any content"). Later loads in the same
+// Chrome paint normally. Measured on 16 Nov 2026: with the flag, 6 of 8 fresh Chrome launches
+// failed their first load locally and none of 8 without it; on CI, every one of the 10 Lighthouse
+// jobs that failed between 15 Nov 21:20 and 16 Nov 11:12 (of 36) died on the very first
+// measurement, never on a later page or run, so it was never a page or a pull request.
+// So load the first page once before anything is measured, give up on that load after 8 s, and
+// try up to 4 times. In 8 fresh launches, 5 warm-ups hit NO_FCP, all recovered, and none of the
+// 8 measured runs failed. If every warm-up fails the measured runs go ahead and report their own
+// error, so a page that never paints still fails the check.
+async function warmUp(chrome, url, attempts = 4) {
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    const result = await lighthouse(url, {
+      port: chrome.port,
+      output: "json",
+      logLevel: "error",
+      onlyCategories: ["performance"],
+      maxWaitForFcp: 8000,
+    });
+    const error = result?.lhr.runtimeError;
+    if (!error) return;
+    console.warn(`  warm-up ${attempt} of ${attempts} for ${url}: ${error.code}`);
+  }
+}
+
 async function measure(chrome, url) {
   const result = await lighthouse(url, {
     port: chrome.port,
@@ -90,6 +115,7 @@ async function main() {
   const chrome = await launchChrome();
   const results = [];
   try {
+    await warmUp(chrome, `${base}${pages[0].path}`);
     for (const page of pages) {
       const taken = [];
       for (let i = 0; i < runs; i++) {
