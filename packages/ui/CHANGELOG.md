@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.14.0
+
+### Minor Changes
+
+- 9b06029: Add `brandDark`, an optional second brand colour for dark mode. `createTheme` derives `primary`, `primary-foreground`, `primary-text`, `ring`, `sidebar-primary`, `sidebar-primary-foreground` and `sidebar-ring` for dark mode from it, and adjusts it for contrast like `brand`. It needs a `brand` or `primary`, and a stored theme and `ThemeConfigSchema` accept it. Output for themes without it does not change.
+- ce9fbc2: Add `ColourInput` to `@azmr/ui/input`: a text field for a hex colour next to a native colour swatch. The text input is the real `<input>`, so `ref`, `register()` and `Field` work as they do for `Input`. Picking a colour writes a lower-case `#rrggbb` and fires `onChange` and `onValueChange` like typing does. It does not validate; pair it with a `Field` error.
+- 329a0af: Add `LogoUpload` (`@azmr/ui/logo-upload`): choose or drop a PNG, JPEG or WebP and get back a small `data:` URI. The file is checked from its first bytes, decoded, then shrunk and re-encoded in the browser until it fits `maxChars` (default 32,768, the theme's data URI limit). SVG is refused and nothing is fetched. It returns the string and stores nothing. `shrinkImage` and `ShrinkError` are exported for custom controls.
+- 68e5f59: Add `ThemeStudio` (`@azmr/ui/theme-studio`): a ready-made screen where a business admin sets the app name, a brand colour for light and for dark, and logos, with a live Light/Dark preview. It returns a validated `ThemeConfig` through `onSave` and keeps every setting it does not show (radius, font, density, tint, role overrides, favicon). It never saves, fetches or restyles the page, and it blocks Save with a plain-language note when a hidden developer setting conflicts with the new colour. `ThemePreview` is exported for use on its own. `LogoUpload` gains `onBusyChange`, called while a chosen file is being prepared.
+
+### Patch Changes
+
+- ca35512: The `CircleAlert` and `TriangleAlert` glyphs now render the class names Lucide 1.72 uses (`lucide-circle-exclamation-point` and `lucide-triangle-exclamation-point`, with the old names kept as aliases), so they stay identical to `lucide-react`'s icons. The exports keep their names.
+- 9b89b4a: Give `MenuSeparator` an explicit type annotation so the declaration build also works with tsup 9. The component and its props are unchanged.
+- 3fcad9c: `ThemeStudio` copy fixes. A stored logo that is not an `https:` URL or a PNG, JPEG or WebP data URI is now reported next to that logo, with a way to fix it, instead of being blamed on a developer. When a developer has set `primary` or `primary-text` for a mode directly, the note under the colour says so instead of calling the colour adjusted. New messages `errorLogo` and `statusOverridden`.
+- e6d6ac1: `ThemeStudio` and `LogoUpload` review fixes. The studio writes only the keys the admin changed (key order and untouched values are kept, and a stored problem is reported, not repaired), accepts `logoLabels` for the logo uploads' text, drops a stale preview when a new theme arrives, discards a logo still being prepared on Reset, and keeps the developer details out of the live alert. `ThemePreview` applies only `--` properties and uses the package's `inertProps()`. `LogoUpload` reports `onBusyChange(false)` when it unmounts mid-preparation and drops a file that finishes after it was disabled.
+
 ## 0.13.0
 
 ### Minor Changes
