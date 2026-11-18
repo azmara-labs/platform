@@ -88,3 +88,11 @@ auditConfig:
     # shipped, patterns come from this repo). Remove this entry once braces
     # >=3.0.4 is published and the lockfile picks it up.
     - GHSA-vfj7-8cjw-p6xm
+    # picomatch <=4.0.7 ReDoS through single-branch repeated extglobs (high).
+    # The advisory names >=4.0.8 but npm's latest is 4.0.7, so no fix exists.
+    # Reached through tinyglobby/fdir from @changesets/cli, vite and the docs
+    # site's fumadocs (@azmr/site, private, static), all for build-time file
+    # globbing with patterns from this repo, never user input. No published
+    # @azmr/* package depends on it. Remove this entry once picomatch >=4.0.8
+    # is published and the lockfile picks it up.
+    - GHSA-fc5q-39xc-vjpf
