@@ -4,7 +4,7 @@
 
 **Goal:** Add `@azmr/ui/effect`, a server-safe entry that lets an app validate a React Hook Form with an Effect Schema: `effectSchemaResolver(schema)` for errors and `fieldsFromSchema(schema)` for field metadata, matching what `@azmr/ui/zod` does today.
 
-**Architecture:** Pull what the Zod adapter does that is not about Zod (the `FieldDef` type, turning a list of issues into React Hook Form errors) into a small shared core, with the Zod tests as the safety net. Build the Effect resolver on Effect's own Standard Schema bridge (`Schema.toStandardSchemaV1`), which already returns every issue with a clean path, and the metadata reader on the schema's AST. Prove the two adapters agree with parity tests through a real form.
+**Architecture:** Pull what the Zod adapter does that is not about Zod (the `FieldDef` type, turning a list of issues into React Hook Form errors) into a small shared core, with the Zod tests as the safety net. Build the Effect resolver by running the decode as an Effect and formatting its issues with Effect's own issue formatter (every issue, with a clean path), and the metadata reader on the schema's AST. Prove the two adapters agree with parity tests through a real form.
 
 **Tech Stack:** `effect` 4.1.4 (optional peer), `react-hook-form` 7, vitest (jsdom and node), tsup, size-limit, Fumadocs MDX.
 
@@ -17,11 +17,12 @@
 - **Field metadata is on the AST.** `schema.fields[name].ast`: `_tag` is `"String"`, `"Number"`, `"Boolean"` or `"Union"`; `ast.context.isOptional` is true for `Schema.optional`; `ast.checks[].annotations.meta.representation` is `{ id: "effect/schema/isMinLength", payload: { minLength: 1 } }` (also `isMaxLength` and `isBetween` with `{ minimum, maximum }`); `Schema.Literals([...])` is a `Union` of literals; `NullOr` is a `Union` with a null member; `title` and `description` are annotations.
 - **A struct-level filter reports a field with `{ path, issue }`**, not `{ path, message }` (my first probe got that wrong and crashed). `message` annotations belong on the filter that fails, or on the schema for type errors.
 - **Messages:** Effect's defaults are English sentences ("Expected a value with a length of at least 1"). The Zod adapter takes its messages from Zod in the same way. `@azmr/ui` has a `LocaleProvider` but **no catalogue of form error messages**, so the issue's "otherwise from the locale's form messages" has nothing to refer to.
-- Nothing in the platform repo depends on `effect` yet.
+- Nothing in the platform repo depended on `effect` before this change.
+- **Found while building:** `Schema.NumberFromString` decodes `""` and `" "` as `0` and `"abc"` as `NaN` with no error (documented in the guide with a safe composition); `Schema.Date` is an opaque `Declaration` node, so it is reported as `custom`; a check's id and limits are at `ast.checks[].annotations.representation` (`{ id, payload }`), not under `meta`.
 
 ## Decisions (defaults used; each is cheap to change)
 
-1. **Standard Schema bridge, not Either.** The resolver calls `toStandardSchemaV1(...).validate` (async, so effectful filters work, like Zod's `safeParseAsync`).
+1. **Not Either, and not the Standard Schema bridge.** The resolver runs `Effect.runPromiseExit(Schema.decodeUnknownEffect(schema)(values, { errors: "all" }))` and formats the failure with `SchemaIssue.makeFormatterStandardSchemaV1()`. *Changed during the build:* the bridge (`Schema.toStandardSchemaV1`) turns an exception thrown inside a refinement into an ordinary issue whose message is the stack trace, which leaks file paths into the UI and hides bugs; this route rethrows the original error instead. Effectful checks are awaited, like Zod's `safeParseAsync`.
 2. **`type` of each error is the constant `"validate"`.** Standard Schema issues carry no code; Zod's adapter uses Zod's code (`too_small`, ...). The error summary uses messages, not types. Walking Effect's `Issue` tree to recover a code is possible later.
 3. **Messages come from the schema** (Effect's default text, or a `message` annotation), the same as the Zod adapter. A locale message catalogue is a separate piece of work for both adapters.
 4. **No `options` argument yet** (the issue lists one without saying what is in it). Add `parseOptions` when someone needs `onExcessProperty`.
@@ -35,6 +36,7 @@
 - Names in the new entry match the Zod entry (`fieldsFromSchema`, `fieldFromSchema`) so switching is one import path. `FieldDef` and `FieldType` keep one definition, shared.
 - The public behaviour of `@azmr/ui/zod` does not change: its 176-line test file passes unchanged before and after Task 1.
 - Commits are conventional, imperative, first line under 72 characters, with **no AI attribution lines**. A minor changeset for `@azmr/ui` is required. Docs use New Zealand English.
+- The forms guide must say, besides the new section: Effect 3 is not supported, the blank-to-0 gotcha, `Date` is `custom`, `type` is always `"validate"`, messages come from the schema, and an exception in a refinement is rethrown. Its title and description name Effect too.
 - Run with `pnpm -F @azmr/ui ...`. Do not add `effect` anywhere a package that does not use it would pull it in.
 
 ## Review Focus
@@ -91,7 +93,7 @@
   - Review Focus 1 to 4: an issue at an unknown path reaches the errors object; a `{ key: "x" }` path segment and a numeric one become field names; `NumberFromString` given `""` is an error on that field; a filter that throws rejects the resolver's promise with that error.
   - `resolver.ssr.test.ts` (`// @vitest-environment node`): importing the module and calling the resolver works with no `window`, and the module source imports nothing from `react`.
 - [ ] **Step 2: Run** `pnpm -F @azmr/ui exec vitest run src/components/effect`. Expected: FAIL (module missing).
-- [ ] **Step 3: Implement `effectSchemaResolver` and `toFormIssues`** in `resolver.ts`: build `Schema.toStandardSchemaV1(schema)` once; on each call `await standard["~standard"].validate(values)`; on `issues` return `{ values: {}, errors: issuesToFieldErrors(toFormIssues(result.issues), options.criteriaMode) }`; otherwise `{ values: result.value, errors: {} }`. Do not catch exceptions.
+- [ ] **Step 3: Implement `effectSchemaResolver` and `toFormIssues`** in `resolver.ts`: run the decode as above; on success return `{ values: exit.value, errors: {} }`; on failure go through the cause's reasons, rethrowing a `Die` reason's defect and formatting each `Fail` reason's issue into `{ values: {}, errors: issuesToFieldErrors(toFormIssues(issues), options.criteriaMode) }`. Do not catch exceptions.
 - [ ] **Step 4: Wire the entry** (`entries.json`, `package.json`, size-limit, `pnpm install` for the lockfile). `pnpm -F @azmr/ui build`. Expected: passes `verify-dist`; `dist/effect.js` exists with no `"use client"`; it `import`s `effect` rather than containing it (check its size is a few kB); `grep -c effect dist/zod.js dist/rhf.js dist/index.js` is 0 (Review Focus 5, added as a test in Task 4).
 - [ ] **Step 5: Run** `pnpm -F @azmr/ui test`. Expected: PASS.
 - [ ] **Step 6: Commit** `feat(ui): add effectSchemaResolver in a new @azmr/ui/effect entry`.
