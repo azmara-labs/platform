@@ -1,0 +1,43 @@
+---
+title: "@azmr/legal"
+description: Legal documents as data, with a drift check that keeps them honest against the code that uses them.
+---
+
+## Installation
+
+```bash
+pnpm add @azmr/legal
+```
+
+## Why
+
+A privacy policy goes stale the moment the code starts using a new service. `@azmr/legal` keeps the
+policy as data in one place, so every site renders the same text, and gives each site a test that
+fails when the policy and the code disagree.
+
+## Checking a site against the policy
+
+```typescript
+import { findPolicyDrift } from "@azmr/legal";
+import { azmaraPrivacyPolicy } from "@azmr/legal/azmara";
+
+const problems = findPolicyDrift({
+  document: azmaraPrivacyPolicy,
+  site: "app",
+  dependencies: pkg.dependencies,
+  envExample: readFileSync(".env.local.example", "utf8"),
+  serviceDependencies: ["@supabase/supabase-js", "stripe", "resend"],
+  trackerPattern: /posthog|sentry|mixpanel/i,
+});
+expect(problems).toEqual([]);
+```
+
+It reports three kinds of drift:
+
+- a provider the policy names whose package or env var is gone;
+- a service the code uses that no processor covers;
+- a tracking package the policy's cookie statement rules out.
+
+## Documents
+
+`@azmr/legal/azmara` holds Azmara's own privacy policy. It is a draft for review, not legal advice.
