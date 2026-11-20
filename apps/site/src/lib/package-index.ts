@@ -26,6 +26,7 @@ export const PACKAGE_GROUPS: { title: string; packages: string[] }[] = [
   { title: "Database", packages: ["db", "db-core-interface", "db-supabase"] },
   { title: "User interface", packages: ["ui"] },
   { title: "Security", packages: ["security", "policycore"] },
+  { title: "Legal", packages: ["legal"] },
   { title: "AI and tooling", packages: ["ai", "cli"] },
 ];
 
