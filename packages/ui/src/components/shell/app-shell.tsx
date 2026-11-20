@@ -33,6 +33,11 @@ export interface AppShellProps {
   breakpoint?: ShellBreakpoint;
   /** Replace the shell's built-in English text. */
   labels?: Partial<ShellLabels>;
+  /**
+   * Use inside a page that already has a `main` landmark, such as a docs demo or a panel: the content
+   * and the top bar become plain elements, so the page keeps one `main` and one banner.
+   */
+  embedded?: boolean;
   className?: string;
 }
 
@@ -63,6 +68,7 @@ function AppShellRoot({
   persist = true,
   breakpoint = "lg",
   labels,
+  embedded = false,
   className,
 }: AppShellProps) {
   const bp = BREAKPOINTS[breakpoint];
@@ -80,8 +86,8 @@ function AppShellRoot({
   const sidebarId = useId();
   const mainId = useId();
   const toggleRef = useRef<HTMLButtonElement | null>(null);
-  const asideRef = useRef<HTMLElement | null>(null);
-  const mainRef = useRef<HTMLElement | null>(null);
+  const asideRef = useRef<HTMLDivElement | null>(null);
+  const mainRef = useRef<HTMLDivElement | null>(null);
 
   const setMode = useCallback(
     (next: SidebarMode) => {
@@ -110,11 +116,12 @@ function AppShellRoot({
       state,
       labels: mergedLabels,
       hasSidebar: sidebar != null,
+      embedded,
       sidebarId,
       toggleRef,
       toggle,
     }),
-    [state, mergedLabels, sidebar, sidebarId, toggle],
+    [state, mergedLabels, sidebar, embedded, sidebarId, toggle],
   );
 
   // Following a link in a peeking sidebar closes it. One native listener covers mouse and keyboard
@@ -122,7 +129,7 @@ function AppShellRoot({
   // element. A ref callback attaches it whenever the sidebar mounts.
   const closePeek = peek.close;
   const bindAside = useCallback(
-    (aside: HTMLElement | null) => {
+    (aside: HTMLDivElement | null) => {
       asideRef.current = aside;
       if (!aside) return;
       const onClick = (event: Event) => {
@@ -145,6 +152,7 @@ function AppShellRoot({
   }, []);
 
   const hidden = mode === "hidden";
+  const Content = embedded ? "div" : "main";
   return (
     <ShellContext.Provider value={internals}>
       <div
@@ -152,7 +160,7 @@ function AppShellRoot({
         data-sidebar={mode}
         data-peek={peek.peeking ? "open" : "closed"}
         className={cn(
-          "relative grid min-h-dvh grid-cols-1 grid-rows-[auto_1fr] bg-background text-foreground [--shell-topbar-h:3.5rem]",
+          "relative grid min-h-(--shell-vh) grid-cols-1 grid-rows-[auto_1fr] bg-background text-foreground [--shell-topbar-h:3.5rem] [--shell-vh:100dvh]",
           sidebar != null && bp.columns[mode],
           className,
         )}
@@ -169,7 +177,9 @@ function AppShellRoot({
         </a>
         {topBar}
         {sidebar != null ? (
-          <aside
+          // A plain element, not an `aside`: the labelled `nav` inside is the landmark, and a second
+          // complementary landmark around it would only add noise (and trip axe inside a `main`).
+          <div
             id={sidebarId}
             ref={bindAside}
             data-peek-panel=""
@@ -183,16 +193,17 @@ function AppShellRoot({
             )}
           >
             {sidebar}
-          </aside>
+          </div>
         ) : null}
-        <main
+        <Content
           id={mainId}
           ref={mainRef}
+          data-shell-content=""
           tabIndex={-1}
           className={cn("row-start-2 min-w-0 outline-none", sidebar != null && bp.main)}
         >
           {children}
-        </main>
+        </Content>
         {sidebar != null ? (
           <Drawer side="left" open={drawerOpen} onOpenChange={setDrawerOpen}>
             <DrawerContent

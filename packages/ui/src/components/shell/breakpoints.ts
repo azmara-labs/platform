@@ -29,7 +29,7 @@ export const BREAKPOINTS: Record<ShellBreakpoint, BreakpointClasses> = {
     aside: {
       base: "hidden md:block",
       pinned:
-        "md:sticky md:top-[calc(var(--shell-topbar-h)+env(safe-area-inset-top))] md:col-start-1 md:row-start-2 md:h-[calc(100dvh-var(--shell-topbar-h)-env(safe-area-inset-top))]",
+        "md:sticky md:top-[calc(var(--shell-topbar-h)+env(safe-area-inset-top))] md:col-start-1 md:row-start-2 md:h-[calc(var(--shell-vh)-var(--shell-topbar-h)-env(safe-area-inset-top))]",
       hidden:
         "md:fixed md:start-0 md:top-[calc(var(--shell-topbar-h)+env(safe-area-inset-top))] md:bottom-0 md:z-(--z-overlay) md:w-64 md:transition-[translate] md:duration-(--motion-duration-base) md:ease-standard",
       closed: "md:-translate-x-full",
@@ -46,7 +46,7 @@ export const BREAKPOINTS: Record<ShellBreakpoint, BreakpointClasses> = {
     aside: {
       base: "hidden lg:block",
       pinned:
-        "lg:sticky lg:top-[calc(var(--shell-topbar-h)+env(safe-area-inset-top))] lg:col-start-1 lg:row-start-2 lg:h-[calc(100dvh-var(--shell-topbar-h)-env(safe-area-inset-top))]",
+        "lg:sticky lg:top-[calc(var(--shell-topbar-h)+env(safe-area-inset-top))] lg:col-start-1 lg:row-start-2 lg:h-[calc(var(--shell-vh)-var(--shell-topbar-h)-env(safe-area-inset-top))]",
       hidden:
         "lg:fixed lg:start-0 lg:top-[calc(var(--shell-topbar-h)+env(safe-area-inset-top))] lg:bottom-0 lg:z-(--z-overlay) lg:w-64 lg:transition-[translate] lg:duration-(--motion-duration-base) lg:ease-standard",
       closed: "lg:-translate-x-full",
@@ -63,7 +63,7 @@ export const BREAKPOINTS: Record<ShellBreakpoint, BreakpointClasses> = {
     aside: {
       base: "hidden xl:block",
       pinned:
-        "xl:sticky xl:top-[calc(var(--shell-topbar-h)+env(safe-area-inset-top))] xl:col-start-1 xl:row-start-2 xl:h-[calc(100dvh-var(--shell-topbar-h)-env(safe-area-inset-top))]",
+        "xl:sticky xl:top-[calc(var(--shell-topbar-h)+env(safe-area-inset-top))] xl:col-start-1 xl:row-start-2 xl:h-[calc(var(--shell-vh)-var(--shell-topbar-h)-env(safe-area-inset-top))]",
       hidden:
         "xl:fixed xl:start-0 xl:top-[calc(var(--shell-topbar-h)+env(safe-area-inset-top))] xl:bottom-0 xl:z-(--z-overlay) xl:w-64 xl:transition-[translate] xl:duration-(--motion-duration-base) xl:ease-standard",
       closed: "xl:-translate-x-full",

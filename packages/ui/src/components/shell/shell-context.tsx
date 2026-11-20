@@ -36,6 +36,8 @@ export interface ShellInternals {
   state: AppShellState;
   labels: ShellLabels;
   hasSidebar: boolean;
+  /** The page already has a `main` and banner: render plain elements instead. */
+  embedded: boolean;
   sidebarId: string;
   toggleRef: RefObject<HTMLButtonElement | null>;
   /** Pin or unpin on desktop; open or close the drawer below the breakpoint. */

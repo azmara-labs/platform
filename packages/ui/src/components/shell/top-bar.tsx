@@ -25,9 +25,12 @@ export const TopBar = forwardRef<HTMLElement, TopBarProps>(function TopBar(
   const shell = useShell();
   const { mode, isDesktop, drawerOpen } = shell.state;
   const open = isDesktop ? mode === "pinned" : drawerOpen;
+  // A `header` is the page's banner only outside another landmark; embedded, use a plain element.
+  const Tag = shell.embedded ? "div" : "header";
   return (
-    <header
-      ref={ref}
+    <Tag
+      ref={ref as never}
+      data-shell-topbar=""
       className={cn(
         "sticky top-[env(safe-area-inset-top)] z-(--z-sticky) col-span-full flex h-(--shell-topbar-h) items-center gap-3 border-border border-b bg-background px-3",
         className,
@@ -55,6 +58,6 @@ export const TopBar = forwardRef<HTMLElement, TopBarProps>(function TopBar(
         </div>
       ) : null}
       {end ? <div className="ms-auto flex shrink-0 items-center gap-2">{end}</div> : null}
-    </header>
+    </Tag>
   );
 });

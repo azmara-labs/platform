@@ -90,7 +90,7 @@ afterEach(() => {
 
 const pick = (container: HTMLElement) => ({
   root: container.querySelector("[data-azmr-shell]") as HTMLElement,
-  aside: container.querySelector("aside") as HTMLElement,
+  aside: container.querySelector("[data-peek-panel]") as HTMLElement,
   toggle: container.querySelector("button[data-shell-toggle]") as HTMLButtonElement,
   main: container.querySelector("main") as HTMLElement,
   zone: container.querySelector("[data-peek-zone]") as HTMLElement | null,
@@ -137,6 +137,50 @@ describe("AppShell structure", () => {
     expect(names).toContain("md:block");
   });
 
+  it("is as tall as the window by default, and a caller's --shell-vh replaces that for a panel", () => {
+    desktop();
+    const normal = pick(renderUi(<Demo />).container);
+    const rootClasses = (normal.root.getAttribute("class") ?? "").split(/\s+/);
+    expect(rootClasses).toContain("[--shell-vh:100dvh]");
+    expect(rootClasses).toContain("min-h-(--shell-vh)");
+    // The sticky sidebar's height follows the variable, not the viewport directly.
+    expect(normal.aside.getAttribute("class")).toContain("var(--shell-vh)");
+    expect(normal.aside.getAttribute("class")).not.toContain("100dvh");
+
+    const panel = pick(renderUi(<Demo className="[--shell-vh:28rem]" />).container);
+    const panelClasses = (panel.root.getAttribute("class") ?? "").split(/\s+/);
+    expect(panelClasses).toContain("[--shell-vh:28rem]");
+    expect(panelClasses).not.toContain("[--shell-vh:100dvh]"); // replaced, not stacked
+  });
+
+  it("does not add a complementary landmark: the labelled nav inside is the landmark", () => {
+    desktop();
+    const { container } = renderUi(<Demo />);
+    expect(container.querySelector("aside")).toBeNull();
+    expect(container.querySelector("[role=complementary]")).toBeNull();
+    expect(pick(container).aside.tagName).toBe("DIV");
+  });
+
+  it("embedded: turns main and the top bar into plain elements, for a page that already has them", () => {
+    desktop();
+    const { container } = renderUi(<Demo embedded />);
+    expect(container.querySelector("main")).toBeNull();
+    expect(container.querySelector("header")).toBeNull();
+    // Still a working frame: the skip link target exists and takes focus, and the nav is kept.
+    const target = container.querySelector("[data-shell-content]") as HTMLElement;
+    expect(target.tagName).toBe("DIV");
+    expect(target.getAttribute("tabindex")).toBe("-1");
+    expect(container.querySelector("nav")?.getAttribute("aria-label")).toBe("Main");
+    expect(container.querySelector("[data-shell-topbar]")?.tagName).toBe("DIV");
+  });
+
+  it("is not embedded by default: a real main and banner", () => {
+    desktop();
+    const { container } = renderUi(<Demo />);
+    expect(container.querySelector("main")?.hasAttribute("data-shell-content")).toBe(true);
+    expect(container.querySelector("header")?.hasAttribute("data-shell-topbar")).toBe(true);
+  });
+
   it("works without a sidebar or a top bar", () => {
     desktop();
     const { container } = renderUi(
@@ -144,7 +188,7 @@ describe("AppShell structure", () => {
         <p>Only content</p>
       </AppShell>,
     );
-    expect(container.querySelector("aside")).toBeNull();
+    expect(container.querySelector("[data-peek-panel]")).toBeNull();
     expect(container.querySelector("main")?.textContent).toBe("Only content");
   });
 

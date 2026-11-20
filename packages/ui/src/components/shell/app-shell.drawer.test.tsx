@@ -167,7 +167,7 @@ describe("the navigation drawer below the breakpoint", () => {
     const user = setupUser();
     const { container } = renderUi(<Demo />);
     await user.click(toggleOf(container));
-    const aside = container.querySelector("aside") as HTMLElement;
+    const aside = container.querySelector("[data-peek-panel]") as HTMLElement;
     expect(aside.closest("[inert], [aria-hidden=true]")).not.toBeNull();
     expect(container.querySelector("main")?.closest("[inert], [aria-hidden=true]")).not.toBeNull();
   });
