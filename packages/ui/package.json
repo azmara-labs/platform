@@ -59,6 +59,10 @@
       "types": "./dist/theme.d.ts",
       "import": "./dist/theme.js"
     },
+    "./shell-state": {
+      "types": "./dist/shell-state.d.ts",
+      "import": "./dist/shell-state.js"
+    },
     "./theme-schema": {
       "types": "./dist/theme-schema.d.ts",
       "import": "./dist/theme-schema.js"
@@ -190,6 +194,10 @@
     "./modal": {
       "types": "./dist/modal.d.ts",
       "import": "./dist/modal.js"
+    },
+    "./shell": {
+      "types": "./dist/shell.d.ts",
+      "import": "./dist/shell.js"
     },
     "./menu": {
       "types": "./dist/menu.d.ts",

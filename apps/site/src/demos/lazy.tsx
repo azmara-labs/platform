@@ -85,6 +85,7 @@ const lazyDemos: Record<DemoName, ComponentType> = {
   "recipes/form-validation": dynamic(() => import("./recipes/form-validation.demo")),
   "recipes/tenant-theme": dynamic(() => import("./recipes/tenant-theme.demo")),
   "scroll-area/basic": dynamic(() => import("./scroll-area/basic.demo")),
+  "shell/basic": dynamic(() => import("./shell/basic.demo")),
   "spinner/basic": dynamic(() => import("./spinner/basic.demo")),
   "split-button/basic": dynamic(() => import("./split-button/basic.demo")),
   "state-view/error-boundary": dynamic(() => import("./state-view/error-boundary.demo")),

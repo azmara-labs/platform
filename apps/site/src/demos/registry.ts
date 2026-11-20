@@ -78,6 +78,7 @@ import ProgressCircular from "./progress/circular.demo";
 import RecipesFormValidation from "./recipes/form-validation.demo";
 import RecipesTenantTheme from "./recipes/tenant-theme.demo";
 import ScrollAreaBasic from "./scroll-area/basic.demo";
+import ShellBasic from "./shell/basic.demo";
 import SpinnerBasic from "./spinner/basic.demo";
 import SplitButtonBasic from "./split-button/basic.demo";
 import StateViewErrorBoundary from "./state-view/error-boundary.demo";
@@ -192,6 +193,7 @@ export const demos = {
   "field-array/basic": FieldArrayBasic,
   "field-array/invoice": FieldArrayInvoice,
   "scroll-area/basic": ScrollAreaBasic,
+  "shell/basic": ShellBasic,
   "progress/basic": ProgressBasic,
   "progress/circular": ProgressCircular,
   "spinner/basic": SpinnerBasic,

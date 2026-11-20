@@ -79,6 +79,7 @@ export const demoNames: ReadonlySet<string> = new Set([
   "recipes/form-validation",
   "recipes/tenant-theme",
   "scroll-area/basic",
+  "shell/basic",
   "spinner/basic",
   "split-button/basic",
   "state-view/error-boundary",
