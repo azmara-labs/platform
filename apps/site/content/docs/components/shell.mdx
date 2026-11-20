@@ -127,7 +127,7 @@ export type NavItemDocProps = Pick<NavItemProps, "icon" | "badge" | "current" | 
   rows={[
     { keys: ["Tab"], action: "Reaches the skip link first, then the top bar's navigation button, then the sidebar's links in order." },
     { keys: ["Enter", "Space"], action: "On the navigation button: pins or unpins the sidebar on a wide screen, and opens or closes the drawer on a narrow one." },
-    { keys: ["Escape"], action: "Closes a peeking sidebar or the open drawer, and returns focus to the navigation button." },
+    { keys: ["Escape"], action: "Closes a peeking sidebar (from anywhere, unless a menu in it is open, which takes the first Escape) or the open drawer. If focus was inside, it returns to the navigation button." },
     { keys: ["Enter"], action: "On a link in the sidebar: follows it, which also closes a peeking sidebar or the drawer." },
   ]}
 />

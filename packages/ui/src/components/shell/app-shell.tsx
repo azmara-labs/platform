@@ -1,5 +1,6 @@
 import { type ReactNode, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { cn } from "../../lib/cn.js";
+import { inertProps } from "../../motion/presets/collapse.js";
 import { Drawer, DrawerContent, DrawerTitle } from "../modal/index.js";
 import { BREAKPOINTS, type ShellBreakpoint } from "./breakpoints.js";
 import { NavGroup, NavItem } from "./nav.js";
@@ -81,11 +82,15 @@ function AppShellRoot({
   useEffect(() => {
     if (isDesktop) setDrawerOpen(false);
   }, [isDesktop]);
-  const peek = usePeek({ enabled: isDesktop && mode === "hidden" });
+  const toggleRef = useRef<HTMLButtonElement | null>(null);
+  const peek = usePeek({
+    enabled: isDesktop && mode === "hidden",
+    // Closing the peek makes the panel inert: take focus to the toggle rather than lose it to the page.
+    restoreFocus: () => toggleRef.current?.focus(),
+  });
 
   const sidebarId = useId();
   const mainId = useId();
-  const toggleRef = useRef<HTMLButtonElement | null>(null);
   const asideRef = useRef<HTMLDivElement | null>(null);
   const mainRef = useRef<HTMLDivElement | null>(null);
 
@@ -183,7 +188,7 @@ function AppShellRoot({
             id={sidebarId}
             ref={bindAside}
             data-peek-panel=""
-            inert={hidden && !peek.peeking}
+            {...(hidden && !peek.peeking ? inertProps() : {})}
             {...peek.bindings}
             className={cn(
               "border-sidebar-border border-e bg-sidebar",

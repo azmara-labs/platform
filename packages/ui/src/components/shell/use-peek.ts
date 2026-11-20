@@ -1,6 +1,5 @@
 import {
   type FocusEvent,
-  type KeyboardEvent,
   type PointerEvent,
   useCallback,
   useEffect,
@@ -16,6 +15,11 @@ export interface PeekOptions {
   openDelay?: number;
   /** How long after the pointer leaves before it closes, in ms. Default 250. */
   closeDelay?: number;
+  /**
+   * Called by `close()` when focus is inside the panel, before it closes, so focus is not lost to
+   * the page when the panel becomes inert. Not called when the peek is merely disabled.
+   */
+  restoreFocus?: () => void;
 }
 
 export interface PeekBindings {
@@ -23,38 +27,60 @@ export interface PeekBindings {
   onPointerLeave(event: PointerEvent<HTMLElement>): void;
   onFocus(event: FocusEvent<HTMLElement>): void;
   onBlur(event: FocusEvent<HTMLElement>): void;
-  onKeyDown(event: KeyboardEvent<HTMLElement>): void;
 }
 
 const PANEL = "[data-peek-panel]";
-const EXPANDED = '[aria-expanded="true"]';
+const ZONE = "[data-peek-zone]";
+// Something inside that has a popup open (a menu, say). Its popover is portalled out of the panel, so
+// the pointer "leaves" to reach it. A plain disclosure (a nested nav group) has `aria-expanded` but
+// is not a popup, and must not hold the panel open.
+const OPEN_POPUP = '[aria-haspopup][aria-expanded="true"], [data-popup-open]';
 
 /**
  * The "peek" of a hidden sidebar: it opens when a mouse rests on the edge zone or focus enters it,
- * and closes shortly after the mouse leaves. Spread `bindings` on both the zone and the panel; they
- * share one timer, so moving from one to the other never closes it. Only a mouse counts: a tap fires
- * the same pointer events on a touch screen and must not open it.
+ * and closes shortly after the mouse leaves, or on Escape from anywhere. Spread `bindings` on both
+ * the zone and the panel; they share one timer, so moving from one to the other never closes it.
+ * Only a mouse counts: a tap fires the same pointer events on a touch screen and must not open it.
  */
-export function usePeek({ enabled, openDelay = 120, closeDelay = 250 }: PeekOptions) {
+export function usePeek({ enabled, openDelay = 120, closeDelay = 250, restoreFocus }: PeekOptions) {
   const [peeking, setPeeking] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const panel = useRef<Element | null>(null);
+  const zone = useRef<Element | null>(null);
   const hovering = useRef(false);
   const focusWithin = useRef(false);
+  const restoreRef = useRef(restoreFocus);
+  restoreRef.current = restoreFocus;
 
   const clear = useCallback(() => {
     if (timer.current !== undefined) clearTimeout(timer.current);
     timer.current = undefined;
   }, []);
 
+  /** Closes and forgets pointer and focus, without touching focus: some browsers send no `blur` when a focused element goes inert. */
+  const reset = useCallback(() => {
+    clear();
+    hovering.current = false;
+    focusWithin.current = false;
+    setPeeking(false);
+  }, [clear]);
+
+  const close = useCallback(() => {
+    if (panel.current?.contains(document.activeElement)) restoreRef.current?.();
+    reset();
+  }, [reset]);
+
   const scheduleClose = useCallback(() => {
     clear();
     timer.current = setTimeout(function attempt() {
       timer.current = undefined;
+      // The flag can outlive the pointer: no leave event fires when the element under it is removed
+      // (a menu closing), so ask the browser whether the pointer really is over the panel or zone.
+      if (hovering.current && ![panel.current, zone.current].some((el) => el?.matches(":hover"))) {
+        hovering.current = false;
+      }
       if (focusWithin.current || hovering.current) return;
-      // A menu opened from inside is portalled out of the panel, so the pointer "leaves" to reach
-      // it. Keep the panel open until nothing inside is expanded.
-      if (panel.current?.querySelector(EXPANDED)) {
+      if (panel.current?.querySelector(OPEN_POPUP)) {
         timer.current = setTimeout(attempt, closeDelay);
         return;
       }
@@ -62,21 +88,30 @@ export function usePeek({ enabled, openDelay = 120, closeDelay = 250 }: PeekOpti
     }, closeDelay);
   }, [clear, closeDelay]);
 
-  const close = useCallback(() => {
-    clear();
-    setPeeking(false);
-  }, [clear]);
-
   useEffect(() => {
-    if (!enabled) close();
-  }, [enabled, close]);
+    if (!enabled) reset();
+  }, [enabled, reset]);
 
   useEffect(() => clear, [clear]);
 
+  // The peek covers content, so it can always be dismissed from the keyboard, not only when focus
+  // happens to be inside it (a mouse peek leaves focus where it was).
+  useEffect(() => {
+    if (!peeking) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      // An open menu takes the first Escape; the peek stays until the next one.
+      if (event.key === "Escape" && !panel.current?.querySelector(OPEN_POPUP)) close();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [peeking, close]);
+
   const bindings = useMemo<PeekBindings>(() => {
     const remember = (element: HTMLElement) => {
-      const found = element.closest(PANEL);
-      if (found) panel.current = found;
+      const foundPanel = element.closest(PANEL);
+      if (foundPanel) panel.current = foundPanel;
+      const foundZone = element.closest(ZONE);
+      if (foundZone) zone.current = foundZone;
     };
     return {
       onPointerEnter(event) {
@@ -108,11 +143,8 @@ export function usePeek({ enabled, openDelay = 120, closeDelay = 250 }: PeekOpti
         focusWithin.current = false;
         scheduleClose();
       },
-      onKeyDown(event) {
-        if (event.key === "Escape") close();
-      },
     };
-  }, [enabled, openDelay, clear, scheduleClose, close]);
+  }, [enabled, openDelay, clear, scheduleClose]);
 
   return { peeking, bindings, close };
 }

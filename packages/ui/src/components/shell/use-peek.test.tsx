@@ -18,12 +18,15 @@ const tick = (ms: number) =>
 const pointer = firePointer;
 
 let onExpandedChange: (value: boolean) => void = () => {};
+let onDisclosureChange: (value: boolean) => void = () => {};
 let probeClose: () => void = () => {};
 
 function Harness(options: PeekOptions) {
   const peek = usePeek(options);
   const [expanded, setExpanded] = useState(false);
+  const [disclosure, setDisclosure] = useState(false);
   onExpandedChange = setExpanded;
+  onDisclosureChange = setDisclosure;
   probeClose = peek.close;
   return (
     <div>
@@ -32,8 +35,11 @@ function Harness(options: PeekOptions) {
         <button type="button" data-testid="inner">
           Inside
         </button>
-        <button type="button" data-testid="menu" aria-expanded={expanded}>
+        <button type="button" data-testid="menu" aria-haspopup="menu" aria-expanded={expanded}>
           Menu
+        </button>
+        <button type="button" data-testid="disclosure" aria-expanded={disclosure}>
+          Group
         </button>
       </div>
       <button type="button" data-testid="outside">
@@ -189,5 +195,117 @@ describe("usePeek", () => {
     expect(vi.getTimerCount()).toBe(0);
     expect(errors).not.toHaveBeenCalled();
     errors.mockRestore();
+  });
+
+  it("does not stay open for an expanded disclosure: only an open popup holds it", () => {
+    const { q, peeking } = setup();
+    pointer("pointerover", q("panel"));
+    tick(120);
+    act(() => onDisclosureChange(true)); // a nested nav group opened inside the panel
+    pointer("pointerout", q("panel"));
+    tick(250);
+    expect(peeking()).toBe(false);
+  });
+
+  it("closes on Escape even when focus is not inside the panel (a mouse peek)", () => {
+    const { q, peeking } = setup();
+    pointer("pointerover", q("zone"));
+    tick(120);
+    expect(peeking()).toBe(true);
+    act(() => q("outside").focus());
+    act(() => {
+      q("outside").dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    });
+    expect(peeking()).toBe(false);
+  });
+
+  it("puts focus back with restoreFocus when it closes with focus inside, and not otherwise", () => {
+    const restoreFocus = vi.fn();
+    const { q, peeking } = setup({ restoreFocus });
+    act(() => q("inner").focus());
+    act(() => probeClose());
+    expect(peeking()).toBe(false);
+    expect(restoreFocus).toHaveBeenCalledTimes(1);
+
+    restoreFocus.mockClear();
+    act(() => q("outside").focus());
+    pointer("pointerover", q("zone"));
+    tick(120);
+    expect(peeking()).toBe(true);
+    act(() => probeClose());
+    expect(restoreFocus).not.toHaveBeenCalled();
+  });
+
+  it("does not take focus when it is merely disabled while focus is inside", () => {
+    const restoreFocus = vi.fn();
+    const { q, rerender } = setup({ restoreFocus });
+    act(() => q("inner").focus());
+    rerender({ restoreFocus, enabled: false });
+    expect(restoreFocus).not.toHaveBeenCalled();
+  });
+
+  it("forgets that focus was inside once closed, so a later mouse peek can close", () => {
+    // Some browsers do not fire blur when the focused element becomes inert as the panel closes.
+    const { q, peeking } = setup();
+    act(() => q("inner").focus());
+    act(() => {
+      q("inner").dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    });
+    expect(peeking()).toBe(false);
+    pointer("pointerover", q("panel"));
+    tick(120);
+    expect(peeking()).toBe(true);
+    pointer("pointerout", q("panel"));
+    tick(250);
+    expect(peeking()).toBe(false);
+  });
+
+  describe("a hover flag the browser no longer agrees with", () => {
+    // No leave event fires when the element under the pointer is removed (a menu closing), so the
+    // flag can stay true. jsdom has no :hover, so stand in for the browser's answer.
+    const original = Element.prototype.matches;
+    const browserSays = (hovered: boolean) =>
+      vi.spyOn(Element.prototype, "matches").mockImplementation(function (this: Element, selector) {
+        return selector === ":hover" ? hovered : original.call(this, selector);
+      });
+    afterEach(() => vi.restoreAllMocks());
+
+    it("closes when focus leaves and the browser says the pointer is not over the panel", () => {
+      browserSays(false);
+      const { q, peeking } = setup();
+      pointer("pointerover", q("panel")); // and no pointerleave ever arrives
+      tick(120);
+      act(() => q("inner").focus());
+      act(() => q("outside").focus());
+      tick(250);
+      expect(peeking()).toBe(false);
+    });
+
+    it("stays open when the browser confirms the pointer is over the panel", () => {
+      browserSays(true);
+      const { q, peeking } = setup();
+      pointer("pointerover", q("panel"));
+      tick(120);
+      act(() => q("inner").focus());
+      act(() => q("outside").focus());
+      tick(1000);
+      expect(peeking()).toBe(true);
+    });
+  });
+
+  it("leaves Escape to an open popup: it does not also close the peek", () => {
+    const { q, peeking } = setup();
+    pointer("pointerover", q("panel"));
+    tick(120);
+    act(() => onExpandedChange(true)); // a menu is open
+    act(() => {
+      q("outside").dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    });
+    expect(peeking()).toBe(true);
+    act(() => onExpandedChange(false));
+    act(() => {
+      q("outside").dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    });
+    expect(peeking()).toBe(false);
   });
 });

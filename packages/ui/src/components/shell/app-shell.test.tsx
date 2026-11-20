@@ -10,6 +10,12 @@ import {
   setupUser,
 } from "../../test-utils/index.js";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../menu/index.js";
+import {
   AppShell,
   type AppShellProps,
   NavGroup,
@@ -18,6 +24,15 @@ import {
   SidebarFooter,
   useAppShell,
 } from "./index.js";
+
+// A passthrough spy: the shell must take its `inert` props from this helper, because React 18 drops
+// a boolean `inert` (it needs the empty string) and the package supports both.
+vi.mock("../../motion/presets/collapse.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../motion/presets/collapse.js")>();
+  return { ...actual, inertProps: vi.fn(actual.inertProps) };
+});
+
+import { inertProps } from "../../motion/presets/collapse.js";
 
 const DESKTOP = "(min-width: 64rem)";
 
@@ -33,7 +48,7 @@ function Footer() {
   setMenuOpen = set;
   return (
     <SidebarFooter>
-      <button type="button" aria-expanded={open}>
+      <button type="button" aria-haspopup="menu" aria-expanded={open}>
         Account
       </button>
     </SidebarFooter>
@@ -216,6 +231,23 @@ describe("desktop modes", () => {
     expect(aside.hasAttribute("inert")).toBe(false);
   });
 
+  it("takes its inert props from the React-version-aware helper, only while hidden and closed", () => {
+    desktop();
+    vi.mocked(inertProps).mockClear();
+    renderUi(<Demo defaultMode="pinned" />);
+    expect(inertProps).not.toHaveBeenCalled();
+    renderUi(<Demo defaultMode="hidden" />);
+    expect(inertProps).toHaveBeenCalled();
+  });
+
+  it("slides the closed sidebar off to the right in a right-to-left layout", () => {
+    desktop();
+    const { container } = renderUi(<Demo defaultMode="hidden" />);
+    const names = (pick(container).aside.getAttribute("class") ?? "").split(/\s+/);
+    expect(names).toContain("lg:-translate-x-full");
+    expect(names).toContain("lg:rtl:translate-x-full");
+  });
+
   it("pins and unpins with the toggle, and remembers the choice in a cookie", async () => {
     desktop();
     const user = setupUser();
@@ -329,6 +361,36 @@ describe("peek", () => {
     expect(root.getAttribute("data-peek")).toBe("closed");
   });
 
+  it("returns focus to the toggle when Escape closes a peek that has focus inside it", () => {
+    desktop();
+    const { container } = renderUi(<Demo defaultMode="hidden" />);
+    const { root, zone, toggle, link } = pick(container);
+    firePointer("pointerover", zone as HTMLElement);
+    tick(120);
+    act(() => link("My orders").focus());
+    expect(document.activeElement).toBe(link("My orders"));
+    act(() => {
+      link("My orders").dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+      );
+    });
+    expect(root.getAttribute("data-peek")).toBe("closed");
+    expect(document.activeElement).toBe(toggle);
+  });
+
+  it("closes on Escape from anywhere while a mouse peek is open", () => {
+    desktop();
+    const { container } = renderUi(<Demo defaultMode="hidden" />);
+    const { root, zone } = pick(container);
+    firePointer("pointerover", zone as HTMLElement);
+    tick(120);
+    expect(root.getAttribute("data-peek")).toBe("open");
+    act(() => {
+      document.body.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    });
+    expect(root.getAttribute("data-peek")).toBe("closed");
+  });
+
   it("does not peek for a touch or pen pointer", () => {
     desktop();
     const { container } = renderUi(<Demo defaultMode="hidden" />);
@@ -407,5 +469,50 @@ describe("hydration", () => {
       container.remove();
       media.restore();
     }
+  });
+});
+
+describe("peek with a real menu in the sidebar footer", () => {
+  it("stays open while the menu is open, and closes once it is closed and focus has left", async () => {
+    desktop();
+    const user = setupUser();
+    const { container } = renderUi(
+      <Demo
+        defaultMode="hidden"
+        sidebar={
+          <Sidebar label="Main">
+            <NavGroup>
+              <NavItem href="#home">Home</NavItem>
+            </NavGroup>
+            <SidebarFooter>
+              <DropdownMenu>
+                <DropdownMenuTrigger>Account menu</DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem>Sign out</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </SidebarFooter>
+          </Sidebar>
+        }
+      />,
+    );
+    const { root, zone, aside } = pick(container);
+    const peek = () => root.getAttribute("data-peek");
+    firePointer("pointerover", zone as HTMLElement);
+    await vi.waitFor(() => expect(peek()).toBe("open"), { timeout: 2000 });
+
+    const trigger = Array.from(aside.querySelectorAll("button")).find(
+      (b) => b.textContent === "Account menu",
+    ) as HTMLElement;
+    await user.click(trigger);
+    await vi.waitFor(() => expect(document.querySelector("[role=menu]")).not.toBeNull());
+    firePointer("pointerout", aside); // the pointer is now in the menu's popover, outside the panel
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    expect(peek()).toBe("open");
+
+    await user.click(document.querySelector("[role=menuitem]") as HTMLElement);
+    await vi.waitFor(() => expect(document.querySelector("[role=menu]")).toBeNull());
+    act(() => (container.querySelector("main") as HTMLElement).focus());
+    await vi.waitFor(() => expect(peek()).toBe("closed"), { timeout: 2000 });
   });
 });

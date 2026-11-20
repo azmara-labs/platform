@@ -32,7 +32,7 @@ export const BREAKPOINTS: Record<ShellBreakpoint, BreakpointClasses> = {
         "md:sticky md:top-[calc(var(--shell-topbar-h)+env(safe-area-inset-top))] md:col-start-1 md:row-start-2 md:h-[calc(var(--shell-vh)-var(--shell-topbar-h)-env(safe-area-inset-top))]",
       hidden:
         "md:fixed md:start-0 md:top-[calc(var(--shell-topbar-h)+env(safe-area-inset-top))] md:bottom-0 md:z-(--z-overlay) md:w-64 md:transition-[translate] md:duration-(--motion-duration-base) md:ease-standard",
-      closed: "md:-translate-x-full",
+      closed: "md:-translate-x-full md:rtl:translate-x-full",
       open: "md:translate-x-0 md:shadow-elevation-3",
     },
     main: "md:col-start-2",
@@ -49,7 +49,7 @@ export const BREAKPOINTS: Record<ShellBreakpoint, BreakpointClasses> = {
         "lg:sticky lg:top-[calc(var(--shell-topbar-h)+env(safe-area-inset-top))] lg:col-start-1 lg:row-start-2 lg:h-[calc(var(--shell-vh)-var(--shell-topbar-h)-env(safe-area-inset-top))]",
       hidden:
         "lg:fixed lg:start-0 lg:top-[calc(var(--shell-topbar-h)+env(safe-area-inset-top))] lg:bottom-0 lg:z-(--z-overlay) lg:w-64 lg:transition-[translate] lg:duration-(--motion-duration-base) lg:ease-standard",
-      closed: "lg:-translate-x-full",
+      closed: "lg:-translate-x-full lg:rtl:translate-x-full",
       open: "lg:translate-x-0 lg:shadow-elevation-3",
     },
     main: "lg:col-start-2",
@@ -66,7 +66,7 @@ export const BREAKPOINTS: Record<ShellBreakpoint, BreakpointClasses> = {
         "xl:sticky xl:top-[calc(var(--shell-topbar-h)+env(safe-area-inset-top))] xl:col-start-1 xl:row-start-2 xl:h-[calc(var(--shell-vh)-var(--shell-topbar-h)-env(safe-area-inset-top))]",
       hidden:
         "xl:fixed xl:start-0 xl:top-[calc(var(--shell-topbar-h)+env(safe-area-inset-top))] xl:bottom-0 xl:z-(--z-overlay) xl:w-64 xl:transition-[translate] xl:duration-(--motion-duration-base) xl:ease-standard",
-      closed: "xl:-translate-x-full",
+      closed: "xl:-translate-x-full xl:rtl:translate-x-full",
       open: "xl:translate-x-0 xl:shadow-elevation-3",
     },
     main: "xl:col-start-2",
