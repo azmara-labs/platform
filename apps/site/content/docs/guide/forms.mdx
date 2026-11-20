@@ -181,6 +181,7 @@ Submit it empty to see the summary, then try `northline` as the web address to s
 - **Messages come from the schema.** Put a `message` on the check that fails, as above. Without one you get Effect's own English text, such as "Expected a value with a length of at least 1". There is no message catalogue for either adapter yet.
 - **Effectful checks are awaited**, so a uniqueness test against a server works. Write it with `SchemaGetter.checkEffect`.
 - **A struct-level check names its field** by returning `{ path: ["confirm"], issue: "Confirm must match" }`; a plain string goes to `root`.
+- **A struct-level check runs only after every field has passed.** Zod runs its object-level `refine` alongside the field checks, so a user with a bad email and a mismatched confirmation sees both errors at once. With Effect they see the email error first and the mismatch on the next submit. The adapter cannot change that: it is how Effect orders checks.
 - **`type` is always `"validate"`.** Effect issues carry no error code the way Zod's do (`too_small`). The error summary uses messages, so this only matters if you read `error.type`.
 - **An unexpected exception is not a validation error.** If a check throws, the resolver rejects with that same error, so you see the real bug, rather than showing its stack trace as a message on a field.
 
@@ -222,7 +223,7 @@ fieldsFromSchema(
 - The label is the `title` annotation, otherwise the key in sentence case. A `fieldType` annotation sets the type (`"money"`, say), and an annotation called `meta` is copied to `meta`.
 - Limits are read from `isMinLength`, `isMaxLength`, `isGreaterThanOrEqualTo`, `isLessThanOrEqualTo` and `isBetween`. An exclusive bound (`isGreaterThan`) sets no limit, because calling it a minimum would be wrong.
 - Optional, nullable and `optionalKey` fields are not required. A transform is described by its decoded type, so `Schema.NumberFromString` is a `number`.
-- `Schema.Date` and other custom types are reported as `custom` for now; add `fieldType: "date"` to describe one as a date.
+- `Schema.Date` and `Schema.DateTimeUtc` are `date`. Other custom types are reported as `custom`; add a `fieldType` annotation to describe one.
 
 `@azmr/ui/effect` has no React in it, so a schema module that uses it can be shared with server code.
 

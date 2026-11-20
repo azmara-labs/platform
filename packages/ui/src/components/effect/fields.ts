@@ -1,9 +1,9 @@
-import type { Schema } from "effect";
+import { type Schema, SchemaAST } from "effect";
 import { type FieldDef, type FieldType, sentenceCase } from "../shared/field-def.js";
 
 export type { FieldDef, FieldType };
 
-/** The parts of an Effect AST node this adapter reads, so it needs no runtime import from `effect`. */
+/** The parts of an Effect AST node this adapter reads. */
 interface AstLike {
   _tag: string;
   context?: { isOptional?: boolean };
@@ -17,21 +17,33 @@ interface AstLike {
   annotations?: Record<string, unknown>;
 }
 
+interface LimitRule {
+  limit: "min" | "max";
+  /** The payload key holding the number. */
+  key: string;
+  /** If this payload flag is true the bound is exclusive, and is left out. */
+  exclusive?: string;
+}
+
 /**
- * The ids Effect gives its built-in checks, and the payload key each one's limit is under. Kept in
- * one place: if Effect renames one, `fields.test.ts` fails and this is the only line to change. An
- * exclusive bound (`isGreaterThan`) is left out on purpose: reporting it as a minimum would be wrong.
+ * The ids Effect gives its built-in checks, and where each one's limits are in its payload. Kept in
+ * one place: if Effect renames one, `fields.test.ts` fails and this is the only table to change. An
+ * exclusive bound (`isGreaterThan`, or `isBetween` with an exclusive flag) is left out on purpose:
+ * reporting it as a limit would be wrong.
  */
-const LIMITS: Record<string, { limit: "min" | "max"; key: string }[]> = {
+const LIMITS: Record<string, LimitRule[]> = {
   "effect/schema/isMinLength": [{ limit: "min", key: "minLength" }],
   "effect/schema/isMaxLength": [{ limit: "max", key: "maxLength" }],
   "effect/schema/isGreaterThanOrEqualTo": [{ limit: "min", key: "minimum" }],
   "effect/schema/isLessThanOrEqualTo": [{ limit: "max", key: "maximum" }],
   "effect/schema/isBetween": [
-    { limit: "min", key: "minimum" },
-    { limit: "max", key: "maximum" },
+    { limit: "min", key: "minimum", exclusive: "exclusiveMinimum" },
+    { limit: "max", key: "maximum", exclusive: "exclusiveMaximum" },
   ],
 };
+
+/** The `representation.id` Effect gives its date schemas. */
+const DATE_IDS = new Set(["effect/schema/Date", "effect/schema/DateTimeUtc"]);
 
 const NULLISH = new Set(["Null", "Undefined", "Void"]);
 
@@ -53,6 +65,10 @@ function typeOf(inner: AstLike): FieldType {
       return "number";
     case "Boolean":
       return "boolean";
+    case "Declaration": {
+      const representation = inner.annotations?.representation as { id?: string } | undefined;
+      return DATE_IDS.has(representation?.id ?? "") ? "date" : "custom";
+    }
     case "Union":
       return inner.types?.length && inner.types.every((member) => member._tag === "Literal")
         ? "enum"
@@ -66,13 +82,23 @@ function limitsOf(inner: AstLike): { min?: number; max?: number } {
   const found: { min?: number; max?: number } = {};
   for (const check of inner.checks ?? []) {
     const representation = check.annotations?.representation;
-    for (const { limit, key } of LIMITS[representation?.id ?? ""] ?? []) {
-      const value = representation?.payload?.[key];
+    for (const { limit, key, exclusive } of LIMITS[representation?.id ?? ""] ?? []) {
+      const payload = representation?.payload;
+      const value = payload?.[key];
+      if (exclusive && payload?.[exclusive] === true) continue;
       if (typeof value === "number" && Number.isFinite(value)) found[limit] = value;
     }
   }
   return found;
 }
+
+/**
+ * A node's annotations as Effect resolves them. `.annotate()` on a schema that has checks writes to
+ * its last check, not to the node, so reading `ast.annotations` directly would miss a `title` given
+ * after a `check`: `resolve` looks in the right place.
+ */
+const annotationsOf = (ast: AstLike): Record<string, unknown> =>
+  (SchemaAST.resolve(ast as never) as Record<string, unknown> | undefined) ?? {};
 
 /** Describes one field of a schema. */
 export function fieldFromSchema<Name extends string>(
@@ -81,23 +107,24 @@ export function fieldFromSchema<Name extends string>(
 ): FieldDef<Name> {
   const outer = schema.ast as unknown as AstLike;
   const { inner, nullable } = unwrap(outer);
-  const annotation = <T>(key: string): T | undefined =>
-    (outer.annotations?.[key] ?? inner.annotations?.[key]) as T | undefined;
+  const outerAnnotations = annotationsOf(outer);
+  const innerAnnotations = inner === outer ? outerAnnotations : annotationsOf(inner);
+  const annotation = (key: string): unknown => outerAnnotations[key] ?? innerAnnotations[key];
 
-  const title = annotation<unknown>("title");
-  const fieldType = annotation<unknown>("fieldType");
-  const meta = annotation<unknown>("meta");
+  const title = annotation("title");
+  const fieldType = annotation("fieldType");
+  const meta = annotation("meta");
   const { min, max } = limitsOf(inner);
-  const type = typeof fieldType === "string" ? (fieldType as FieldType) : typeOf(inner);
+  const kind = typeOf(inner);
 
   return {
     name,
     label: typeof title === "string" ? title : sentenceCase(name),
-    type,
+    type: typeof fieldType === "string" ? (fieldType as FieldType) : kind,
     required: !outer.context?.isOptional && !nullable,
     ...(min !== undefined && { min }),
     ...(max !== undefined && { max }),
-    ...(typeOf(inner) === "enum" && {
+    ...(kind === "enum" && {
       options: (inner.types ?? []).map((member) => String(member.literal)),
     }),
     ...(typeof meta === "object" &&

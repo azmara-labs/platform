@@ -18,7 +18,7 @@
 - **A struct-level filter reports a field with `{ path, issue }`**, not `{ path, message }` (my first probe got that wrong and crashed). `message` annotations belong on the filter that fails, or on the schema for type errors.
 - **Messages:** Effect's defaults are English sentences ("Expected a value with a length of at least 1"). The Zod adapter takes its messages from Zod in the same way. `@azmr/ui` has a `LocaleProvider` but **no catalogue of form error messages**, so the issue's "otherwise from the locale's form messages" has nothing to refer to.
 - Nothing in the platform repo depended on `effect` before this change.
-- **Found while building:** `Schema.NumberFromString` decodes `""` and `" "` as `0` and `"abc"` as `NaN` with no error (documented in the guide with a safe composition); `Schema.Date` is an opaque `Declaration` node, so it is reported as `custom`; a check's id and limits are at `ast.checks[].annotations.representation` (`{ id, payload }`), not under `meta`.
+- **Found while building:** `Schema.NumberFromString` decodes `""` and `" "` as `0` and `"abc"` as `NaN` with no error (documented in the guide with a safe composition); `Schema.Date` is a `Declaration` node whose `annotations.representation.id` is `effect/schema/Date`, so it is reported as `date`; `.annotate()` on a schema that has checks writes to its last check, so annotations are read with `SchemaAST.resolve`; a struct-level check runs only once every field has passed (Zod runs it alongside), which the parity tests document; a check's id and limits are at `ast.checks[].annotations.representation` (`{ id, payload }`), not under `meta`.
 
 ## Decisions (defaults used; each is cheap to change)
 

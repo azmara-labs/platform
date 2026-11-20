@@ -103,6 +103,51 @@ describe("fieldFromSchema", () => {
       { label: "Notes", type: "text", required: true, meta: { rows: 4 } },
     ],
     [
+      "title, fieldType and meta given after a check (Effect puts them on the check)",
+      "creditLimit",
+      Schema.Number.pipe(Schema.check(Schema.isGreaterThanOrEqualTo(0))).annotate({
+        title: "Credit limit",
+        fieldType: "money",
+        meta: { currency: "NZD" },
+      }),
+      { label: "Credit limit", type: "money", required: true, min: 0, meta: { currency: "NZD" } },
+    ],
+    [
+      "a title given after a check inside an optional",
+      "tries",
+      Schema.optional(
+        Schema.Number.pipe(Schema.check(Schema.isBetween({ minimum: 1, maximum: 5 }))).annotate({
+          title: "Attempts",
+        }),
+      ),
+      { label: "Attempts", type: "number", required: false, min: 1, max: 5 },
+    ],
+    [
+      "an exclusive isBetween, which sets no limit",
+      "score",
+      Schema.Number.pipe(
+        Schema.check(
+          Schema.isBetween({
+            minimum: 0,
+            maximum: 10,
+            exclusiveMinimum: true,
+            exclusiveMaximum: true,
+          }),
+        ),
+      ),
+      { label: "Score", type: "number", required: true },
+    ],
+    [
+      "an isBetween exclusive on one side only, keeping the inclusive bound",
+      "ratio",
+      Schema.Number.pipe(
+        Schema.check(Schema.isBetween({ minimum: 0, maximum: 10, exclusiveMinimum: true })),
+      ),
+      { label: "Ratio", type: "number", required: true, max: 10 },
+    ],
+    ["a Date", "born", Schema.Date, { label: "Born", type: "date", required: true }],
+    ["a DateTimeUtc", "seen", Schema.DateTimeUtc, { label: "Seen", type: "date", required: true }],
+    [
       "a key in camel case",
       "invoiceEmail",
       Schema.String,
@@ -126,7 +171,42 @@ describe("fieldFromSchema", () => {
   });
 });
 
+describe("the example in the forms guide", () => {
+  it("produces exactly the output the guide shows", () => {
+    expect(
+      fieldsFromSchema(
+        Schema.Struct({
+          fullName: Schema.NonEmptyString.annotate({ title: "Full name" }),
+          creditLimit: Schema.Number.pipe(Schema.check(Schema.isGreaterThanOrEqualTo(0))).annotate({
+            fieldType: "money",
+          }),
+          tier: Schema.Literals(["bronze", "silver", "gold"]),
+          notes: Schema.optional(Schema.String),
+        }),
+      ),
+    ).toEqual([
+      { name: "fullName", label: "Full name", type: "text", required: true, min: 1 },
+      { name: "creditLimit", label: "Credit limit", type: "money", required: true, min: 0 },
+      {
+        name: "tier",
+        label: "Tier",
+        type: "enum",
+        required: true,
+        options: ["bronze", "silver", "gold"],
+      },
+      { name: "notes", label: "Notes", type: "text", required: false },
+    ]);
+  });
+});
+
 describe("fieldsFromSchema", () => {
+  it("reads a title that differs from the key's sentence case, even after a check", () => {
+    const [field] = fieldsFromSchema(
+      Schema.Struct({ fn: Schema.NonEmptyString.annotate({ title: "Given name" }) }),
+    );
+    expect(field?.label).toBe("Given name");
+  });
+
   it("lists every field in order", () => {
     const fields = fieldsFromSchema(
       Schema.Struct({ b: Schema.String, a: Schema.Number, c: Schema.Boolean }),
@@ -143,6 +223,7 @@ describe("fieldsFromSchema", () => {
         role: Schema.Literals(["admin", "user"]),
         agree: Schema.Boolean,
         code: Schema.String.pipe(Schema.check(Schema.isMaxLength(5))),
+        born: Schema.Date,
       }),
     );
     const fromZod = zodFields(
@@ -153,9 +234,27 @@ describe("fieldsFromSchema", () => {
         role: z.enum(["admin", "user"]),
         agree: z.boolean(),
         code: z.string().max(5),
+        born: z.date(),
       }),
     );
     expect(fromEffect).toEqual(fromZod);
+  });
+});
+
+describe("the Effect markers this adapter reads", () => {
+  it.each([
+    ["Schema.Date", Schema.Date, "effect/schema/Date"],
+    ["Schema.DateTimeUtc", Schema.DateTimeUtc, "effect/schema/DateTimeUtc"],
+  ])("%s carries its representation id", (_name, schema, id) => {
+    const annotations = schema.ast.annotations as { representation?: { id?: string } };
+    expect(annotations.representation?.id).toBe(id);
+  });
+
+  it("an exclusive isBetween keeps its flags in the payload", () => {
+    const check = Schema.Number.pipe(
+      Schema.check(Schema.isBetween({ minimum: 0, maximum: 1, exclusiveMinimum: true })),
+    ).ast.checks?.[0]?.annotations as { representation?: { payload?: Record<string, unknown> } };
+    expect(check.representation?.payload?.exclusiveMinimum).toBe(true);
   });
 });
 
