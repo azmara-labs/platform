@@ -1,6 +1,6 @@
 import { act, useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { renderUi } from "../../test-utils/index.js";
+import { firePointer, renderUi } from "../../test-utils/index.js";
 import { type PeekOptions, usePeek } from "./use-peek.js";
 
 beforeEach(() => {
@@ -15,21 +15,7 @@ const tick = (ms: number) =>
     vi.advanceTimersByTime(ms);
   });
 
-/** React builds enter/leave from pointerover/pointerout, so dispatch those, with a pointer type. */
-function pointer(
-  type: "pointerover" | "pointerout",
-  target: Element,
-  {
-    pointerType = "mouse",
-    related = null,
-  }: { pointerType?: string; related?: Element | null } = {},
-) {
-  const event = new MouseEvent(type, { bubbles: true, relatedTarget: related });
-  Object.defineProperty(event, "pointerType", { value: pointerType });
-  act(() => {
-    target.dispatchEvent(event);
-  });
-}
+const pointer = firePointer;
 
 let onExpandedChange: (value: boolean) => void = () => {};
 let probeClose: () => void = () => {};

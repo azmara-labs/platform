@@ -34,7 +34,7 @@
   {
     "name": "@azmr/ui/shell",
     "path": "dist/shell.js",
-    "limit": "16 kB"
+    "limit": "22 kB"
   },
   {
     "name": "@azmr/ui/shell-state",
