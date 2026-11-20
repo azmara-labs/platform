@@ -10,8 +10,16 @@ export interface Processor {
   location: string;
   /** The sites that use them. */
   sites: readonly Site[];
-  /** What proves the code uses them: a package in package.json, an env var, or both. */
-  evidence: { dependency?: string; env?: string };
+  /**
+   * What proves the code uses them: a package in package.json, an env var, or a host the site's
+   * source contacts (for a service called by URL, with no package). Give at least one.
+   */
+  evidence: {
+    dependency?: string;
+    env?: string;
+    /** A domain, e.g. "open-meteo.com". It covers its subdomains, such as "api.open-meteo.com". */
+    host?: string;
+  };
 }
 
 export interface PolicySection {

@@ -25,7 +25,7 @@ export const azmaraPrivacyPolicy: PolicyDocument = {
       purpose: "Hosting, and on the website, anonymous visit and speed measurements",
       data: "Requests to our sites, including your IP address, which appear in hosting logs",
       location:
-        "Portal functions run in Sydney, Australia; Vercel's own infrastructure may be outside New Zealand",
+        "Vercel's own infrastructure, which may be outside New Zealand (the portal's functions run in Sydney, Australia)",
       sites: ["app", "website"],
       evidence: { dependency: "next" },
     },
@@ -51,7 +51,11 @@ export const azmaraPrivacyPolicy: PolicyDocument = {
       data: "Technical details of your browser and connection when you use the form",
       location: "Cloudflare's own infrastructure, which may be outside New Zealand",
       sites: ["website"],
-      evidence: { dependency: "@marsidev/react-turnstile", env: "TURNSTILE_SECRET_KEY" },
+      evidence: {
+        dependency: "@marsidev/react-turnstile",
+        env: "TURNSTILE_SECRET_KEY",
+        host: "challenges.cloudflare.com",
+      },
     },
     {
       name: "Prismic",
@@ -59,7 +63,24 @@ export const azmaraPrivacyPolicy: PolicyDocument = {
       data: "The website's pages are fetched from Prismic, so your browser may load images from its servers",
       location: "Prismic's own infrastructure, which may be outside New Zealand",
       sites: ["website"],
-      evidence: { dependency: "@prismicio/client" },
+      evidence: { dependency: "@prismicio/client", host: "prismic.io" },
+    },
+    {
+      name: "Open-Meteo",
+      purpose: "Showing live local weather on the website",
+      data: "The coordinates of your approximate location, from your IP address or, if you allow it, your browser. If you allow your browser's location it contacts Open-Meteo directly, so Open-Meteo also sees your IP address",
+      location: "Open-Meteo's own infrastructure, which may be outside New Zealand",
+      sites: ["website"],
+      evidence: { host: "open-meteo.com" },
+    },
+    {
+      name: "BigDataCloud",
+      purpose:
+        "Turning your browser's location into a place name, only if you allow your browser to share it",
+      data: "Your browser's coordinates. Your browser contacts BigDataCloud directly, so it also sees your IP address",
+      location: "BigDataCloud's own infrastructure, which may be outside New Zealand",
+      sites: ["website"],
+      evidence: { host: "bigdatacloud.net" },
     },
   ],
 
@@ -77,7 +98,7 @@ export const azmaraPrivacyPolicy: PolicyDocument = {
       paragraphs: ["Which information we hold depends on how you use our sites."],
       list: [
         "On the website, when you contact us: your name, email address, phone number, location, the service you are asking about, how you would like us to reply, and your message.",
-        "On the website, when you visit: anonymous visit and page-speed measurements, and an approximate location worked out from your IP address, which the site uses to show local details such as the weather.",
+        "On the website, when you visit: anonymous visit and page-speed measurements, and an approximate location worked out from your IP address by our hosting provider, which the site uses to show local details such as the weather. If you allow your browser to share your location, that more precise location is used instead and goes to the weather and place-name providers listed below.",
         "In the portal, when you sign up: your name, your email address, your business name and a password. We never see or store the password itself, only a salted hash held by our sign-in provider.",
         "In the portal, when you use it for your business: your business details (name, address, GST number, bank account for invoices, logo), your customers' contact details, and the quotations and invoices you create.",
         "In the portal, when you subscribe or take payment: Stripe collects card and billing details directly. We keep Stripe's reference numbers and payment status, not card numbers.",

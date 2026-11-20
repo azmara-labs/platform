@@ -23,7 +23,19 @@ const document: PolicyDocument = {
       sites: ["website"],
       evidence: { dependency: "forms-sdk" },
     },
+    {
+      name: "Weather",
+      purpose: "Local weather",
+      data: "Coordinates",
+      location: "Overseas",
+      sites: ["website"],
+      evidence: { host: "weather.example" },
+    },
   ],
+};
+
+const sources = {
+  "src/weather.ts": "fetch(`https://api.weather.example/v1/forecast`); // docs: https://own.test/",
 };
 
 const base = {
@@ -41,7 +53,7 @@ describe("findPolicyDrift", () => {
   it("only checks the processors for the site being tested", () => {
     // "forms-sdk" isn't a dependency of the app, and that's fine: it's a website processor.
     expect(findPolicyDrift(base)).toEqual([]);
-    expect(findPolicyDrift({ ...base, site: "website" })).toEqual([
+    expect(findPolicyDrift({ ...base, site: "website", sources })).toEqual([
       "Forms: the policy names it but forms-sdk isn't a dependency",
     ]);
   });
@@ -86,5 +98,66 @@ describe("findPolicyDrift", () => {
       processors: document.processors.map((p) => ({ ...p, evidence: {} })),
     };
     expect(findPolicyDrift({ ...base, document: bare })).toEqual(["Mailer: no evidence given"]);
+  });
+
+  describe("hosts the source contacts", () => {
+    const website = { ...base, site: "website" as const, dependencies: { "forms-sdk": "1" } };
+
+    it("accepts a processor whose host appears in the source, including its subdomains", () => {
+      expect(findPolicyDrift({ ...website, sources })).toEqual([]);
+    });
+
+    it("reports a named host the source no longer contacts", () => {
+      expect(findPolicyDrift({ ...website, sources: { "src/a.ts": "const x = 1;" } })).toEqual([
+        "Weather: the policy names it but weather.example isn't in the source",
+      ]);
+    });
+
+    it("does not match a host that only ends with the same letters", () => {
+      const lookalike = { "src/a.ts": "fetch('https://notweather.example/x')" };
+      expect(findPolicyDrift({ ...website, sources: lookalike })).toEqual([
+        "Weather: the policy names it but weather.example isn't in the source",
+      ]);
+    });
+
+    it("asks for the sources when a processor's evidence is a host", () => {
+      expect(findPolicyDrift(website)).toEqual([
+        "Weather: its evidence is the host weather.example but no sources were given",
+      ]);
+    });
+
+    it("reports a host the source contacts that the policy doesn't name", () => {
+      const problems = findPolicyDrift({
+        ...website,
+        sources: { ...sources, "src/geo.ts": "fetch('http://geo.unknown.test/json')" },
+        allowedHosts: ["own.test"],
+      });
+      expect(problems).toEqual([
+        "geo.unknown.test is contacted in src/geo.ts but no processor in the policy covers it",
+      ]);
+    });
+
+    it("lets allowed hosts, their subdomains and localhost through", () => {
+      const problems = findPolicyDrift({
+        ...website,
+        sources: {
+          ...sources,
+          "src/links.ts": "https://www.own.test/a http://localhost:3000 https://LOCALHOST/",
+        },
+        allowedHosts: ["own.test"],
+      });
+      expect(problems).toEqual([]);
+    });
+
+    it("does not look for unnamed hosts unless it is given an allow list", () => {
+      const open = { ...sources, "src/geo.ts": "fetch('http://geo.unknown.test/json')" };
+      expect(findPolicyDrift({ ...website, sources: open })).toEqual([]);
+    });
+
+    it("says when an allow list has nothing to check against", () => {
+      expect(findPolicyDrift({ ...website, allowedHosts: ["own.test"] })).toContain(
+        "allowedHosts needs sources to check against",
+      );
+    });
   });
 });

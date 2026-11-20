@@ -32,11 +32,33 @@ const problems = findPolicyDrift({
 expect(problems).toEqual([]);
 ```
 
-It reports three kinds of drift:
+It reports these kinds of drift:
 
-- a provider the policy names whose package or env var is gone;
+- a provider the policy names whose package, env var or host is gone;
 - a service the code uses that no processor covers;
-- a tracking package the policy's cookie statement rules out.
+- a tracking package the policy's cookie statement rules out;
+- a host the site's source contacts that the policy doesn't name.
+
+### Services called by URL
+
+Some services have no package, only a `fetch` to their API. Give a processor `evidence.host` (a
+domain such as `open-meteo.com`, which also covers `api.open-meteo.com`) and pass the site's source
+files as `sources`. The check then fails if the source stops contacting that host.
+
+Pass `allowedHosts` too, and it also fails on any host in the source that is neither a processor
+nor on that list. List the site's own domain and hosts that are only links or schema namespaces, so
+that a new service called by URL has to be named in the policy before the test passes.
+
+```typescript
+findPolicyDrift({
+  // ...
+  sources: { "src/weather.ts": readFileSync("src/weather.ts", "utf8") },
+  allowedHosts: ["azmara.io", "schema.org"],
+});
+```
+
+A host is only found when it is written as a full `http(s)://` URL in the source. An address built
+up from pieces at runtime is invisible to it.
 
 ## Documents
 

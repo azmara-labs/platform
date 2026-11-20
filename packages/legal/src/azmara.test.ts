@@ -25,9 +25,17 @@ describe("Azmara privacy policy", () => {
   it("says which site each processor belongs to, and gives it a way to be checked", () => {
     for (const processor of policy.processors) {
       expect(processor.sites.length).toBeGreaterThan(0);
-      expect(processor.evidence.dependency ?? processor.evidence.env).toBeDefined();
+      const { dependency, env, host } = processor.evidence;
+      expect(dependency ?? env ?? host).toBeDefined();
     }
     const names = policy.processors.map((p) => p.name);
     expect(new Set(names).size).toBe(names.length);
+  });
+
+  it("names the weather and place-name services the website's location feature calls", () => {
+    const website = policy.processors.filter((p) => p.sites.includes("website"));
+    const hosts = website.map((p) => p.evidence.host);
+    expect(hosts).toContain("open-meteo.com");
+    expect(hosts).toContain("bigdatacloud.net");
   });
 });
