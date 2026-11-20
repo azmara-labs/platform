@@ -1,14 +1,15 @@
 ---
-title: Forms with React Hook Form and Zod
-description: Build validated forms with @azmr/ui/rhf and @azmr/ui/zod, with register() and no Controller, schema validation, async checks and an accessible error summary.
+title: Forms with React Hook Form, Zod and Effect Schema
+description: Build validated forms with @azmr/ui/rhf and a Zod (@azmr/ui/zod) or Effect Schema (@azmr/ui/effect) adapter, with register() and no Controller, schema validation, async checks and an accessible error summary.
 ---
 
 ## Install
 
-The adapters use React Hook Form 7 and Zod 4, which are optional peer dependencies of `@azmr/ui`:
+The adapters use React Hook Form 7, and Zod 4 or Effect 4, which are optional peer dependencies of `@azmr/ui`. Install only the ones you use:
 
 ```bash
-pnpm add react-hook-form zod
+pnpm add react-hook-form zod       # with Zod
+pnpm add react-hook-form effect    # with Effect Schema
 ```
 
 ```tsx
@@ -147,6 +148,84 @@ fieldsFromSchema(
 Labels come from `.describe()`, `.meta({ label })`, or the key in sentence case. Types are `text`, `email`, `url`, `number`, `money` (from `.meta({ fieldType: "money" })`), `date`, `boolean`, `enum` or `custom`. Optional, nullable and defaulted fields are not required. Other `.meta()` keys are passed through as `meta`.
 
 `@azmr/ui/zod` has no React in it, so a schema module that uses it can be shared with server code.
+
+## With Effect Schema
+
+`@azmr/ui/effect` is the same pair of helpers for [Effect Schema](https://effect.website): `effectSchemaResolver` and `fieldsFromSchema`. Use it instead of `@azmr/ui/zod` when your schemas are Effect schemas. `effect` 4.1 or later is an optional peer dependency; Effect 3 is not supported, because its Schema API is different.
+
+```tsx
+import { Schema } from "effect";
+import { effectSchemaResolver, fieldsFromSchema } from "@azmr/ui/effect";
+
+const min1 = (message: string) =>
+  Schema.String.pipe(Schema.check(Schema.isMinLength(1, { message })));
+
+const Customer = Schema.Struct({
+  name: min1("Enter a name"),
+  invoiceEmail: Schema.optional(
+    Schema.String.pipe(
+      Schema.check(Schema.isPattern(/^[^@\s]+@[^@\s]+$/, { message: "Enter an email address" })),
+    ),
+  ),
+});
+
+const form = useForm({ resolver: effectSchemaResolver(Customer) });
+```
+
+<Demo name="forms/effect-signup" />
+
+Submit it empty to see the summary, then try `northline` as the web address to see the effectful check run.
+
+`effectSchemaResolver(schema)` behaves like `zodResolver`: every issue is reported, not just the first, on its field path (nested objects and arrays included); an issue on the whole value goes to `errors.root`; with `criteriaMode: "all"` every message is kept in `types`; on success `onSubmit` gets the decoded value, so transforms have run.
+
+- **Messages come from the schema.** Put a `message` on the check that fails, as above. Without one you get Effect's own English text, such as "Expected a value with a length of at least 1". There is no message catalogue for either adapter yet.
+- **Effectful checks are awaited**, so a uniqueness test against a server works. Write it with `SchemaGetter.checkEffect`.
+- **A struct-level check names its field** by returning `{ path: ["confirm"], issue: "Confirm must match" }`; a plain string goes to `root`.
+- **A struct-level check runs only after every field has passed.** Zod runs its object-level `refine` alongside the field checks, so a user with a bad email and a mismatched confirmation sees both errors at once. With Effect they see the email error first and the mismatch on the next submit. The adapter cannot change that: it is how Effect orders checks.
+- **`type` is always `"validate"`.** Effect issues carry no error code the way Zod's do (`too_small`). The error summary uses messages, so this only matters if you read `error.type`.
+- **An unexpected exception is not a validation error.** If a check throws, the resolver rejects with that same error, so you see the real bug, rather than showing its stack trace as a message on a field.
+
+### Numbers typed into a text input
+
+Take care with `Schema.NumberFromString` on a text input: on its own it decodes a blank (`""`) or a space as `0`, and `"abc"` as `NaN`, **without an error**. A cleared field would quietly become 0. Require text first and a finite number after:
+
+```ts
+const Quantity = Schema.NonEmptyString.pipe(
+  Schema.decodeTo(Schema.NumberFromString.pipe(Schema.check(Schema.isFinite()))),
+);
+```
+
+A plain `Schema.Number` does reject `""`; use it with `rules={{ setValueAs: numberOrNull }}` on the field, as in the Zod example above.
+
+### `fieldsFromSchema` for Effect
+
+`fieldsFromSchema(Schema.Struct({ ... }))` returns the same `FieldDef`s as the Zod version: a label, the kind of control, whether it is required, and its limits.
+
+```ts
+fieldsFromSchema(
+  Schema.Struct({
+    fullName: Schema.NonEmptyString.annotate({ title: "Full name" }),
+    creditLimit: Schema.Number.pipe(Schema.check(Schema.isGreaterThanOrEqualTo(0))).annotate({
+      fieldType: "money",
+    }),
+    tier: Schema.Literals(["bronze", "silver", "gold"]),
+    notes: Schema.optional(Schema.String),
+  }),
+);
+// [
+//   { name: "fullName", label: "Full name", type: "text", required: true, min: 1 },
+//   { name: "creditLimit", label: "Credit limit", type: "money", required: true, min: 0 },
+//   { name: "tier", label: "Tier", type: "enum", required: true, options: ["bronze", "silver", "gold"] },
+//   { name: "notes", label: "Notes", type: "text", required: false },
+// ]
+```
+
+- The label is the `title` annotation, otherwise the key in sentence case. A `fieldType` annotation sets the type (`"money"`, say), and an annotation called `meta` is copied to `meta`.
+- Limits are read from `isMinLength`, `isMaxLength`, `isGreaterThanOrEqualTo`, `isLessThanOrEqualTo` and `isBetween`. An exclusive bound (`isGreaterThan`) sets no limit, because calling it a minimum would be wrong.
+- Optional, nullable and `optionalKey` fields are not required. A transform is described by its decoded type, so `Schema.NumberFromString` is a `number`.
+- `Schema.Date` and `Schema.DateTimeUtc` are `date`. Other custom types are reported as `custom`; add a `fieldType` annotation to describe one.
+
+`@azmr/ui/effect` has no React in it, so a schema module that uses it can be shared with server code.
 
 ## Accessibility
 

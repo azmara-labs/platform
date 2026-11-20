@@ -30,6 +30,7 @@ These components keep state or handle events, so they carry `"use client"` on th
 | `@azmr/ui/form` |
 | `@azmr/ui/field-array` |
 | `@azmr/ui/scroll-area` |
+| `@azmr/ui/shell` |
 | `@azmr/ui/progress` |
 | `@azmr/ui/avatar` |
 | `@azmr/ui/disclosure` |
@@ -78,7 +79,9 @@ These are plain functions with no React rendering and no browser globals, so the
 | `@azmr/ui/theme` | `createTheme`, `validateTheme`, `parseThemeJson`, the cookie helpers and `htmlAttributes` |
 | `@azmr/ui/theme-schema` | `ThemeConfigSchema`, the Zod schema for a stored theme (needs `zod`) |
 | `@azmr/ui/theme-presets` | `THEME_PRESETS`, three ready-made themes |
+| `@azmr/ui/shell-state` | `readSidebarMode`, to read the sidebar's remembered mode from the `Cookie` header in a server layout |
 | `@azmr/ui/zod` | `zodResolver` and `fieldsFromSchema`, so a schema module can be shared with the server |
+| `@azmr/ui/effect` | `effectSchemaResolver` and `fieldsFromSchema` for Effect Schema (needs `effect`) |
 | `@azmr/ui/icons/mui-map` | Migration map from MUI icon names |
 | `@azmr/ui/typography/mui-map` | Migration map from MUI typography variants |
 | `@azmr/ui/layout/mui-map` | Migration map from MUI layout props |
