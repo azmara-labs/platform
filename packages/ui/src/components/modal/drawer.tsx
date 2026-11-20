@@ -57,10 +57,12 @@ export interface DrawerContentProps
   className?: string;
   /** Show the corner close button (labelled "Close"). Default true. */
   showClose?: boolean;
+  /** Classes for the wrapper around the children (`grid gap-4` by default), to lay them out differently. */
+  contentClassName?: string;
 }
 
 export const DrawerContent = forwardRef<HTMLDivElement, DrawerContentProps>(function DrawerContent(
-  { showClose = true, className, children, ...props },
+  { showClose = true, className, contentClassName, children, ...props },
   ref,
 ) {
   const side = useContext(SideContext);
@@ -87,7 +89,9 @@ export const DrawerContent = forwardRef<HTMLDivElement, DrawerContentProps>(func
           )}
           {...props}
         >
-          <DrawerPrimitive.Content className="grid gap-4">{children}</DrawerPrimitive.Content>
+          <DrawerPrimitive.Content className={cn("grid gap-4", contentClassName)}>
+            {children}
+          </DrawerPrimitive.Content>
           {showClose && <CornerClose as={DrawerPrimitive.Close} />}
         </DrawerPrimitive.Popup>
       </DrawerPrimitive.Viewport>

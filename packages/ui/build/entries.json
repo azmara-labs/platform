@@ -21,6 +21,7 @@
     "floating": "src/components/floating/index.ts",
     "modal": "src/components/modal/index.ts",
     "menu": "src/components/menu/index.ts",
+    "shell": "src/components/shell/index.ts",
     "toast": "src/components/toast/index.ts",
     "toggle": "src/components/toggle/index.ts",
     "split-button": "src/components/split-button/index.ts",
@@ -47,9 +48,11 @@
   "server": {
     "lib": "src/lib/index.ts",
     "zod": "src/components/zod/index.ts",
+    "effect": "src/components/effect/index.ts",
     "theme": "src/theme/index.ts",
     "theme-schema": "src/theme/schema.ts",
     "theme-presets": "src/theme/presets.ts",
+    "shell-state": "src/components/shell/sidebar-state.ts",
     "icons/mui-map": "src/icons/mui-map.ts",
     "typography/mui-map": "src/components/typography/mui-map.ts",
     "layout/mui-map": "src/components/layout/mui-map.ts"

@@ -27,9 +27,24 @@
     "limit": "9 kB"
   },
   {
+    "name": "@azmr/ui/effect",
+    "path": "dist/effect.js",
+    "limit": "2 kB"
+  },
+  {
     "name": "@azmr/ui/theme",
     "path": "dist/theme.js",
     "limit": "7.5 kB"
+  },
+  {
+    "name": "@azmr/ui/shell",
+    "path": "dist/shell.js",
+    "limit": "46 kB"
+  },
+  {
+    "name": "@azmr/ui/shell-state",
+    "path": "dist/shell-state.js",
+    "limit": "1 kB"
   },
   {
     "name": "@azmr/ui/theme-schema",
