@@ -27,6 +27,11 @@
     "limit": "9 kB"
   },
   {
+    "name": "@azmr/ui/effect",
+    "path": "dist/effect.js",
+    "limit": "2 kB"
+  },
+  {
     "name": "@azmr/ui/theme",
     "path": "dist/theme.js",
     "limit": "7.5 kB"

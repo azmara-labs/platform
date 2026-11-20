@@ -47,6 +47,7 @@
   "server": {
     "lib": "src/lib/index.ts",
     "zod": "src/components/zod/index.ts",
+    "effect": "src/components/effect/index.ts",
     "theme": "src/theme/index.ts",
     "theme-schema": "src/theme/schema.ts",
     "theme-presets": "src/theme/presets.ts",

@@ -51,6 +51,10 @@
       "types": "./dist/react.d.ts",
       "import": "./dist/react.js"
     },
+    "./effect": {
+      "types": "./dist/effect.d.ts",
+      "import": "./dist/effect.js"
+    },
     "./theme": {
       "types": "./dist/theme.d.ts",
       "import": "./dist/theme.js"
@@ -261,6 +265,7 @@
   },
   "peerDependencies": {
     "@azmr/core": ">=0.0.2 <1.0.0",
+    "effect": "^4.1.0",
     "motion": "^14.0.0",
     "react": "^18.0.0 || ^19.0.0",
     "react-dom": "^18.0.0 || ^19.0.0",
@@ -284,6 +289,7 @@
     "axe-core": "^4.14.0",
     "culori": "^4.0.2",
     "esbuild": "^0.28.2",
+    "effect": "^4.1.4",
     "jsdom": "^29.1.1",
     "motion": "^14.6.0",
     "postcss": "^8.5.32",
@@ -303,6 +309,9 @@
   },
   "peerDependenciesMeta": {
     "motion": {
+      "optional": true
+    },
+    "effect": {
       "optional": true
     },
     "react-hook-form": {

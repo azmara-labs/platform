@@ -456,6 +456,9 @@ importers:
       culori:
         specifier: ^4.0.2
         version: 4.0.2
+      effect:
+        specifier: ^4.1.4
+        version: 4.1.4
       esbuild:
         specifier: '>=0.28.1 <0.29.0'
         version: 0.28.2
@@ -3506,6 +3509,9 @@ packages:
   dotenv@17.4.2:
     resolution: {integrity: sha512-nI4U3TottKAcAD9LLud4Cb7b2QztQMUEfHbvhTH09bqXTxnSie8WnjPALV/WMCrJZ6UV/qHJ6L03OqO3LcdYZw==}
     engines: {node: '>=12'}
+
+  effect@4.1.4:
+    resolution: {integrity: sha512-Tgrv/9FN+TZYyOn8XSli+fVqAfwDrDAkiX5Uu9vztINb675VTQdhD0gWI5Kzvhlh9QqzjZvw72iugqw5pwoghQ==}
 
   electron-to-chromium@1.5.465:
     resolution: {integrity: sha512-zg4iUpbeGw7YNZsswc2xKr2uiBex2d8dELAXo92Icw3but1ULbrvK8USe6wVLaWjgJnKBARv0pchx9Owktx6wQ==}
@@ -8459,6 +8465,8 @@ snapshots:
       type-fest: 4.41.0
 
   dotenv@17.4.2: {}
+
+  effect@4.1.4: {}
 
   electron-to-chromium@1.5.465: {}
 
