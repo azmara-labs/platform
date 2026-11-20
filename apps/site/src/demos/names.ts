@@ -34,6 +34,7 @@ export const demoNames: ReadonlySet<string> = new Set([
   "form/error-summary",
   "form/fieldset",
   "form/settings",
+  "forms/effect-signup",
   "forms/signup",
   "icon/basic",
   "icon/named",

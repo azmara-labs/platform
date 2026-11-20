@@ -33,6 +33,7 @@ import FloatingTooltip from "./floating/tooltip.demo";
 import FormErrorSummary from "./form/error-summary.demo";
 import FormFieldset from "./form/fieldset.demo";
 import FormSettings from "./form/settings.demo";
+import FormsEffectSignup from "./forms/effect-signup.demo";
 import FormsSignup from "./forms/signup.demo";
 import IconBasic from "./icon/basic.demo";
 import IconNamed from "./icon/named.demo";
@@ -174,6 +175,7 @@ export const demos = {
   "input/debounce": InputDebounce,
   "number-field/basic": NumberFieldBasic,
   "number-field/money": NumberFieldMoney,
+  "forms/effect-signup": FormsEffectSignup,
   "forms/signup": FormsSignup,
   "input-group/money": InputGroupMoney,
   "input-group/search": InputGroupSearch,

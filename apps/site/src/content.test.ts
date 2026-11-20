@@ -113,6 +113,7 @@ describe("@azmr/ui entry points have docs", () => {
     "error-boundary": "state-view",
     rhf: "/docs/guide/forms",
     zod: "/docs/guide/forms",
+    effect: "/docs/guide/forms",
     "theme-schema": "/docs/guide/theming",
     "theme-presets": "/docs/guide/theming",
   };

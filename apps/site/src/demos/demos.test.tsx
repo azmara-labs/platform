@@ -80,6 +80,7 @@ describe("demo sources show the public API", () => {
     /^react$/,
     /^@azmr\/(ui|core)(\/[\w./-]+)?$/,
     /^lucide-react$/,
+    /^effect$/,
     /^react-hook-form$/,
     /^zod$/,
   ];
