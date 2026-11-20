@@ -1,5 +1,6 @@
-import { type ReactNode, useCallback, useId, useMemo, useRef, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { cn } from "../../lib/cn.js";
+import { Drawer, DrawerContent, DrawerTitle } from "../modal/index.js";
 import { BREAKPOINTS, type ShellBreakpoint } from "./breakpoints.js";
 import { NavGroup, NavItem } from "./nav.js";
 import {
@@ -67,7 +68,13 @@ function AppShellRoot({
   const bp = BREAKPOINTS[breakpoint];
   const isDesktop = useMinWidth(bp.query);
   const [mode, setModeState] = useState<SidebarMode>(defaultMode);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerRequested, setDrawerOpen] = useState(false);
+  // The drawer only exists below the breakpoint: growing the window closes it, and it stays closed
+  // if the window shrinks again.
+  const drawerOpen = drawerRequested && !isDesktop;
+  useEffect(() => {
+    if (isDesktop) setDrawerOpen(false);
+  }, [isDesktop]);
   const peek = usePeek({ enabled: isDesktop && mode === "hidden" });
 
   const sidebarId = useId();
@@ -127,6 +134,16 @@ function AppShellRoot({
     [closePeek],
   );
 
+  // Following a link in the drawer closes it, the same way and for the same reason as the peek.
+  const bindDrawer = useCallback((popup: HTMLDivElement | null) => {
+    if (!popup) return;
+    const onClick = (event: Event) => {
+      if ((event.target as Element).closest("a[href]")) setDrawerOpen(false);
+    };
+    popup.addEventListener("click", onClick);
+    return () => popup.removeEventListener("click", onClick);
+  }, []);
+
   const hidden = mode === "hidden";
   return (
     <ShellContext.Provider value={internals}>
@@ -176,6 +193,20 @@ function AppShellRoot({
         >
           {children}
         </main>
+        {sidebar != null ? (
+          <Drawer side="left" open={drawerOpen} onOpenChange={setDrawerOpen}>
+            <DrawerContent
+              ref={bindDrawer}
+              showClose={false}
+              finalFocus={toggleRef}
+              className="border-sidebar-border bg-sidebar p-0 pt-[env(safe-area-inset-top)] text-sidebar-foreground"
+              contentClassName="h-full grid-rows-[minmax(0,1fr)] gap-0"
+            >
+              <DrawerTitle className="sr-only">{mergedLabels.drawerTitle}</DrawerTitle>
+              {sidebar}
+            </DrawerContent>
+          </Drawer>
+        ) : null}
         {sidebar != null && isDesktop && hidden ? (
           <div data-peek-zone="" aria-hidden="true" className={EDGE_ZONE} {...peek.bindings} />
         ) : null}
