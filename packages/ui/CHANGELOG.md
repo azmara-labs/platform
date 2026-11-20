@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.15.0
+
+### Minor Changes
+
+- 5242049: Add `AppShell`, `TopBar`, `Sidebar`, `NavGroup`, `NavItem`, `SidebarFooter` and `useAppShell` in a new `@azmr/ui/shell` entry, and `readSidebarMode` in a new server-safe `@azmr/ui/shell-state` entry. The sidebar can be pinned or hidden, peeks open when the mouse rests on the left edge, and becomes a drawer below a breakpoint. The choice is remembered in the `azmr-sidebar` cookie and rendered by the server. `DrawerContent` gains an optional `contentClassName` for the wrapper around its children.
+- c99f694: Add `@azmr/ui/effect`: `effectSchemaResolver` for React Hook Form and `fieldsFromSchema` for field metadata, for forms validated with Effect Schema, alongside the Zod adapter. `effect` 4.1 or later is an optional peer dependency. Every issue is reported on its field path, effectful checks are awaited, and an exception thrown inside a refinement is rethrown rather than shown as a message. The Zod and Effect adapters now share their `FieldDef` type and error mapping, with no change to `@azmr/ui/zod`.
+
 ## 0.14.0
 
 ### Minor Changes
