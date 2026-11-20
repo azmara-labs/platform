@@ -273,3 +273,23 @@ describe("Drawer: structure and styling", () => {
     }
   });
 });
+
+describe("Drawer: contentClassName", () => {
+  it("styles the inner content wrapper, keeping its default layout", async () => {
+    const user = setupUser();
+    const { container } = renderUi(
+      <Drawer>
+        <DrawerTrigger>Open</DrawerTrigger>
+        <DrawerContent contentClassName="h-full gap-0 custom-content">
+          <DrawerTitle>Title</DrawerTitle>
+        </DrawerContent>
+      </Drawer>,
+    );
+    await user.click(trigger(container));
+    const wrapper = (drawer() as HTMLElement).firstElementChild;
+    expect(classes(wrapper)).toContain("custom-content");
+    expect(classes(wrapper)).toContain("grid");
+    expect(classes(wrapper)).toContain("gap-0"); // tailwind-merge lets the caller win over gap-4
+    expect(classes(wrapper)).not.toContain("gap-4");
+  });
+});

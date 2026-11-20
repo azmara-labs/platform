@@ -7,6 +7,7 @@ export {
 } from "./debounce-contract.js";
 export { type MatchMediaMock, mockMatchMedia } from "./match-media.js";
 export { prefersReducedMotion, reducedMotionQuery, withReducedMotion } from "./motion.js";
+export { firePointer } from "./pointer.js";
 export { cleanupUi, type RenderResult, renderUi } from "./render.js";
 export { expectServerSafe, renderServer } from "./ssr.js";
 export { setupUser } from "./user.js";

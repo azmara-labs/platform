@@ -115,7 +115,7 @@ interface ShellContext {
 ```
 
 - **Top bar** (`banner`): the launcher button, the current module's name and icon, search or the command palette, slots for notifications and help, and the account menu. When signed out, the account slot is a **Sign in** button.
-- **Sidebar** (`navigation`): the current module's sections and items, a collapse control, a footer slot. It collapses to an icon rail with tooltips.
+- **Sidebar** (`navigation`): the current module's sections and items, a toggle in the top bar, a footer slot. On wide screens it is either **pinned** (beside the content) or **hidden**; a hidden sidebar peeks over the content when the mouse rests on the left edge, and the toggle pins it open for good, as Jira does (decided 20 Nov 2026, replacing the earlier icon rail with tooltips). There is no rail.
 - **Content** (`main`): breadcrumbs and a page header (title, description, actions) from the route definition.
 - **Narrow screens:** the sidebar becomes a drawer. The launcher and the module's sections both live in it, launcher first.
 - **Layouts:** `combined` is the picture above. `sidebar` has no top bar (the launcher moves to the sidebar header). `topbar` has no sidebar and renders the module's top-level routes as a horizontal navigation menu (PAZM-72), for sites with no modules.
@@ -138,7 +138,7 @@ Where the entitlement state comes from is the app's job: it builds `ShellContext
 
 - The sidebar shows the current module's `routes`, grouped by `group` then `order`, with nested groups that expand (`aria-expanded`), icons, badges, dividers and group headings. The active item is found from the pathname through a router adapter (section 8) and carries `aria-current="page"`; its ancestors expand.
 - The current module is **derived from the URL** (the module whose `home` is the longest prefix of the pathname), not stored. A page outside every module (account, organisation settings) belongs to a `shared` set that shows in a bottom section on every module, as the Azmara app's "Organization" group does.
-- Collapse: a control and the keyboard shortcut Ctrl+B (configurable) toggle the sidebar; the collapsed state is saved (section 11).
+- Pin and hide: the top bar's toggle pins or unpins the sidebar, and the choice is saved (section 11). A keyboard shortcut (Ctrl+B) is not in the first release. A hidden sidebar is inert, so keyboard users reach the navigation through the toggle; hover is only a shortcut for mouse users.
 - Items the user is not allowed to see are removed before render, so they are absent from the DOM, not just hidden with CSS.
 
 ## 8. The route definition and adapters
@@ -166,7 +166,7 @@ This is my reading of "switch different process screens"; it is not built until 
 ## 11. Branding, state and persistence
 
 - **Branding** comes from `ThemeConfig.branding` (theme schema): `appName` and the light and dark logos in the top bar and the launcher header. Logos render only through `<img>` and only if the asset reference passed validation; with no logo the shell shows the name as text.
-- **Sidebar collapsed state:** a cookie (`azmr-sidebar`, same helpers and rules as the theme cookies), read by the server layout and rendered into the markup, so the first paint is right and strict CSPs work (no inline script).
+- **Sidebar mode (`pinned` or `hidden`):** a cookie (`azmr-sidebar`, same helpers and rules as the theme cookies; the server reads it with `readSidebarMode` from `@azmr/ui/shell-state`), read by the server layout and rendered into the markup, so the first paint is right and strict CSPs work (no inline script).
 - **Launcher order, pins and open screens:** per user, owned by the app (`on…Change` callbacks). The package persists nothing about a person.
 - **Current module and active page:** from the URL only.
 
