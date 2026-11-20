@@ -1,6 +1,10 @@
 // Generated once from a template and then maintained by hand: Tailwind only finds classes that are
 // written out in full, so each breakpoint spells its variants (`md:`, `lg:`, `xl:`) rather than
 // building them from a string. Keep the three blocks identical apart from the prefix.
+//
+// The grid columns are not animated: the design spec (section 6) allows only transform, opacity,
+// clip-path and grid-template-rows, because anything else re-lays-out the page on every frame. So
+// pinning and unpinning snap the content; the peek overlay still slides, using `translate`.
 
 export type ShellBreakpoint = "md" | "lg" | "xl";
 
@@ -19,10 +23,8 @@ export const BREAKPOINTS: Record<ShellBreakpoint, BreakpointClasses> = {
   md: {
     query: "(min-width: 48rem)",
     columns: {
-      pinned:
-        "md:grid-cols-[16rem_minmax(0,1fr)] md:transition-[grid-template-columns] md:duration-(--motion-duration-base) md:ease-standard",
-      hidden:
-        "md:grid-cols-[0_minmax(0,1fr)] md:transition-[grid-template-columns] md:duration-(--motion-duration-base) md:ease-standard",
+      pinned: "md:grid-cols-[16rem_minmax(0,1fr)]",
+      hidden: "md:grid-cols-[0_minmax(0,1fr)]",
     },
     aside: {
       base: "hidden md:block",
@@ -38,10 +40,8 @@ export const BREAKPOINTS: Record<ShellBreakpoint, BreakpointClasses> = {
   lg: {
     query: "(min-width: 64rem)",
     columns: {
-      pinned:
-        "lg:grid-cols-[16rem_minmax(0,1fr)] lg:transition-[grid-template-columns] lg:duration-(--motion-duration-base) lg:ease-standard",
-      hidden:
-        "lg:grid-cols-[0_minmax(0,1fr)] lg:transition-[grid-template-columns] lg:duration-(--motion-duration-base) lg:ease-standard",
+      pinned: "lg:grid-cols-[16rem_minmax(0,1fr)]",
+      hidden: "lg:grid-cols-[0_minmax(0,1fr)]",
     },
     aside: {
       base: "hidden lg:block",
@@ -57,10 +57,8 @@ export const BREAKPOINTS: Record<ShellBreakpoint, BreakpointClasses> = {
   xl: {
     query: "(min-width: 80rem)",
     columns: {
-      pinned:
-        "xl:grid-cols-[16rem_minmax(0,1fr)] xl:transition-[grid-template-columns] xl:duration-(--motion-duration-base) xl:ease-standard",
-      hidden:
-        "xl:grid-cols-[0_minmax(0,1fr)] xl:transition-[grid-template-columns] xl:duration-(--motion-duration-base) xl:ease-standard",
+      pinned: "xl:grid-cols-[16rem_minmax(0,1fr)]",
+      hidden: "xl:grid-cols-[0_minmax(0,1fr)]",
     },
     aside: {
       base: "hidden xl:block",
