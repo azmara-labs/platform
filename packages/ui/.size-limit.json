@@ -32,6 +32,11 @@
     "limit": "7.5 kB"
   },
   {
+    "name": "@azmr/ui/shell-state",
+    "path": "dist/shell-state.js",
+    "limit": "1 kB"
+  },
+  {
     "name": "@azmr/ui/theme-schema",
     "path": "dist/theme-schema.js",
     "ignore": ["zod"],
