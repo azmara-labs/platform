@@ -21,6 +21,7 @@
     "floating": "src/components/floating/index.ts",
     "modal": "src/components/modal/index.ts",
     "menu": "src/components/menu/index.ts",
+    "shell": "src/components/shell/index.ts",
     "toast": "src/components/toast/index.ts",
     "toggle": "src/components/toggle/index.ts",
     "split-button": "src/components/split-button/index.ts",

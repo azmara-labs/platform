@@ -191,6 +191,10 @@
       "types": "./dist/modal.d.ts",
       "import": "./dist/modal.js"
     },
+    "./shell": {
+      "types": "./dist/shell.d.ts",
+      "import": "./dist/shell.js"
+    },
     "./menu": {
       "types": "./dist/menu.d.ts",
       "import": "./dist/menu.js"
