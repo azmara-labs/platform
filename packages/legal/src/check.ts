@@ -27,6 +27,9 @@ export interface DriftInput {
 
 const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+/** An own property, so inherited keys such as `constructor` never count as installed packages. */
+const has = (record: Readonly<Record<string, string>>, key: string) => Object.hasOwn(record, key);
+
 /** A host is covered by a domain when it is that domain or one of its subdomains. */
 const isCoveredBy = (host: string, domain: string) =>
   host === domain || host.endsWith(`.${domain}`);
@@ -67,7 +70,7 @@ export function findPolicyDrift(input: DriftInput): string[] {
   for (const processor of ours) {
     const { dependency, env, host } = processor.evidence;
     if (!dependency && !env && !host) problems.push(`${processor.name}: no evidence given`);
-    if (dependency && !(dependency in dependencies)) {
+    if (dependency && !has(dependencies, dependency)) {
       problems.push(`${processor.name}: the policy names it but ${dependency} isn't a dependency`);
     }
     if (env && !new RegExp(`^${escapeRegExp(env)}=`, "m").test(envExample)) {
@@ -86,7 +89,7 @@ export function findPolicyDrift(input: DriftInput): string[] {
 
   const covered = new Set(ours.map((p) => p.evidence.dependency));
   for (const dependency of serviceDependencies) {
-    if (dependency in dependencies && !covered.has(dependency)) {
+    if (has(dependencies, dependency) && !covered.has(dependency)) {
       problems.push(`${dependency} is used but no processor in the policy covers it`);
     }
   }
@@ -109,9 +112,10 @@ export function findPolicyDrift(input: DriftInput): string[] {
   }
 
   if (trackerPattern) {
+    // `g` and `y` make `test` remember where it stopped, which would skip later names.
+    const tracker = new RegExp(trackerPattern.source, trackerPattern.flags.replace(/[gy]/g, ""));
     for (const name of Object.keys(dependencies)) {
-      if (trackerPattern.test(name))
-        problems.push(`${name} is a tracker the policy doesn't allow for`);
+      if (tracker.test(name)) problems.push(`${name} is a tracker the policy doesn't allow for`);
     }
   }
   return problems;

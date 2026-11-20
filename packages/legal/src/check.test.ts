@@ -160,4 +160,40 @@ describe("findPolicyDrift", () => {
       );
     });
   });
+
+  it("reports every tracker even when the pattern has the g or y flag", () => {
+    // A global regex remembers where it last matched, so reusing it would skip the second name.
+    for (const flags of ["g", "y", "gy"]) {
+      const problems = findPolicyDrift({
+        ...base,
+        dependencies: { "mailer-sdk": "1", "posthog-js": "1", "posthog-node": "1" },
+        trackerPattern: new RegExp("posthog", flags),
+      });
+      expect(problems).toEqual([
+        "posthog-js is a tracker the policy doesn't allow for",
+        "posthog-node is a tracker the policy doesn't allow for",
+      ]);
+    }
+  });
+
+  it("does not take an inherited object key for an installed package", () => {
+    const named: PolicyDocument = {
+      ...document,
+      processors: document.processors.map((p) => ({
+        ...p,
+        evidence: { dependency: "constructor" },
+      })),
+    };
+    expect(findPolicyDrift({ ...base, document: named, dependencies: {} })).toEqual([
+      "Mailer: the policy names it but constructor isn't a dependency",
+    ]);
+    expect(
+      findPolicyDrift({
+        ...base,
+        document: { ...document, processors: [] },
+        dependencies: {},
+        serviceDependencies: ["constructor"],
+      }),
+    ).toEqual([]);
+  });
 });
