@@ -1,0 +1,143 @@
+---
+title: AppShell
+description: A dashboard frame with a top bar, a side navigation and the content area. The sidebar can be pinned or hidden, peeks open on hover, and becomes a drawer on a phone.
+group: Navigation
+status: new
+since: 0.15.0
+interactive: true
+---
+
+## Usage
+
+```tsx
+import { AppShell, NavGroup, NavItem, Sidebar, SidebarFooter, TopBar } from "@azmr/ui/shell";
+```
+
+<Demo name="shell/basic" />
+
+`AppShell` takes the top bar and the sidebar as props and the page as its children:
+
+```tsx
+<AppShell
+  topBar={<TopBar brand={<Logo />} start={<SearchField />} end={<AccountMenu />} />}
+  sidebar={
+    <Sidebar label="Main">
+      <NavGroup title="Orders">
+        <NavItem href="/" icon={<Home />} current>Home</NavItem>
+        <NavItem href="/orders" icon={<List />} badge={3}>My orders</NavItem>
+      </NavGroup>
+      <SidebarFooter>{/* optional: pinned below the list */}</SidebarFooter>
+    </Sidebar>
+  }
+>
+  {children}
+</AppShell>
+```
+
+In a Client Component you can also write `AppShell.TopBar`, `AppShell.Sidebar`, `AppShell.NavGroup`, `AppShell.NavItem` and `AppShell.SidebarFooter`. In a Server Component use the named imports above: a Server Component cannot read a property of a client module.
+
+## How the sidebar behaves
+
+On a wide screen the sidebar is in one of two modes, and you choose between them with the button at the left of the top bar:
+
+- **Pinned:** open beside the content, which makes room for it.
+- **Hidden:** it takes no room. Rest the mouse on the left edge of the screen and it slides over the content; move away and it closes. Following a link in it closes it too. Click the top bar's button to pin it open for good, and click again to hide it.
+
+Below the breakpoint (`lg` by default, set it with `breakpoint="md" | "lg" | "xl"`) there is no hover. The same button opens the sidebar as a drawer from the left: it traps focus, closes with Escape, the scrim or a link, and gives focus back to the button. Growing the window closes the drawer and leaves your pinned or hidden choice alone.
+
+Only a real mouse peeks. A tap on a touch screen fires the same pointer events and does not.
+
+## Remember the choice on the server
+
+The mode is saved in a cookie called `azmr-sidebar`, and the server reads it so the first paint is already right, with no flash and no inline script. The reader lives in its own server-safe entry:
+
+```tsx
+// app/layout.tsx (a Server Component)
+import { cookies } from "next/headers";
+import { AppShell, Sidebar, TopBar } from "@azmr/ui/shell";
+import { readSidebarMode } from "@azmr/ui/shell-state";
+
+export default async function Layout({ children }: { children: React.ReactNode }) {
+  const defaultMode = readSidebarMode((await cookies()).toString());
+  return (
+    <AppShell
+      defaultMode={defaultMode}
+      topBar={<TopBar brand="Acme" />}
+      sidebar={<Sidebar label="Main">{/* your NavGroups */}</Sidebar>}
+    >
+      {children}
+    </AppShell>
+  );
+}
+```
+
+`readSidebarMode` gives `"pinned"` when there is no cookie or it holds anything unexpected. Pass `persist={false}` to stop the shell writing the cookie.
+
+### Marking the current page with Next.js
+
+`NavItem` renders an `<a>` and takes `render` for your router's link. The current page comes from the URL, which a Server Component does not have, so wrap the item in a small Client Component:
+
+```tsx
+"use client";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { NavItem, type NavItemProps } from "@azmr/ui/shell";
+
+export function NavLink({ href, ...props }: NavItemProps & { href: string }) {
+  const current = usePathname() === href;
+  return <NavItem {...props} current={current} render={<Link href={href} />} />;
+}
+```
+
+## Reading and driving it
+
+`useAppShell()` returns `{ mode, setMode, peeking, drawerOpen, setDrawerOpen, isDesktop }`, for apps that need to react to the sidebar or change it from elsewhere. It throws if used outside `AppShell`.
+
+## Props
+
+<AutoTypeTable path="../../packages/ui/src/components/shell/app-shell.tsx" name="AppShellProps" />
+
+`TopBar` takes `brand`, `start` (hidden below `md`) and `end`; the navigation button is added for you.
+
+<AutoTypeTable
+  path="../../packages/ui/src/components/shell/index.ts"
+  name="TopBarDocProps"
+  type={`import type { TopBarProps } from "./top-bar.js"
+export type TopBarDocProps = Pick<TopBarProps, "brand" | "start" | "end">`}
+/>
+
+`NavItem` also takes every attribute of an `<a>`.
+
+<AutoTypeTable
+  path="../../packages/ui/src/components/shell/index.ts"
+  name="NavItemDocProps"
+  type={`import type { NavItemProps } from "./nav.js"
+export type NavItemDocProps = Pick<NavItemProps, "icon" | "badge" | "current" | "render" | "children">`}
+/>
+
+## Accessibility
+
+- A skip link is the first thing a keyboard reaches, and it moves focus to the content.
+- The sidebar is a `nav` landmark with the name you give it (`label` is required). Each group's heading names its list. The current page has `aria-current="page"`.
+- Hover is only a shortcut. A hidden sidebar is inert, so it is not in the tab order. A keyboard user reaches the navigation through the top bar's button, which pins it open.
+- The button reports `aria-expanded`, and names itself "Open navigation" or "Close navigation". Replace every piece of the shell's text, including the skip link and the drawer's name, with the `labels` prop.
+- Pinning and unpinning move the content at once. Only the peek slides, using `transform`, as the library's motion rules allow, so there is no animated layout. Durations come from the motion tokens, which are switched off by `prefers-reduced-motion`.
+
+<KeyboardMap
+  rows={[
+    { keys: ["Tab"], action: "Reaches the skip link first, then the top bar's navigation button, then the sidebar's links in order." },
+    { keys: ["Enter", "Space"], action: "On the navigation button: pins or unpins the sidebar on a wide screen, and opens or closes the drawer on a narrow one." },
+    { keys: ["Escape"], action: "Closes a peeking sidebar or the open drawer, and returns focus to the navigation button." },
+    { keys: ["Enter"], action: "On a link in the sidebar: follows it, which also closes a peeking sidebar or the drawer." },
+  ]}
+/>
+
+## Size
+
+The `@azmr/ui/shell` entry is about 44 kB compressed, most of it the modal drawer and the scroll area it is built from. `@azmr/ui/shell-state` (the cookie reader for the server) is under 1 kB. Both limits are checked by `pnpm size`.
+
+## Things to know
+
+- The shell is a page frame: it is as tall as the window and renders the page's `main` and banner. To place one inside a page that already has a `main` (a panel, or a demo like the one above), pass `embedded`, give it a height with `className="[--shell-vh:28rem]"`, and put it in a box with `transform: translateZ(0)` so the hidden sidebar's edge zone and peek stay inside the box. The demo's source shows all three.
+- Showing or hiding an item in the sidebar is not access control. Refuse the request on the server too.
+- Pass text, not HTML. The shell never renders HTML from props.

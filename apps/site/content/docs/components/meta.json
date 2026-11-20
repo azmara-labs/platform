@@ -36,6 +36,7 @@
     "modal",
     "menu",
     "---Navigation---",
+    "shell",
     "breadcrumb",
     "pagination",
     "stepper",
