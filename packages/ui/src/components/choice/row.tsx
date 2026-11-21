@@ -9,6 +9,11 @@ export interface ChoiceRowProps {
   size?: ChoiceSize;
   /** `switch` has a wider control, so the description and error start further in. Default `box`. */
   kind?: "box" | "switch";
+  /**
+   * An option inside a group. It joins the group's `Field` (Base UI's `Field.Item`) instead of
+   * starting its own, and has no error of its own: the group shows that.
+   */
+  item?: boolean;
   label?: ReactNode;
   description?: ReactNode;
   /** Any value other than `undefined`, `null`, `false` or `""` marks the control invalid. */
@@ -24,6 +29,15 @@ export function hasError(error: ReactNode): boolean {
   return error !== undefined && error !== null && error !== false && error !== "";
 }
 
+/** The red `*` after a label. Screen readers hear `aria-required` on the control instead. */
+export function RequiredMark() {
+  return (
+    <span aria-hidden="true" className="ms-0.5 text-destructive">
+      *
+    </span>
+  );
+}
+
 /**
  * A single choice: the control with its label BESIDE it (not above, as in `Field`), the description
  * under the label text, and the error in a polite live region. Base UI's `Field` ties the label,
@@ -33,6 +47,7 @@ export function hasError(error: ReactNode): boolean {
 export function ChoiceRow({
   size,
   kind = "box",
+  item,
   label,
   description,
   error,
@@ -41,21 +56,17 @@ export function ChoiceRow({
   className,
   children,
 }: ChoiceRowProps) {
-  const showError = hasError(error);
+  const showError = !item && hasError(error);
   const rowClass = choiceVariants({ size });
   const indent = (kind === "switch" ? switchDescriptionVariants : descriptionVariants)({ size });
-  return (
-    <FieldRoot invalid={showError} disabled={disabled} className={cn("gap-0", className)}>
+  const body = (
+    <>
       {label !== undefined ? (
         <FieldPrimitive.Label className={rowClass}>
           {children}
           <span>
             {label}
-            {required ? (
-              <span aria-hidden="true" className="ms-0.5 text-destructive">
-                *
-              </span>
-            ) : null}
+            {required ? <RequiredMark /> : null}
           </span>
         </FieldPrimitive.Label>
       ) : (
@@ -64,13 +75,27 @@ export function ChoiceRow({
       {description !== undefined ? (
         <FieldDescription className={indent}>{description}</FieldDescription>
       ) : null}
-      <div aria-live="polite" className="empty:hidden">
-        {showError ? (
-          <FieldError match className={cn(indent, "font-medium text-destructive")}>
-            {error}
-          </FieldError>
-        ) : null}
-      </div>
+      {item ? null : (
+        <div aria-live="polite" className="empty:hidden">
+          {showError ? (
+            <FieldError match className={cn(indent, "font-medium text-destructive")}>
+              {error}
+            </FieldError>
+          ) : null}
+        </div>
+      )}
+    </>
+  );
+  if (item) {
+    return (
+      <FieldPrimitive.Item disabled={disabled} className={cn("flex flex-col", className)}>
+        {body}
+      </FieldPrimitive.Item>
+    );
+  }
+  return (
+    <FieldRoot invalid={showError} disabled={disabled} className={cn("gap-0", className)}>
+      {body}
     </FieldRoot>
   );
 }
