@@ -205,6 +205,12 @@ describe("fieldsFromSchema: choice fields", () => {
     expect(byName.notes).not.toHaveProperty("options");
   });
 
+  it("describes z.literal(true), the usual 'must accept' schema, as boolean", () => {
+    const f = fieldsFromSchema(z.object({ accept: z.literal(true), mode: z.literal("on") }));
+    expect(f[0]).toMatchObject({ name: "accept", type: "boolean" });
+    expect(f[1]).toMatchObject({ name: "mode", type: "custom" });
+  });
+
   it("passes a control hint through meta, so a boolean can ask for a Switch", () => {
     expect(byName.notify).toMatchObject({ type: "boolean", meta: { control: "switch" } });
   });

@@ -10,6 +10,8 @@ type AnySchema = z.ZodType & {
     in?: AnySchema;
     out?: AnySchema;
     element?: AnySchema;
+    /** The allowed values of a `z.literal`. */
+    values?: readonly unknown[];
   };
   description?: string;
   meta?: () => Record<string, unknown> | undefined;
@@ -62,6 +64,11 @@ function typeOf(inner: AnySchema, meta: Record<string, unknown>): FieldType {
       return "boolean";
     case "enum":
       return "enum";
+    case "literal":
+      // `z.literal(true)` is how a "must accept" checkbox is written.
+      return inner.def.values?.length && inner.def.values.every((v) => typeof v === "boolean")
+        ? "boolean"
+        : "custom";
     case "array":
       return inner.def.element && unwrap(inner.def.element).def.type === "enum"
         ? "multiselect"

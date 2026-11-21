@@ -81,6 +81,9 @@ function typeOf(inner: AstLike): FieldType {
       return "number";
     case "Boolean":
       return "boolean";
+    case "Literal":
+      // `Schema.Literal(true)` is how a "must accept" checkbox is written.
+      return typeof inner.literal === "boolean" ? "boolean" : "custom";
     case "Declaration": {
       const representation = inner.annotations?.representation as { id?: string } | undefined;
       return DATE_IDS.has(representation?.id ?? "") ? "date" : "custom";

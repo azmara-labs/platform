@@ -41,6 +41,18 @@ describe("fieldFromSchema", () => {
     ],
     ["a boolean", "agree", Schema.Boolean, { label: "Agree", type: "boolean", required: true }],
     [
+      "Schema.Literal(true), the usual 'must accept' schema, as a boolean",
+      "accept",
+      Schema.Literal(true),
+      { label: "Accept", type: "boolean", required: true },
+    ],
+    [
+      "a string literal, which is not a boolean",
+      "mode",
+      Schema.Literal("on"),
+      { label: "Mode", type: "custom", required: true },
+    ],
+    [
       "an array of literals, as a multiselect",
       "tags",
       Schema.Array(Schema.Literals(["a", "b"])),
