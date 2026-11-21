@@ -211,6 +211,10 @@
       "types": "./dist/toggle.d.ts",
       "import": "./dist/toggle.js"
     },
+    "./choice": {
+      "types": "./dist/choice.d.ts",
+      "import": "./dist/choice.js"
+    },
     "./split-button": {
       "types": "./dist/split-button.d.ts",
       "import": "./dist/split-button.js"

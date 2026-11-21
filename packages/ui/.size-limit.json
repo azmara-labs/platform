@@ -248,6 +248,11 @@
     "limit": "17 kB"
   },
   {
+    "name": "@azmr/ui/choice",
+    "path": "dist/choice.js",
+    "limit": "17 kB"
+  },
+  {
     "name": "@azmr/ui/split-button",
     "path": "dist/split-button.js",
     "limit": "55 kB"
