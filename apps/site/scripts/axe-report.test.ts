@@ -105,7 +105,9 @@ describe("summarise", () => {
 describe("the real known-issues file", () => {
   it("is valid, and every entry says why it is accepted", () => {
     const known = JSON.parse(readFileSync(join(siteDir, "a11y-known-issues.json"), "utf8"));
-    expect(validateKnown(known).length).toBeGreaterThan(0);
+    // An empty file is valid: it means no exception is needed. validateKnown throws on a malformed
+    // file or an entry with no reason.
+    expect(Array.isArray(validateKnown(known))).toBe(true);
   });
 });
 
