@@ -3,10 +3,12 @@ import { cn } from "../../lib/cn.js";
 import { Field as FieldPrimitive } from "../../primitives/field.js";
 import { FieldDescription, FieldError, FieldRoot } from "../field/field.js";
 import type { ChoiceSize } from "./types.js";
-import { choiceVariants, descriptionVariants } from "./variants.js";
+import { choiceVariants, descriptionVariants, switchDescriptionVariants } from "./variants.js";
 
 export interface ChoiceRowProps {
   size?: ChoiceSize;
+  /** `switch` has a wider control, so the description and error start further in. Default `box`. */
+  kind?: "box" | "switch";
   label?: ReactNode;
   description?: ReactNode;
   /** Any value other than `undefined`, `null`, `false` or `""` marks the control invalid. */
@@ -30,6 +32,7 @@ export function hasError(error: ReactNode): boolean {
  */
 export function ChoiceRow({
   size,
+  kind = "box",
   label,
   description,
   error,
@@ -40,6 +43,7 @@ export function ChoiceRow({
 }: ChoiceRowProps) {
   const showError = hasError(error);
   const rowClass = choiceVariants({ size });
+  const indent = (kind === "switch" ? switchDescriptionVariants : descriptionVariants)({ size });
   return (
     <FieldRoot invalid={showError} disabled={disabled} className={cn("gap-0", className)}>
       {label !== undefined ? (
@@ -58,14 +62,11 @@ export function ChoiceRow({
         <div className={rowClass}>{children}</div>
       )}
       {description !== undefined ? (
-        <FieldDescription className={descriptionVariants({ size })}>{description}</FieldDescription>
+        <FieldDescription className={indent}>{description}</FieldDescription>
       ) : null}
       <div aria-live="polite" className="empty:hidden">
         {showError ? (
-          <FieldError
-            match
-            className={cn(descriptionVariants({ size }), "font-medium text-destructive")}
-          >
+          <FieldError match className={cn(indent, "font-medium text-destructive")}>
             {error}
           </FieldError>
         ) : null}
