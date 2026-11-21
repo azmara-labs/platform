@@ -34,7 +34,7 @@ A `RadioGroup` value is one string; a `CheckboxGroup` value is an array of strin
 
 ### Select all
 
-`CheckboxGroup` with `options` and `selectAllLabel` adds a "select all" checkbox first. It shows indeterminate while only some options are ticked, ticks all, and unticks all. It never changes a disabled option. With hand-written items, add a `<Checkbox parent label="…" />` and pass `allValues` (leave disabled values out).
+`CheckboxGroup` with `options` and `selectAllLabel` adds a "select all" checkbox first. It shows indeterminate while only some options are ticked, ticks all, and unticks all. It never changes a disabled option. With hand-written items, add a `<Checkbox parent label="…" />` and pass `allValues`: every value in the group, disabled ones included, since select all leaves a disabled checkbox as it is.
 
 ## Sizes and touch
 
@@ -42,7 +42,7 @@ A `RadioGroup` value is one string; a `CheckboxGroup` value is an array of strin
 
 ## With react-hook-form
 
-`FormField` binds these controls for you. They are controlled fields: a checkbox or switch holds a boolean, a radio group one string, a checkbox group a string array, and a field with no value yet is unchecked, `""` or `[]`. The control shows its own label, description and error, so give those to the control (or to `FormField`, which passes them on).
+`FormField` binds these controls for you. They are controlled fields: a checkbox or switch holds a boolean, a radio group one string, a checkbox group a string array, and a field with no value yet is unchecked, `""` or `[]`. The control shows its own label, description and error, so give those to the control (or to `FormField`, which passes them on and wins if both are set). With `mode: "onBlur"` or `"onTouched"`, a group is validated when focus leaves it, not as it moves between its boxes.
 
 <Demo name="choice/form" />
 
@@ -75,10 +75,10 @@ export async function save(formData: FormData) {
 | Field type | What `formDataToValues` gives the schema |
 |---|---|
 | `boolean` | `true` for exactly one entry equal to `"on"` or `"true"`; `false` when absent. Any other string, such as `"false"`, is passed through so the schema rejects it. |
-| `multiselect` | Every string entry for the name (files dropped); `[]` when there are none. |
+| `multiselect` (an array of an enum, or of strings) | Every string entry for the name (files dropped); `[]` when there are none, so one ticked box is still an array. |
 | `enum` and the rest | The single string; left out when absent or a file; an array when the key was posted more than once, so a single-value schema rejects it. |
 
-Numbers and dates reach the schema as the strings that were posted; use your schema to parse them. Top-level fields only: nested paths such as `address.city` are not read from a post.
+Write a boolean field as `z.boolean()` (or `z.literal(true)` for a must-accept box), never `z.coerce.boolean()`: that reads every non-empty string, `"false"` included, as true, so `parseFormData` throws if it finds one. The controls do not accept `uncheckedValue`, so an unticked box posts nothing. Numbers and dates reach the schema as the strings that were posted; use your schema to parse them. Top-level fields only: nested paths such as `address.city` are not read from a post.
 
 ## Props
 
@@ -95,7 +95,7 @@ export type CheckboxDocProps = Pick<CheckboxProps, "checked" | "defaultChecked" 
   path="../../packages/ui/src/components/choice/index.ts"
   name="CheckboxGroupDocProps"
   type={`import type { CheckboxGroupProps } from "./checkbox-group.js"
-export type CheckboxGroupDocProps = Pick<CheckboxGroupProps, "options" | "children" | "value" | "defaultValue" | "onValueChange" | "allValues" | "selectAllLabel" | "name" | "description" | "error" | "required" | "disabled" | "size" | "orientation" | "className">`}
+export type CheckboxGroupDocProps = Pick<CheckboxGroupProps, "options" | "children" | "value" | "defaultValue" | "onValueChange" | "allValues" | "selectAllLabel" | "onBlur" | "name" | "description" | "error" | "required" | "disabled" | "size" | "orientation" | "className">`}
 />
 
 `RadioGroup` takes the same props except `allValues` and `selectAllLabel`; its `value`, `defaultValue` and `onValueChange` use one string, and it adds `readOnly`. `Radio` takes `value`, `label`, `description`, `disabled` and `size`.

@@ -93,7 +93,10 @@ function typeOf(inner: AstLike): FieldType {
         ? "enum"
         : "custom";
     case "Arrays":
-      return arrayChoices(inner) ? "multiselect" : "custom";
+      // Literals are a choice list; an array of strings is how a group of checkboxes arrives in a post.
+      return arrayChoices(inner) || (inner.rest?.length === 1 && inner.rest[0]?._tag === "String")
+        ? "multiselect"
+        : "custom";
     default:
       return "custom";
   }
@@ -148,7 +151,7 @@ export function fieldFromSchema<Name extends string>(
     ...(kind === "enum" && {
       options: (inner.types ?? []).map((member) => String(member.literal)),
     }),
-    ...(kind === "multiselect" && { options: arrayChoices(inner) }),
+    ...(kind === "multiselect" && arrayChoices(inner) && { options: arrayChoices(inner) }),
     ...(typeof meta === "object" &&
       meta !== null &&
       Object.keys(meta).length > 0 && { meta: meta as Record<string, unknown> }),

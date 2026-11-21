@@ -7,7 +7,7 @@ import { focusRing, thumbVariants, trackVariants } from "./variants.js";
 
 type PrimitiveProps = Omit<
   ComponentPropsWithoutRef<typeof SwitchPrimitive.Root>,
-  "className" | "children" | "render" | "id" | "aria-label" | "aria-labelledby"
+  "className" | "children" | "render" | "id" | "aria-label" | "aria-labelledby" | "uncheckedValue"
 >;
 
 export type SwitchProps = PrimitiveProps &

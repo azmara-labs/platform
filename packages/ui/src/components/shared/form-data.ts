@@ -27,8 +27,11 @@ function setOwn(target: Record<string, unknown>, name: string, value: unknown): 
  *
  * - `boolean`: `true` only for exactly one entry equal to `"on"` or `"true"`, and `false` when
  *   absent (an unticked checkbox posts nothing). Any other string, such as `"false"`, is passed
- *   through untouched, so the schema rejects it instead of it being read as true or false.
- * - `multiselect`: every string entry for the name, files dropped; `[]` when there are none.
+ *   through untouched, so the schema rejects it instead of it being read as true or false. That
+ *   holds for `z.boolean()` and `z.literal(true)`; `z.coerce.boolean()` would read "false" as true,
+ *   so `parseFormData` refuses it.
+ * - `multiselect` (an array of an enum, or of strings): every string entry for the name, files
+ *   dropped; `[]` when there are none, so one ticked box is still an array.
  * - everything else (`enum`, `text`, ...): the single string; left out when absent or a file; the
  *   array of strings when the key was posted more than once, so a single-value field's schema
  *   rejects it and the first entry is never silently taken.

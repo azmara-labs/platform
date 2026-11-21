@@ -119,6 +119,12 @@ describe("Switch", () => {
     expect(sw(container, "Email me")).toBeTruthy();
   });
 
+  it("has no uncheckedValue: an unticked box posts nothing, never the string 'false'", () => {
+    // @ts-expect-error uncheckedValue is not supported, so a post can never carry "false"
+    const bad: SwitchProps = { label: "x", uncheckedValue: "false" };
+    expect(bad).toBeTruthy();
+  });
+
   it("renders a label with markup as text, never as HTML", () => {
     const { container } = renderUi(<Switch label={"<b onclick=alert(1)>x</b>"} />);
     expect(container.querySelector("b")).toBeNull();

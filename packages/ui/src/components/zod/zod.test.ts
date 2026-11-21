@@ -155,7 +155,7 @@ describe("fieldsFromSchema", () => {
         options: ["bronze", "silver", "gold"],
       },
       { name: "notes", label: "Notes", type: "text", required: false },
-      { name: "tags", label: "Tags", type: "custom", required: true },
+      { name: "tags", label: "Tags", type: "multiselect", required: true },
     ]);
   });
 
@@ -200,9 +200,11 @@ describe("fieldsFromSchema: choice fields", () => {
     });
   });
 
-  it("leaves an array of anything else as custom, with no options", () => {
-    expect(byName.notes).toMatchObject({ type: "custom" });
+  it("describes an array of strings as multiselect with no options, and other arrays as custom", () => {
+    expect(byName.notes).toMatchObject({ type: "multiselect" });
     expect(byName.notes).not.toHaveProperty("options");
+    const counts = fieldsFromSchema(z.object({ counts: z.array(z.number()) }))[0];
+    expect(counts).toMatchObject({ type: "custom" });
   });
 
   it("describes z.literal(true), the usual 'must accept' schema, as boolean", () => {

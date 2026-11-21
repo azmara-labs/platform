@@ -151,6 +151,12 @@ describe("Checkbox", () => {
     expect(box(container, "Terms")).toBeTruthy();
   });
 
+  it("has no uncheckedValue: an unticked box posts nothing, never the string 'false'", () => {
+    // @ts-expect-error uncheckedValue is not supported, so a post can never carry "false"
+    const bad: CheckboxProps = { label: "x", uncheckedValue: "false" };
+    expect(bad).toBeTruthy();
+  });
+
   it("renders a label with markup as text, never as HTML", () => {
     const { container } = renderUi(<Checkbox label={'"><img src=x onerror=alert(1)>'} />);
     expect(container.querySelector("img")).toBeNull();

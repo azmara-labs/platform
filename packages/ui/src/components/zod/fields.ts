@@ -12,6 +12,8 @@ type AnySchema = z.ZodType & {
     element?: AnySchema;
     /** The allowed values of a `z.literal`. */
     values?: readonly unknown[];
+    /** True for `z.coerce.boolean()` and the other coercing schemas. */
+    coerce?: boolean;
   };
   description?: string;
   meta?: () => Record<string, unknown> | undefined;
@@ -69,10 +71,11 @@ function typeOf(inner: AnySchema, meta: Record<string, unknown>): FieldType {
       return inner.def.values?.length && inner.def.values.every((v) => typeof v === "boolean")
         ? "boolean"
         : "custom";
-    case "array":
-      return inner.def.element && unwrap(inner.def.element).def.type === "enum"
-        ? "multiselect"
-        : "custom";
+    case "array": {
+      // An array of strings is how a group of checkboxes arrives in a post: one entry per ticked box.
+      const element = inner.def.element && unwrap(inner.def.element).def.type;
+      return element === "enum" || element === "string" ? "multiselect" : "custom";
+    }
     default:
       return "custom";
   }
@@ -83,6 +86,19 @@ function optionsOf(inner: AnySchema): string[] | undefined {
   const source =
     inner.def.type === "array" && inner.def.element ? unwrap(inner.def.element) : inner;
   return source.def.type === "enum" ? (source.options ?? []).map(String) : undefined;
+}
+
+/**
+ * The fields that use `z.coerce.boolean()`. It reads every non-empty string, "false" included, as
+ * true, so a posted form cannot be validated with it.
+ */
+export function coercedBooleanFields(schema: z.ZodObject<z.ZodRawShape>): string[] {
+  return Object.entries(schema.shape)
+    .filter(([, field]) => {
+      const inner = unwrap(field as AnySchema);
+      return inner.def.type === "boolean" && inner.def.coerce === true;
+    })
+    .map(([name]) => name);
 }
 
 /** Describes one field of a schema. */

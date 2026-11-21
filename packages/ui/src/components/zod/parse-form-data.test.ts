@@ -92,6 +92,31 @@ describe("parseFormData (zod)", () => {
     expect(({} as Record<string, unknown>).isAdmin).toBeUndefined();
   });
 
+  it("accepts one ticked box for an array of strings, as for several", async () => {
+    const strings = z.object({ tags: z.array(z.string()).min(1) });
+    const one = await parseFormData(strings, post([["tags", "a"]]));
+    expect(one).toEqual({ success: true, data: { tags: ["a"] } });
+    const two = await parseFormData(
+      strings,
+      post([
+        ["tags", "a"],
+        ["tags", "b"],
+      ]),
+    );
+    expect(two).toEqual({ success: true, data: { tags: ["a", "b"] } });
+    const none = await parseFormData(strings, post([]));
+    expect(none.success).toBe(false);
+  });
+
+  it("refuses z.coerce.boolean(), which would read the string 'false' as true", async () => {
+    const coerced = z.object({ share: z.coerce.boolean() });
+    await expect(parseFormData(coerced, post([["share", "false"]]))).rejects.toThrow(
+      /z\.coerce\.boolean/,
+    );
+    const wrapped = z.object({ share: z.coerce.boolean().optional() });
+    await expect(parseFormData(wrapped, post([]))).rejects.toThrow(/share/);
+  });
+
   it("rejects a file where a string is expected", async () => {
     const errors = await fail(
       valid.map(([k, v]) => [k, k === "name" ? new File(["x"], "x.txt") : v]),

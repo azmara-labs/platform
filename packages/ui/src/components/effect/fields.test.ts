@@ -65,10 +65,16 @@ describe("fieldFromSchema", () => {
       { label: "Extras", type: "multiselect", required: false, options: ["x", "y"] },
     ],
     [
-      "an array of strings, which is not a choice",
+      "an array of strings, as a multiselect with no options",
       "notes",
       Schema.Array(Schema.String),
-      { label: "Notes", type: "custom", required: true },
+      { label: "Notes", type: "multiselect", required: true },
+    ],
+    [
+      "an array of numbers, which is not a choice",
+      "counts",
+      Schema.Array(Schema.Number),
+      { label: "Counts", type: "custom", required: true },
     ],
     [
       "literals, as the choices of an enum (numbers as strings)",
@@ -190,7 +196,7 @@ describe("fieldFromSchema", () => {
   });
 
   it.each([
-    ["an array", Schema.Array(Schema.String)],
+    ["an array of numbers", Schema.Array(Schema.Number)],
     ["an unknown value", Schema.Unknown],
     ["a nested struct", Schema.Struct({ a: Schema.String })],
     ["a single literal", Schema.Literal("only")],
@@ -255,6 +261,7 @@ describe("fieldsFromSchema", () => {
         code: Schema.String.pipe(Schema.check(Schema.isMaxLength(5))),
         born: Schema.Date,
         tags: Schema.Array(Schema.Literals(["a", "b"])),
+        notes: Schema.Array(Schema.String),
       }),
     );
     const fromZod = zodFields(
@@ -267,6 +274,7 @@ describe("fieldsFromSchema", () => {
         code: z.string().max(5),
         born: z.date(),
         tags: z.array(z.enum(["a", "b"])),
+        notes: z.array(z.string()),
       }),
     );
     expect(fromEffect).toEqual(fromZod);

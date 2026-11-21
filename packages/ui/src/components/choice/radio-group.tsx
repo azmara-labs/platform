@@ -1,9 +1,10 @@
-import { type ComponentPropsWithoutRef, forwardRef, type ReactNode } from "react";
+import { type ComponentPropsWithoutRef, type FocusEvent, forwardRef, type ReactNode } from "react";
 import { cn } from "../../lib/cn.js";
 import { Radio as RadioPrimitive } from "../../primitives/radio.js";
 import { RadioGroup as RadioGroupPrimitive } from "../../primitives/radio-group.js";
 import {
   ChoiceGroupShell,
+  leavesGroup,
   useChoiceSize,
   useWarnDuplicateValues,
   withUniqueKeys,
@@ -79,6 +80,8 @@ type GroupBase = {
   name?: string;
   disabled?: boolean;
   readOnly?: boolean;
+  /** Called when focus leaves the group, not when it moves between the radios inside it. */
+  onBlur?: (event: FocusEvent<HTMLElement>) => void;
   className?: string;
 };
 
@@ -115,6 +118,7 @@ export const RadioGroup = Object.assign(
       name,
       disabled,
       readOnly,
+      onBlur,
       className,
       options,
       children,
@@ -147,6 +151,7 @@ export const RadioGroup = Object.assign(
             disabled={disabled}
             readOnly={readOnly}
             required={required}
+            {...(onBlur ? { onBlur: leavesGroup(onBlur) } : {})}
             // Only the props that are set: an explicit `undefined` would override the legend's
             // `aria-labelledby`, which Base UI merges in.
             {...(aria["aria-label"] ? { "aria-label": aria["aria-label"] } : {})}

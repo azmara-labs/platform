@@ -208,6 +208,43 @@ describe("CheckboxGroup: select all", () => {
     expect([...(seen.at(-1) ?? [])].sort()).toEqual(["c"]);
   });
 
+  it("select all shows a ticked disabled option as ticked and the parent as mixed", async () => {
+    const user = setupUser();
+    const { container } = renderUi(
+      <CheckboxGroup
+        label="Tags"
+        selectAllLabel="Select all"
+        defaultValue={["c"]}
+        options={[
+          { value: "a", label: "Alpha" },
+          { value: "b", label: "Beta", disabled: true },
+          { value: "c", label: "Gamma", disabled: true },
+        ]}
+      />,
+    );
+    const box = (n: string) => within(container).getByRole("checkbox", { name: n });
+    const states = () => ["Alpha", "Beta", "Gamma"].map((n) => box(n).getAttribute("aria-checked"));
+    expect(box("Gamma").getAttribute("aria-checked")).toBe("true");
+    expect(box("Select all").getAttribute("aria-checked")).toBe("mixed");
+    await user.click(box("Select all"));
+    expect(states()).toEqual(["true", "false", "true"]);
+    await user.click(box("Select all"));
+    expect(states()).toEqual(["false", "false", "true"]);
+  });
+
+  it("a hand-written parent with every value in allValues keeps a ticked disabled one ticked", () => {
+    const { container } = renderUi(
+      <CheckboxGroup label="Tags" allValues={["a", "c"]} defaultValue={["c"]}>
+        <Checkbox parent label="Everything" />
+        <Checkbox value="a" label="Alpha" />
+        <Checkbox value="c" label="Gamma" disabled />
+      </CheckboxGroup>,
+    );
+    expect(
+      within(container).getByRole("checkbox", { name: "Gamma" }).getAttribute("aria-checked"),
+    ).toBe("true");
+  });
+
   it("the select all checkbox never posts a value under the group's name", async () => {
     const user = setupUser();
     const { container } = renderUi(

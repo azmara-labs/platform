@@ -10,7 +10,7 @@ import { boxVariants, focusRing } from "./variants.js";
 
 type PrimitiveProps = Omit<
   ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>,
-  "className" | "children" | "render" | "id" | "aria-label" | "aria-labelledby"
+  "className" | "children" | "render" | "id" | "aria-label" | "aria-labelledby" | "uncheckedValue"
 >;
 
 export type CheckboxProps = PrimitiveProps &

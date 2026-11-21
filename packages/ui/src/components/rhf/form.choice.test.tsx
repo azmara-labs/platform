@@ -176,6 +176,77 @@ describe("FormField with the choice controls", () => {
     expect(within(container).getByRole("radiogroup").getAttribute("aria-invalid")).toBe("true");
   });
 
+  it("reads only the boolean true as ticked: the string 'false' is not", () => {
+    function Stringly() {
+      const form = useForm<{ terms: boolean }>({
+        defaultValues: { terms: "false" as unknown as boolean },
+      });
+      return (
+        <Form form={form} onSubmit={() => undefined}>
+          <FormField<{ terms: boolean }> name="terms">
+            <Checkbox label="Accept the terms" />
+          </FormField>
+        </Form>
+      );
+    }
+    const { container } = renderUi(<Stringly />);
+    const box = within(container).getByRole("checkbox", { name: "Accept the terms" });
+    expect(box.getAttribute("aria-checked")).toBe("false");
+  });
+
+  it.each(["onBlur", "onTouched"] as const)(
+    "with mode %s a group is validated when focus leaves it, not on submit",
+    async (mode) => {
+      const user = setupUser();
+      const schema = z.object({ plan: z.enum(["free", "pro"], "Pick a plan") });
+      type In = { plan: string };
+      function Blurry() {
+        const form = useForm<In>({ mode, resolver: zodResolver(schema) as never });
+        return (
+          <Form form={form} onSubmit={() => undefined}>
+            <FormField<In> name="plan">
+              <RadioGroup label="Plan" options={PLANS} />
+            </FormField>
+            <button type="button">After</button>
+          </Form>
+        );
+      }
+      const { container } = renderUi(<Blurry />);
+      await user.tab();
+      expect(container.textContent).not.toContain("Pick a plan");
+      await user.tab();
+      await vi.waitFor(() => expect(container.textContent).toContain("Pick a plan"));
+    },
+  );
+
+  it("a checkbox group is validated when focus leaves it, not when it moves inside it", async () => {
+    const user = setupUser();
+    const schema = z.object({ tags: z.array(z.enum(["a", "b", "c"])).min(1, "Pick a tag") });
+    type In = { tags: string[] };
+    function Blurry() {
+      const form = useForm<In>({
+        mode: "onBlur",
+        resolver: zodResolver(schema) as never,
+        defaultValues: { tags: [] },
+      });
+      return (
+        <Form form={form} onSubmit={() => undefined}>
+          <FormField<In> name="tags">
+            <CheckboxGroup label="Tags" options={TAGS} />
+          </FormField>
+          <button type="button">After</button>
+        </Form>
+      );
+    }
+    const { container } = renderUi(<Blurry />);
+    await user.tab();
+    await user.tab();
+    expect(container.textContent).not.toContain("Pick a tag");
+    await user.tab();
+    await user.tab();
+    await vi.waitFor(() => expect(container.textContent).toContain("Pick a tag"));
+  });
+
   it("takes the label, description and required from FormField when the control has none", () => {
     function Labelled() {
       const form = useForm<{ terms: boolean }>({ defaultValues: { terms: false } });

@@ -207,7 +207,8 @@ function ControlledField<Values extends FieldValues>({
     const bound =
       kind === "checked"
         ? {
-            checked: Boolean(field.value),
+            // Only the boolean true is ticked: the string "false" is not.
+            checked: field.value === true,
             onCheckedChange: chain(child.props.onCheckedChange, field.onChange),
           }
         : {

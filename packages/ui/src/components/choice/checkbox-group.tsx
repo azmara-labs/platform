@@ -1,7 +1,7 @@
-import { forwardRef, type ReactNode, useState } from "react";
+import { type FocusEvent, forwardRef, type ReactNode, useState } from "react";
 import { CheckboxGroup as CheckboxGroupPrimitive } from "../../primitives/checkbox-group.js";
 import { Checkbox } from "./checkbox.js";
-import { ChoiceGroupShell, useWarnDuplicateValues, withUniqueKeys } from "./group.js";
+import { ChoiceGroupShell, leavesGroup, useWarnDuplicateValues, withUniqueKeys } from "./group.js";
 import type { ChoiceOption, ChoiceSize, Named } from "./types.js";
 
 type GroupBase = {
@@ -20,10 +20,13 @@ type GroupBase = {
   name?: string;
   disabled?: boolean;
   /**
-   * With hand-written children and a `parent` checkbox: the values it ticks and unticks. Leave out
-   * disabled ones, so select all never changes them. With `options`, `selectAllLabel` does this.
+   * With hand-written children and a `parent` checkbox: every value in the group, disabled ones
+   * included. Select all leaves a disabled checkbox as it is. With `options`, `selectAllLabel` does
+   * this for you.
    */
   allValues?: readonly string[];
+  /** Called when focus leaves the group, not when it moves between the checkboxes inside it. */
+  onBlur?: (event: FocusEvent<HTMLElement>) => void;
   /** With `options`: adds a "select all" checkbox first. It shows mixed while only some are ticked. */
   selectAllLabel?: ReactNode;
   className?: string;
@@ -64,6 +67,7 @@ export const CheckboxGroup = Object.assign(
       disabled,
       allValues,
       selectAllLabel,
+      onBlur,
       className,
       options,
       children,
@@ -82,16 +86,15 @@ export const CheckboxGroup = Object.assign(
       "aria-labelledby"?: string;
     };
 
-    // What select all controls: the caller's `allValues`, or every ENABLED option.
+    // Every value in the group, disabled ones included: Base UI keeps a disabled checkbox as it is
+    // when select all changes the rest, and shows it ticked if it is ticked.
     const parentValues =
       allValues ??
-      (options && selectAllLabel !== undefined
-        ? options.filter((option) => !option.disabled).map((option) => option.value)
-        : undefined);
+      (options && selectAllLabel !== undefined ? options.map((option) => option.value) : undefined);
 
     // Base UI works out the select-all state by comparing array LENGTHS, so it must only ever see
-    // the values select all controls. Disabled options and values the group does not know stay here,
-    // outside it, and are added back to whatever it reports.
+    // values that belong to the group. A value the group does not know (a stale selection from a
+    // server) stays here, outside it, and is added back to whatever it reports.
     const controlled = parentValues ? new Set(parentValues) : null;
     const seen = controlled ? current.filter((item) => controlled.has(item)) : current;
     const kept = controlled ? current.filter((item) => !controlled.has(item)) : [];
@@ -119,6 +122,7 @@ export const CheckboxGroup = Object.assign(
             onValueChange={handleChange}
             disabled={disabled}
             {...(parentValues ? { allValues: [...parentValues] } : {})}
+            {...(onBlur ? { onBlur: leavesGroup(onBlur) } : {})}
             // Only the props that are set: an explicit `undefined` would override the legend's
             // `aria-labelledby`. `aria-invalid` and `aria-required` are not allowed on role=group, so
             // the error and the required marker reach screen readers through the description and legend.

@@ -1,7 +1,7 @@
 import type { FieldErrors, FieldValues } from "react-hook-form";
 import type { z } from "zod";
 import { formDataToValues } from "../shared/form-data.js";
-import { fieldsFromSchema } from "./fields.js";
+import { coercedBooleanFields, fieldsFromSchema } from "./fields.js";
 import { toFieldErrors } from "./resolver.js";
 
 export type ParseFormDataResult<Output, Input extends FieldValues = FieldValues> =
@@ -25,6 +25,14 @@ export async function parseFormData<Shape extends z.ZodRawShape>(
   schema: z.ZodObject<Shape>,
   formData: FormData,
 ): Promise<ParseFormDataResult<z.output<z.ZodObject<Shape>>, z.input<z.ZodObject<Shape>>>> {
+  const coerced = coercedBooleanFields(schema);
+  if (coerced.length > 0) {
+    // A programmer error, so it fails loudly: validating with it would read an unticked box that posts
+    // "false" as true, and a person's "no" as consent.
+    throw new Error(
+      `parseFormData: ${coerced.map((name) => `"${name}"`).join(", ")} uses z.coerce.boolean(), which reads the posted string "false" as true. Use z.boolean(), or z.literal(true) for a must-accept box.`,
+    );
+  }
   const values = formDataToValues(formData, fieldsFromSchema(schema));
   const result = await schema.safeParseAsync(values);
   if (result.success) return { success: true, data: result.data };

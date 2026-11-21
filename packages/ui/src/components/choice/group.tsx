@@ -1,5 +1,6 @@
 import {
   createContext,
+  type FocusEvent,
   type ReactElement,
   type ReactNode,
   useContext,
@@ -118,6 +119,16 @@ export function ChoiceGroupShell({
       </FieldRoot>
     </ChoiceGroupContext.Provider>
   );
+}
+
+/**
+ * An `onBlur` for a whole group: it fires when focus really leaves the group, not when it moves from
+ * one item to another inside it, so a form library validates the group once the person is done.
+ */
+export function leavesGroup(onBlur: (event: FocusEvent<HTMLElement>) => void) {
+  return (event: FocusEvent<HTMLElement>) => {
+    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) onBlur(event);
+  };
 }
 
 /** Pairs each option with a React key that stays unique even when two options share a value. */
