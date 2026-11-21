@@ -135,6 +135,14 @@ function onlyChild(children: ReactNode): ReactElement<Record<string, unknown>> |
     : null;
 }
 
+/** How `FormField` binds a control from `@azmr/ui/choice`, which marks itself with `choiceControl`. */
+type ChoiceKind = "checked" | "value" | "values";
+
+function choiceKindOf(child: ReactElement | null): ChoiceKind | undefined {
+  const kind = (child?.type as { choiceControl?: unknown } | undefined)?.choiceControl;
+  return kind === "checked" || kind === "value" || kind === "values" ? kind : undefined;
+}
+
 function errorMessage(errors: unknown, name: string): ReactNode {
   const error = get(errors, name) as { message?: ReactNode } | undefined;
   if (!error) return undefined;
@@ -189,6 +197,44 @@ function ControlledField<Values extends FieldValues>({
   const { field, fieldState } = useController<Values>({ name, rules });
   const error = fieldState.error ? fieldState.error.message || undefined : undefined;
   const child = onlyChild(children);
+  const kind = render ? undefined : choiceKindOf(child);
+  if (child && kind) {
+    // A choice control draws its own label, description and error beside the box, so it is not
+    // wrapped in `Field`: the form's error, `required`, label and description go to the control.
+    // Values are real types: a boolean, one string, or a string array; a field with no value yet
+    // is unchecked, "" or [].
+    const message = fieldState.error ? fieldState.error.message || true : undefined;
+    const bound =
+      kind === "checked"
+        ? {
+            checked: Boolean(field.value),
+            onCheckedChange: chain(child.props.onCheckedChange, field.onChange),
+          }
+        : {
+            value:
+              kind === "values"
+                ? Array.isArray(field.value)
+                  ? field.value
+                  : []
+                : typeof field.value === "string"
+                  ? field.value
+                  : "",
+            onValueChange: chain(child.props.onValueChange, field.onChange),
+          };
+    const isRequired =
+      required ?? (child.props.required as boolean | undefined) ?? Boolean(rules?.required);
+    return cloneElement(child, {
+      ...bound,
+      ref: field.ref,
+      name: field.name,
+      disabled: field.disabled ?? child.props.disabled,
+      onBlur: chain(child.props.onBlur, field.onBlur),
+      ...(message !== undefined ? { error: message } : {}),
+      ...(isRequired ? { required: true } : {}),
+      ...(fieldProps.label !== undefined ? { label: fieldProps.label } : {}),
+      ...(fieldProps.description !== undefined ? { description: fieldProps.description } : {}),
+    });
+  }
   const control = render
     ? (props: FieldControlProps) =>
         render({ ...field, invalid: fieldState.invalid, control: props })
@@ -219,10 +265,13 @@ function ControlledField<Values extends FieldValues>({
  * A labelled field bound to the surrounding `Form`. It registers its one control with
  * `register()`, so the control's real `ref` is used and there is no `Controller`; it shows the
  * field's error and marks it invalid, and shows the required marker when `required` (or a
- * `required` rule) is set. Set `controlled` or `render` for controls without an input ref.
+ * `required` rule) is set. Set `controlled` or `render` for controls without an input ref. The
+ * controls from `@azmr/ui/choice` (`Checkbox`, `Switch`, `RadioGroup`, `CheckboxGroup`) are bound
+ * for you, as controlled fields: the value is a boolean, a string or a string array, and they show
+ * their own label, description and error.
  */
 export function FormField<Values extends FieldValues = FieldValues>(props: FormFieldProps<Values>) {
-  return props.controlled || props.render ? (
+  return props.controlled || props.render || choiceKindOf(onlyChild(props.children)) ? (
     <ControlledField<Values> {...props} />
   ) : (
     <RegisteredField<Values> {...props} />

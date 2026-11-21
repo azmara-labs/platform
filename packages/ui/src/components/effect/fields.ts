@@ -8,6 +8,8 @@ interface AstLike {
   _tag: string;
   context?: { isOptional?: boolean };
   types?: readonly AstLike[];
+  /** An array's element types after its fixed ones: `Schema.Array(x)` has one, `x`. */
+  rest?: readonly AstLike[];
   literal?: unknown;
   checks?: readonly {
     annotations?: {
@@ -56,6 +58,20 @@ function unwrap(ast: AstLike): { inner: AstLike; nullable: boolean } {
   return { inner: real.length === 1 && only ? only : ast, nullable };
 }
 
+/** The literals of a union made only of literals, as strings; `undefined` for anything else. */
+function literalsOf(ast: AstLike): string[] | undefined {
+  return ast._tag === "Union" && ast.types?.length && ast.types.every((m) => m._tag === "Literal")
+    ? ast.types.map((member) => String(member.literal))
+    : undefined;
+}
+
+/** The choices of `Schema.Array(Schema.Literals([...]))`, or `undefined` for any other array. */
+function arrayChoices(ast: AstLike): string[] | undefined {
+  return ast._tag === "Arrays" && ast.rest?.length === 1 && ast.rest[0]
+    ? literalsOf(ast.rest[0])
+    : undefined;
+}
+
 function typeOf(inner: AstLike): FieldType {
   switch (inner._tag) {
     case "String":
@@ -73,6 +89,8 @@ function typeOf(inner: AstLike): FieldType {
       return inner.types?.length && inner.types.every((member) => member._tag === "Literal")
         ? "enum"
         : "custom";
+    case "Arrays":
+      return arrayChoices(inner) ? "multiselect" : "custom";
     default:
       return "custom";
   }
@@ -127,6 +145,7 @@ export function fieldFromSchema<Name extends string>(
     ...(kind === "enum" && {
       options: (inner.types ?? []).map((member) => String(member.literal)),
     }),
+    ...(kind === "multiselect" && { options: arrayChoices(inner) }),
     ...(typeof meta === "object" &&
       meta !== null &&
       Object.keys(meta).length > 0 && { meta: meta as Record<string, unknown> }),

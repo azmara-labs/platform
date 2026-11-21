@@ -4,7 +4,13 @@ import { type FieldDef, type FieldType, sentenceCase } from "../shared/field-def
 export type { FieldDef, FieldType };
 
 type AnySchema = z.ZodType & {
-  def: { type: string; innerType?: AnySchema; in?: AnySchema; out?: AnySchema };
+  def: {
+    type: string;
+    innerType?: AnySchema;
+    in?: AnySchema;
+    out?: AnySchema;
+    element?: AnySchema;
+  };
   description?: string;
   meta?: () => Record<string, unknown> | undefined;
   isOptional?: () => boolean;
@@ -56,9 +62,20 @@ function typeOf(inner: AnySchema, meta: Record<string, unknown>): FieldType {
       return "boolean";
     case "enum":
       return "enum";
+    case "array":
+      return inner.def.element && unwrap(inner.def.element).def.type === "enum"
+        ? "multiselect"
+        : "custom";
     default:
       return "custom";
   }
+}
+
+/** The choices of an enum, or of the enum an array holds. */
+function optionsOf(inner: AnySchema): string[] | undefined {
+  const source =
+    inner.def.type === "array" && inner.def.element ? unwrap(inner.def.element) : inner;
+  return source.def.type === "enum" ? (source.options ?? []).map(String) : undefined;
 }
 
 /** Describes one field of a schema. */
@@ -76,6 +93,7 @@ export function fieldFromSchema<Name extends string>(
   const max = finite(isString ? inner.maxLength : inner.maxValue);
   const optional = outer.isOptional?.() ?? false;
   const nullable = outer.isNullable?.() ?? false;
+  const options = optionsOf(inner);
 
   return {
     name,
@@ -87,7 +105,7 @@ export function fieldFromSchema<Name extends string>(
     required: !optional && !nullable,
     ...(min !== undefined && { min }),
     ...(max !== undefined && { max }),
-    ...(inner.def.type === "enum" && { options: (inner.options ?? []).map(String) }),
+    ...(options && { options }),
     ...(Object.keys(rest).length > 0 && { meta: rest }),
   };
 }

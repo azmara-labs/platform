@@ -29,50 +29,54 @@ export type CheckboxProps = PrimitiveProps &
  * `indeterminate` prop (it is not `checked="indeterminate"`). Space toggles it. Inside a
  * `CheckboxGroup` give it a `value`; with `parent` it ticks and unticks the group's `allValues`.
  */
-export const Checkbox = forwardRef<HTMLElement, CheckboxProps>(function Checkbox(
-  { size, description, error, className, required, disabled, name, ...rest },
-  ref,
-) {
-  const group = useChoiceGroup();
-  const resolved = useChoiceSize(size);
-  // `label` is one arm of the `Named` union, so it is read off `rest` before the rest reaches Base UI.
-  const { label, ...control } = rest as typeof rest & { label?: ReactNode };
-  // The select-all checkbox is not a value of the group, so it never posts under the group's name.
-  const postName = control.parent ? undefined : (name ?? group?.name);
-  return (
-    <ChoiceRow
-      item={group !== null}
-      size={resolved}
-      label={label}
-      description={description}
-      error={error}
-      required={required}
-      disabled={disabled}
-      className={className}
-    >
-      <CheckboxPrimitive.Root
-        ref={ref}
-        name={postName}
+export const Checkbox = Object.assign(
+  forwardRef<HTMLElement, CheckboxProps>(function Checkbox(
+    { size, description, error, className, required, disabled, name, ...rest },
+    ref,
+  ) {
+    const group = useChoiceGroup();
+    const resolved = useChoiceSize(size);
+    // `label` is one arm of the `Named` union, so it is read off `rest` before the rest reaches Base UI.
+    const { label, ...control } = rest as typeof rest & { label?: ReactNode };
+    // The select-all checkbox is not a value of the group, so it never posts under the group's name.
+    const postName = control.parent ? undefined : (name ?? group?.name);
+    return (
+      <ChoiceRow
+        item={group !== null}
+        size={resolved}
+        label={label}
+        description={description}
+        error={error}
         required={required}
         disabled={disabled}
-        className={cn(
-          boxVariants({ size: resolved }),
-          "inline-flex items-center justify-center rounded-sm border border-input bg-background text-primary-foreground transition-colors duration-(--motion-duration-fast) ease-standard",
-          "data-[checked]:border-primary data-[checked]:bg-primary data-[indeterminate]:border-primary data-[indeterminate]:bg-primary",
-          "data-[invalid]:border-destructive data-[disabled]:cursor-not-allowed",
-          focusRing,
-        )}
-        {...control}
+        className={className}
       >
-        <CheckboxPrimitive.Indicator
-          className="flex items-center justify-center data-[unchecked]:hidden"
-          render={(indicatorProps, indicatorState) => (
-            <span {...indicatorProps}>
-              <Icon icon={indicatorState.indeterminate ? Minus : Check} size="xs" />
-            </span>
+        <CheckboxPrimitive.Root
+          ref={ref}
+          name={postName}
+          required={required}
+          disabled={disabled}
+          className={cn(
+            boxVariants({ size: resolved }),
+            "inline-flex items-center justify-center rounded-sm border border-input bg-background text-primary-foreground transition-colors duration-(--motion-duration-fast) ease-standard",
+            "data-[checked]:border-primary data-[checked]:bg-primary data-[indeterminate]:border-primary data-[indeterminate]:bg-primary",
+            "data-[invalid]:border-destructive data-[disabled]:cursor-not-allowed",
+            focusRing,
           )}
-        />
-      </CheckboxPrimitive.Root>
-    </ChoiceRow>
-  );
-});
+          {...control}
+        >
+          <CheckboxPrimitive.Indicator
+            className="flex items-center justify-center data-[unchecked]:hidden"
+            render={(indicatorProps, indicatorState) => (
+              <span {...indicatorProps}>
+                <Icon icon={indicatorState.indeterminate ? Minus : Check} size="xs" />
+              </span>
+            )}
+          />
+        </CheckboxPrimitive.Root>
+      </ChoiceRow>
+    );
+  }),
+  // Read by `FormField` (`@azmr/ui/rhf`), which binds `checked` and `onCheckedChange`.
+  { choiceControl: "checked" as const },
+);

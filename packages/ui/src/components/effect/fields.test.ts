@@ -41,6 +41,24 @@ describe("fieldFromSchema", () => {
     ],
     ["a boolean", "agree", Schema.Boolean, { label: "Agree", type: "boolean", required: true }],
     [
+      "an array of literals, as a multiselect",
+      "tags",
+      Schema.Array(Schema.Literals(["a", "b"])),
+      { label: "Tags", type: "multiselect", required: true, options: ["a", "b"] },
+    ],
+    [
+      "an optional array of literals",
+      "extras",
+      Schema.optional(Schema.Array(Schema.Literals(["x", "y"]))),
+      { label: "Extras", type: "multiselect", required: false, options: ["x", "y"] },
+    ],
+    [
+      "an array of strings, which is not a choice",
+      "notes",
+      Schema.Array(Schema.String),
+      { label: "Notes", type: "custom", required: true },
+    ],
+    [
       "literals, as the choices of an enum (numbers as strings)",
       "role",
       Schema.Literals(["admin", "user"]),
@@ -224,6 +242,7 @@ describe("fieldsFromSchema", () => {
         agree: Schema.Boolean,
         code: Schema.String.pipe(Schema.check(Schema.isMaxLength(5))),
         born: Schema.Date,
+        tags: Schema.Array(Schema.Literals(["a", "b"])),
       }),
     );
     const fromZod = zodFields(
@@ -235,6 +254,7 @@ describe("fieldsFromSchema", () => {
         agree: z.boolean(),
         code: z.string().max(5),
         born: z.date(),
+        tags: z.array(z.enum(["a", "b"])),
       }),
     );
     expect(fromEffect).toEqual(fromZod);

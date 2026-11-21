@@ -101,71 +101,75 @@ export type RadioGroupProps = GroupBase &
  * A group of radios, named by its legend. Pass `options`, or write the `Radio`s yourself: `options`
  * renders the same `Radio`s. Tab enters the group once; the arrow keys move and select.
  */
-export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(function RadioGroup(
-  {
-    description,
-    error,
-    required,
-    size,
-    orientation = "vertical",
-    value,
-    defaultValue,
-    onValueChange,
-    name,
-    disabled,
-    readOnly,
-    className,
-    options,
-    children,
-    ...rest
-  },
-  ref,
-) {
-  useWarnDuplicateValues(options, "RadioGroup");
-  const { label, ...aria } = rest as typeof rest & {
-    label?: ReactNode;
-    "aria-label"?: string;
-    "aria-labelledby"?: string;
-  };
-  return (
-    <ChoiceGroupShell
-      label={label}
-      description={description}
-      error={error}
-      required={required}
-      size={size}
-      orientation={orientation}
-      className={className}
-      group={({ describedBy, invalid }) => (
-        <RadioGroupPrimitive
-          ref={ref}
-          name={name}
-          value={value}
-          defaultValue={defaultValue}
-          onValueChange={onValueChange ? (next: string) => onValueChange(next) : undefined}
-          disabled={disabled}
-          readOnly={readOnly}
-          required={required}
-          // Only the props that are set: an explicit `undefined` would override the legend's
-          // `aria-labelledby`, which Base UI merges in.
-          {...(aria["aria-label"] ? { "aria-label": aria["aria-label"] } : {})}
-          {...(aria["aria-labelledby"] ? { "aria-labelledby": aria["aria-labelledby"] } : {})}
-          {...(describedBy ? { "aria-describedby": describedBy } : {})}
-          {...(invalid ? { "aria-invalid": true as const } : {})}
-        />
-      )}
-    >
-      {options
-        ? withUniqueKeys(options).map(([key, option]) => (
-            <Radio
-              key={key}
-              value={option.value}
-              label={option.label}
-              description={option.description}
-              disabled={option.disabled}
-            />
-          ))
-        : children}
-    </ChoiceGroupShell>
-  );
-});
+export const RadioGroup = Object.assign(
+  forwardRef<HTMLDivElement, RadioGroupProps>(function RadioGroup(
+    {
+      description,
+      error,
+      required,
+      size,
+      orientation = "vertical",
+      value,
+      defaultValue,
+      onValueChange,
+      name,
+      disabled,
+      readOnly,
+      className,
+      options,
+      children,
+      ...rest
+    },
+    ref,
+  ) {
+    useWarnDuplicateValues(options, "RadioGroup");
+    const { label, ...aria } = rest as typeof rest & {
+      label?: ReactNode;
+      "aria-label"?: string;
+      "aria-labelledby"?: string;
+    };
+    return (
+      <ChoiceGroupShell
+        label={label}
+        description={description}
+        error={error}
+        required={required}
+        size={size}
+        orientation={orientation}
+        className={className}
+        group={({ describedBy, invalid }) => (
+          <RadioGroupPrimitive
+            ref={ref}
+            name={name}
+            value={value}
+            defaultValue={defaultValue}
+            onValueChange={onValueChange ? (next: string) => onValueChange(next) : undefined}
+            disabled={disabled}
+            readOnly={readOnly}
+            required={required}
+            // Only the props that are set: an explicit `undefined` would override the legend's
+            // `aria-labelledby`, which Base UI merges in.
+            {...(aria["aria-label"] ? { "aria-label": aria["aria-label"] } : {})}
+            {...(aria["aria-labelledby"] ? { "aria-labelledby": aria["aria-labelledby"] } : {})}
+            {...(describedBy ? { "aria-describedby": describedBy } : {})}
+            {...(invalid ? { "aria-invalid": true as const } : {})}
+          />
+        )}
+      >
+        {options
+          ? withUniqueKeys(options).map(([key, option]) => (
+              <Radio
+                key={key}
+                value={option.value}
+                label={option.label}
+                description={option.description}
+                disabled={option.disabled}
+              />
+            ))
+          : children}
+      </ChoiceGroupShell>
+    );
+  }),
+  // Read by `FormField` (`@azmr/ui/rhf`), which binds `value` (one string) and `onValueChange`.
+  { choiceControl: "value" as const },
+);

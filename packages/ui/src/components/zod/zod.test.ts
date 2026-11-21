@@ -174,3 +174,38 @@ describe("fieldsFromSchema", () => {
     );
   });
 });
+
+describe("fieldsFromSchema: choice fields", () => {
+  const schema = z.object({
+    terms: z.boolean(),
+    plan: z.enum(["free", "pro"]),
+    tags: z.array(z.enum(["a", "b"])),
+    extras: z.array(z.enum(["x", "y"])).optional(),
+    notes: z.array(z.string()),
+    notify: z.boolean().meta({ control: "switch" }),
+  });
+  const byName = Object.fromEntries(fieldsFromSchema(schema).map((f) => [f.name, f]));
+
+  it("describes a boolean as boolean and an enum as enum with its options", () => {
+    expect(byName.terms).toMatchObject({ type: "boolean", required: true });
+    expect(byName.plan).toMatchObject({ type: "enum", options: ["free", "pro"] });
+  });
+
+  it("describes an array of an enum as multiselect, with the enum's options", () => {
+    expect(byName.tags).toMatchObject({ type: "multiselect", required: true, options: ["a", "b"] });
+    expect(byName.extras).toMatchObject({
+      type: "multiselect",
+      required: false,
+      options: ["x", "y"],
+    });
+  });
+
+  it("leaves an array of anything else as custom, with no options", () => {
+    expect(byName.notes).toMatchObject({ type: "custom" });
+    expect(byName.notes).not.toHaveProperty("options");
+  });
+
+  it("passes a control hint through meta, so a boolean can ask for a Switch", () => {
+    expect(byName.notify).toMatchObject({ type: "boolean", meta: { control: "switch" } });
+  });
+});

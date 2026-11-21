@@ -24,32 +24,36 @@ export type SwitchProps = PrimitiveProps &
  * An on/off switch with its label beside it. Space toggles it. It posts its `name` (with `value`,
  * default "on") only when it is on, like a checkbox.
  */
-export const Switch = forwardRef<HTMLElement, SwitchProps>(function Switch(
-  { size, description, error, className, required, disabled, ...rest },
-  ref,
-) {
-  // `label` is one arm of the `Named` union, so it is read off `rest` before the rest reaches Base UI.
-  const { label, ...control } = rest as typeof rest & { label?: ReactNode };
-  return (
-    <ChoiceRow
-      size={size}
-      kind="switch"
-      label={label}
-      description={description}
-      error={error}
-      required={required}
-      disabled={disabled}
-      className={className}
-    >
-      <SwitchPrimitive.Root
-        ref={ref}
+export const Switch = Object.assign(
+  forwardRef<HTMLElement, SwitchProps>(function Switch(
+    { size, description, error, className, required, disabled, ...rest },
+    ref,
+  ) {
+    // `label` is one arm of the `Named` union, so it is read off `rest` before the rest reaches Base UI.
+    const { label, ...control } = rest as typeof rest & { label?: ReactNode };
+    return (
+      <ChoiceRow
+        size={size}
+        kind="switch"
+        label={label}
+        description={description}
+        error={error}
         required={required}
         disabled={disabled}
-        className={cn(trackVariants({ size }), focusRing)}
-        {...control}
+        className={className}
       >
-        <SwitchPrimitive.Thumb className={thumbVariants({ size })} />
-      </SwitchPrimitive.Root>
-    </ChoiceRow>
-  );
-});
+        <SwitchPrimitive.Root
+          ref={ref}
+          required={required}
+          disabled={disabled}
+          className={cn(trackVariants({ size }), focusRing)}
+          {...control}
+        >
+          <SwitchPrimitive.Thumb className={thumbVariants({ size })} />
+        </SwitchPrimitive.Root>
+      </ChoiceRow>
+    );
+  }),
+  // Read by `FormField` (`@azmr/ui/rhf`), which binds `checked` and `onCheckedChange`.
+  { choiceControl: "checked" as const },
+);
