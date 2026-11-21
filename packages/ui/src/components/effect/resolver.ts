@@ -36,23 +36,36 @@ export function toFormIssues(issues: readonly StandardIssue[]): FormIssue[] {
 export function effectSchemaResolver<S extends Schema.Codec<unknown, FieldValues, never, never>>(
   schema: S,
 ): Resolver<S["Encoded"], unknown, S["Type"]> {
-  const decode = Schema.decodeUnknownEffect(schema);
-  const format = SchemaIssue.makeFormatterStandardSchemaV1();
   return async (values, _context, options) => {
-    const exit = await Effect.runPromiseExit(decode(values, { errors: "all" }));
-    if (Exit.isSuccess(exit)) return { values: exit.value as S["Type"], errors: {} };
-
-    const issues: StandardIssue[] = [];
-    for (const reason of exit.cause.reasons) {
-      if (Cause.isDieReason(reason)) throw reason.defect;
-      if (Cause.isFailReason(reason)) issues.push(...format(reason.error.issue).issues);
-    }
-    // Nothing to show: the run was interrupted, not invalid. Surface it rather than pass it as valid.
-    if (issues.length === 0) throw Cause.squash(exit.cause);
-
+    const decoded = await decodeForm(schema, values);
+    if (decoded.ok) return { values: decoded.value, errors: {} };
     return {
       values: {},
-      errors: issuesToFieldErrors<S["Encoded"]>(toFormIssues(issues), options.criteriaMode),
+      errors: issuesToFieldErrors<S["Encoded"]>(decoded.issues, options.criteriaMode),
     };
   };
+}
+
+/**
+ * Decodes `values` with every issue reported, awaiting effectful checks. Shared by the resolver and
+ * `parseFormData`. An exception inside a refinement is rethrown as thrown, and an interrupted run
+ * is surfaced, never passed off as valid or as a message to show.
+ */
+export async function decodeForm<S extends Schema.Codec<unknown, FieldValues, never, never>>(
+  schema: S,
+  values: unknown,
+): Promise<{ ok: true; value: S["Type"] } | { ok: false; issues: FormIssue[] }> {
+  const decode = Schema.decodeUnknownEffect(schema);
+  const format = SchemaIssue.makeFormatterStandardSchemaV1();
+  const exit = await Effect.runPromiseExit(decode(values, { errors: "all" }));
+  if (Exit.isSuccess(exit)) return { ok: true, value: exit.value as S["Type"] };
+
+  const issues: StandardIssue[] = [];
+  for (const reason of exit.cause.reasons) {
+    if (Cause.isDieReason(reason)) throw reason.defect;
+    if (Cause.isFailReason(reason)) issues.push(...format(reason.error.issue).issues);
+  }
+  // Nothing to show: the run was interrupted, not invalid. Surface it rather than pass it as valid.
+  if (issues.length === 0) throw Cause.squash(exit.cause);
+  return { ok: false, issues: toFormIssues(issues) };
 }

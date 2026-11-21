@@ -1,0 +1,60 @@
+{
+  "name": "@azmr/legal",
+  "version": "0.0.0",
+  "description": "Legal documents as data, with a drift check that keeps them honest against the code that uses them",
+  "type": "module",
+  "license": "MIT",
+  "author": "Alshafaraz Gazi <alshafaraz.gazi@gmail.com>",
+  "homepage": "https://platform.azmara.io/docs/packages/legal",
+  "bugs": {
+    "url": "https://github.com/azmara-labs/platform/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/azmara-labs/platform.git",
+    "directory": "packages/legal"
+  },
+  "keywords": [
+    "privacy",
+    "privacy-policy",
+    "legal",
+    "compliance",
+    "nz",
+    "azmara"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./azmara": {
+      "types": "./dist/azmara.d.ts",
+      "import": "./dist/azmara.js"
+    }
+  },
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup src/index.ts src/azmara.ts --format esm --dts --clean",
+    "dev": "tsup src/index.ts src/azmara.ts --format esm --dts --watch",
+    "check-types": "tsc --noEmit",
+    "test": "vitest run",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "tsup": "^9.0.0",
+    "typescript": "^5.7.3",
+    "vitest": "^5.1.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

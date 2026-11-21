@@ -183,7 +183,9 @@ describe("the navigation drawer below the breakpoint", () => {
     expect(dialog()).toBeNull();
     expect(shell.drawerOpen).toBe(false);
     expect(shell.mode).toBe("hidden");
-    expect(document.activeElement).toBe(toggle);
+    // Base UI hands focus back a tick after the dialog unmounts, so a slow CI machine can
+    // still show `body` for a moment.
+    await vi.waitFor(() => expect(document.activeElement).toBe(toggle));
     // Shrinking again does not reopen it.
     act(() => media.set(DESKTOP, false));
     expect(dialog()).toBeNull();

@@ -41,6 +41,42 @@ describe("fieldFromSchema", () => {
     ],
     ["a boolean", "agree", Schema.Boolean, { label: "Agree", type: "boolean", required: true }],
     [
+      "Schema.Literal(true), the usual 'must accept' schema, as a boolean",
+      "accept",
+      Schema.Literal(true),
+      { label: "Accept", type: "boolean", required: true },
+    ],
+    [
+      "a string literal, which is not a boolean",
+      "mode",
+      Schema.Literal("on"),
+      { label: "Mode", type: "custom", required: true },
+    ],
+    [
+      "an array of literals, as a multiselect",
+      "tags",
+      Schema.Array(Schema.Literals(["a", "b"])),
+      { label: "Tags", type: "multiselect", required: true, options: ["a", "b"] },
+    ],
+    [
+      "an optional array of literals",
+      "extras",
+      Schema.optional(Schema.Array(Schema.Literals(["x", "y"]))),
+      { label: "Extras", type: "multiselect", required: false, options: ["x", "y"] },
+    ],
+    [
+      "an array of strings, as a multiselect with no options",
+      "notes",
+      Schema.Array(Schema.String),
+      { label: "Notes", type: "multiselect", required: true },
+    ],
+    [
+      "an array of numbers, which is not a choice",
+      "counts",
+      Schema.Array(Schema.Number),
+      { label: "Counts", type: "custom", required: true },
+    ],
+    [
       "literals, as the choices of an enum (numbers as strings)",
       "role",
       Schema.Literals(["admin", "user"]),
@@ -160,7 +196,7 @@ describe("fieldFromSchema", () => {
   });
 
   it.each([
-    ["an array", Schema.Array(Schema.String)],
+    ["an array of numbers", Schema.Array(Schema.Number)],
     ["an unknown value", Schema.Unknown],
     ["a nested struct", Schema.Struct({ a: Schema.String })],
     ["a single literal", Schema.Literal("only")],
@@ -224,6 +260,8 @@ describe("fieldsFromSchema", () => {
         agree: Schema.Boolean,
         code: Schema.String.pipe(Schema.check(Schema.isMaxLength(5))),
         born: Schema.Date,
+        tags: Schema.Array(Schema.Literals(["a", "b"])),
+        notes: Schema.Array(Schema.String),
       }),
     );
     const fromZod = zodFields(
@@ -235,6 +273,8 @@ describe("fieldsFromSchema", () => {
         agree: z.boolean(),
         code: z.string().max(5),
         born: z.date(),
+        tags: z.array(z.enum(["a", "b"])),
+        notes: z.array(z.string()),
       }),
     );
     expect(fromEffect).toEqual(fromZod);

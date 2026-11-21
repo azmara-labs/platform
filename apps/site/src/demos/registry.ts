@@ -6,6 +6,9 @@ import ButtonIconButton from "./button/icon-button.demo";
 import ButtonIcons from "./button/icons.demo";
 import ButtonLoading from "./button/loading.demo";
 import ButtonVariants from "./button/variants.demo";
+import ChoiceBasic from "./choice/basic.demo";
+import ChoiceForm from "./choice/form.demo";
+import ChoiceGroups from "./choice/groups.demo";
 import CustomisingClassOverride from "./customising/class-override.demo";
 import CustomisingLinkAsButton from "./customising/link-as-button.demo";
 import CustomisingWrappedButton from "./customising/wrapped-button.demo";
@@ -111,6 +114,9 @@ export const demos = {
   "button/group": ButtonGroupBasic,
   "button/icon-button": ButtonIconButton,
   "button/variants": ButtonVariants,
+  "choice/basic": ChoiceBasic,
+  "choice/groups": ChoiceGroups,
+  "choice/form": ChoiceForm,
   "button/loading": ButtonLoading,
   "button/icons": ButtonIcons,
   "disclosure/accordion": AccordionBasic,

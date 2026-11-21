@@ -155,7 +155,7 @@ describe("fieldsFromSchema", () => {
         options: ["bronze", "silver", "gold"],
       },
       { name: "notes", label: "Notes", type: "text", required: false },
-      { name: "tags", label: "Tags", type: "custom", required: true },
+      { name: "tags", label: "Tags", type: "multiselect", required: true },
     ]);
   });
 
@@ -172,5 +172,48 @@ describe("fieldsFromSchema", () => {
     expect(fieldFromSchema("x", z.string().describe("Inner label").optional()).label).toBe(
       "Inner label",
     );
+  });
+});
+
+describe("fieldsFromSchema: choice fields", () => {
+  const schema = z.object({
+    terms: z.boolean(),
+    plan: z.enum(["free", "pro"]),
+    tags: z.array(z.enum(["a", "b"])),
+    extras: z.array(z.enum(["x", "y"])).optional(),
+    notes: z.array(z.string()),
+    notify: z.boolean().meta({ control: "switch" }),
+  });
+  const byName = Object.fromEntries(fieldsFromSchema(schema).map((f) => [f.name, f]));
+
+  it("describes a boolean as boolean and an enum as enum with its options", () => {
+    expect(byName.terms).toMatchObject({ type: "boolean", required: true });
+    expect(byName.plan).toMatchObject({ type: "enum", options: ["free", "pro"] });
+  });
+
+  it("describes an array of an enum as multiselect, with the enum's options", () => {
+    expect(byName.tags).toMatchObject({ type: "multiselect", required: true, options: ["a", "b"] });
+    expect(byName.extras).toMatchObject({
+      type: "multiselect",
+      required: false,
+      options: ["x", "y"],
+    });
+  });
+
+  it("describes an array of strings as multiselect with no options, and other arrays as custom", () => {
+    expect(byName.notes).toMatchObject({ type: "multiselect" });
+    expect(byName.notes).not.toHaveProperty("options");
+    const counts = fieldsFromSchema(z.object({ counts: z.array(z.number()) }))[0];
+    expect(counts).toMatchObject({ type: "custom" });
+  });
+
+  it("describes z.literal(true), the usual 'must accept' schema, as boolean", () => {
+    const f = fieldsFromSchema(z.object({ accept: z.literal(true), mode: z.literal("on") }));
+    expect(f[0]).toMatchObject({ name: "accept", type: "boolean" });
+    expect(f[1]).toMatchObject({ name: "mode", type: "custom" });
+  });
+
+  it("passes a control hint through meta, so a boolean can ask for a Switch", () => {
+    expect(byName.notify).toMatchObject({ type: "boolean", meta: { control: "switch" } });
   });
 });
