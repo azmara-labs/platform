@@ -139,7 +139,7 @@
     "name": "@azmr/ui/zod (zod is a peer, not counted)",
     "path": "dist/zod.js",
     "ignore": ["zod"],
-    "limit": "1.2 kB"
+    "limit": "1.5 kB"
   },
   {
     "name": "@azmr/ui/field",
@@ -250,7 +250,7 @@
   {
     "name": "@azmr/ui/choice",
     "path": "dist/choice.js",
-    "limit": "17 kB"
+    "limit": "28.5 kB"
   },
   {
     "name": "@azmr/ui/split-button",

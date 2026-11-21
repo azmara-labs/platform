@@ -18,6 +18,7 @@
     "form",
     "field-array",
     "toggle",
+    "choice",
     "---Data display---",
     "display",
     "table",

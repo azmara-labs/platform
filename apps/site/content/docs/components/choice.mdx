@@ -1,0 +1,118 @@
+---
+title: Choice controls
+description: Checkbox, CheckboxGroup, RadioGroup and Switch. Labels beside the control, descriptions and errors wired up, a 44px touch size, and booleans and arrays that reach your form and your server as real values. Built on Base UI.
+group: Inputs
+status: new
+since: 0.16.0
+interactive: true
+aliases: [checkbox, radio, radio group, switch, toggle, select all, indeterminate, tick box, boolean]
+---
+
+## Usage
+
+```tsx
+import { Checkbox, CheckboxGroup, Radio, RadioGroup, Switch } from "@azmr/ui/choice";
+```
+
+<Demo name="choice/basic" />
+
+`Checkbox` and `Switch` take a `label`, shown beside the control, and optionally a `description` under it, an `error`, and `required`. `checked` is a plain boolean and `onCheckedChange` gets a boolean. A control without a visible label needs an `aria-label` or `aria-labelledby`; the types insist on one of the three.
+
+The label is part of the click target, so clicking it toggles the control. Labels and descriptions are rendered as text: markup in them is shown, never run.
+
+### Indeterminate
+
+A checkbox that is neither ticked nor unticked, such as "select all" over a partial selection, takes the separate `indeterminate` prop. It is not `checked="indeterminate"`: `checked` stays a boolean, so it round-trips through a form. Clicking an indeterminate checkbox ticks it.
+
+## Groups
+
+<Demo name="choice/groups" />
+
+`RadioGroup` and `CheckboxGroup` are named by a legend (`label`) and take either `options`, an array of `{ value, label, description?, disabled? }`, or hand-written items for layouts `options` does not cover. `options` renders the same items you would write by hand, so the two behave identically. Give the group `options` or children, not both; the types enforce it. Only those four fields of an option are read.
+
+A `RadioGroup` value is one string; a `CheckboxGroup` value is an array of strings, and values the group does not know (a stale selection from a server) are kept when others are toggled. `orientation="horizontal"` lays the radios out in a row; every arrow key still moves between them.
+
+### Select all
+
+`CheckboxGroup` with `options` and `selectAllLabel` adds a "select all" checkbox first. It shows indeterminate while only some options are ticked, ticks all, and unticks all. It never changes a disabled option. With hand-written items, add a `<Checkbox parent label="…" />` and pass `allValues` (leave disabled values out).
+
+## Sizes and touch
+
+`size` is `sm`, `md` (the default, following the density tokens) or `lg`. `lg` makes the whole label row at least 44px tall, which is a comfortable touch target, without enlarging the visible box. Set `size` on a group and every item follows it; an item can set its own.
+
+## With react-hook-form
+
+`FormField` binds these controls for you. They are controlled fields: a checkbox or switch holds a boolean, a radio group one string, a checkbox group a string array, and a field with no value yet is unchecked, `""` or `[]`. The control shows its own label, description and error, so give those to the control (or to `FormField`, which passes them on).
+
+<Demo name="choice/form" />
+
+```tsx
+<FormField name="terms">
+  <Checkbox label="I accept the terms" />
+</FormField>
+```
+
+Use `z.literal(true)` (or a boolean with a `refine`) for a "must accept" box, and a `z.enum` or `z.array(z.enum(...))` for choices. In `fieldsFromSchema`, a boolean (or a `literal(true)`) is described as `boolean`, an enum as `enum`, and an array of an enum as `multiselect`, with `options`. A boolean field that should be a `Switch` can say so with `.meta({ control: "switch" })`, which arrives in `meta`.
+
+## Server-side validation
+
+The browser is not a trust boundary: anyone can post any values. Validate the post on the server with the same schema. A native form post is awkward for choice controls, since an unticked checkbox sends nothing and a group sends one key several times, so `parseFormData` reads the post for you.
+
+```ts
+// app/actions.ts
+"use server";
+import { parseFormData } from "@azmr/ui/zod"; // or "@azmr/ui/effect" with a Schema.Struct
+
+export async function save(formData: FormData) {
+  const result = await parseFormData(schema, formData);
+  if (!result.success) return { errors: result.errors };
+  await store(result.data); // typed, and every choice is one your schema allows
+}
+```
+
+`parseFormData` walks the schema's own fields, never the keys that were posted, so a key the schema does not declare (`isAdmin`, `__proto__`) is ignored. Because the schema checks the values, a plan or tag outside your `z.enum`, `terms=false`, or a repeated key on a single-value field fails here even though the browser would never send it. `formDataToValues(formData, fields)` is the first step on its own.
+
+| Field type | What `formDataToValues` gives the schema |
+|---|---|
+| `boolean` | `true` for exactly one entry equal to `"on"` or `"true"`; `false` when absent. Any other string, such as `"false"`, is passed through so the schema rejects it. |
+| `multiselect` | Every string entry for the name (files dropped); `[]` when there are none. |
+| `enum` and the rest | The single string; left out when absent or a file; an array when the key was posted more than once, so a single-value schema rejects it. |
+
+Numbers and dates reach the schema as the strings that were posted; use your schema to parse them. Top-level fields only: nested paths such as `address.city` are not read from a post.
+
+## Props
+
+<AutoTypeTable
+  path="../../packages/ui/src/components/choice/index.ts"
+  name="CheckboxDocProps"
+  type={`import type { CheckboxProps } from "./checkbox.js"
+export type CheckboxDocProps = Pick<CheckboxProps, "checked" | "defaultChecked" | "onCheckedChange" | "indeterminate" | "parent" | "value" | "name" | "description" | "error" | "required" | "disabled" | "readOnly" | "size" | "className">`}
+/>
+
+`Switch` takes the same props, minus `indeterminate`, `parent` and `value`'s group meaning. Each also needs a `label`, `aria-label` or `aria-labelledby`.
+
+<AutoTypeTable
+  path="../../packages/ui/src/components/choice/index.ts"
+  name="CheckboxGroupDocProps"
+  type={`import type { CheckboxGroupProps } from "./checkbox-group.js"
+export type CheckboxGroupDocProps = Pick<CheckboxGroupProps, "options" | "children" | "value" | "defaultValue" | "onValueChange" | "allValues" | "selectAllLabel" | "name" | "description" | "error" | "required" | "disabled" | "size" | "orientation" | "className">`}
+/>
+
+`RadioGroup` takes the same props except `allValues` and `selectAllLabel`; its `value`, `defaultValue` and `onValueChange` use one string, and it adds `readOnly`. `Radio` takes `value`, `label`, `description`, `disabled` and `size`.
+
+## Accessibility
+
+- A group is named by its legend, and `error` and `description` are its accessible description. `aria-invalid` and `aria-required` are set on a radio group, which allows them; a checkbox group has role `group`, which does not, so its error is read out as its description and its required marker sits on the legend.
+- Each item's `description` is its accessible description, and a required control gets `aria-required`. The red `*` is hidden from screen readers, which hear the required state instead.
+- Errors appear in a polite live region, so they are announced when they arrive.
+- `disabled` and `readOnly` controls ignore changes; a disabled option is skipped by the arrow keys.
+- The checked state is not shown by colour alone: a ticked checkbox draws a check, an indeterminate one a bar, and a radio a dot.
+
+<KeyboardMap
+  rows={[
+    { keys: ["Tab"], action: "Moves to the next checkbox or switch. A radio group is one stop: it lands on the selected radio, or the first." },
+    { keys: ["Space"], action: "Toggles the focused checkbox or switch, or selects the focused radio." },
+    { keys: ["ArrowDown", "ArrowRight"], action: "In a radio group, moves to the next radio and selects it, wrapping at the end." },
+    { keys: ["ArrowUp", "ArrowLeft"], action: "In a radio group, moves to the previous radio and selects it, wrapping at the start." },
+  ]}
+/>
