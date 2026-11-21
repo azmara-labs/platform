@@ -10,6 +10,8 @@ export type FieldType =
   | "date"
   | "boolean"
   | "enum"
+  /** An array of an enum: several of the choices, as a checkbox group. */
+  | "multiselect"
   | "custom";
 
 /**
@@ -26,7 +28,7 @@ export interface FieldDef<Name extends string = string> {
   /** `min` and `max` for numbers; the length limits for strings. */
   min?: number;
   max?: number;
-  /** The choices of a `z.enum`. */
+  /** The choices of an enum, or of an array of an enum. */
   options?: readonly string[];
   /** Anything else given to `.meta()`. */
   meta?: Record<string, unknown>;
