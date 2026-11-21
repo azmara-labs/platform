@@ -1,6 +1,6 @@
 {
   "name": "@azmr/legal",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Legal documents as data, with a drift check that keeps them honest against the code that uses them",
   "type": "module",
   "license": "MIT",
