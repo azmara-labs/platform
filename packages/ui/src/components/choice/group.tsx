@@ -13,12 +13,23 @@ import { FieldDescription, FieldError, FieldRoot } from "../field/field.js";
 import { hasError, RequiredMark } from "./row.js";
 import type { ChoiceOption, ChoiceSize } from "./types.js";
 
-const ChoiceSizeContext = createContext<ChoiceSize | undefined>(undefined);
+interface GroupContextValue {
+  size?: ChoiceSize;
+  /** The name every checkbox in a checkbox group posts under. */
+  name?: string;
+}
+
+/** `null` outside a group, so an item can tell whether it sits in one. */
+const ChoiceGroupContext = createContext<GroupContextValue | null>(null);
+
+export function useChoiceGroup(): GroupContextValue | null {
+  return useContext(ChoiceGroupContext);
+}
 
 /** An item's own size, else its group's, else `md`. */
 export function useChoiceSize(own?: ChoiceSize): ChoiceSize {
-  const group = useContext(ChoiceSizeContext);
-  return own ?? group ?? "md";
+  const group = useContext(ChoiceGroupContext);
+  return own ?? group?.size ?? "md";
 }
 
 /** What the shell computes for the group element it renders. */
@@ -36,6 +47,8 @@ export interface ChoiceGroupShellProps {
   required?: boolean;
   size?: ChoiceSize;
   orientation?: "horizontal" | "vertical";
+  /** Handed to the items that post under a shared name (checkboxes). Radios use Base UI's own. */
+  itemName?: string;
   className?: string;
   /** Builds the Base UI group (`RadioGroup`, `CheckboxGroup`) that the fieldset is rendered as. */
   group: (wiring: GroupWiring) => ReactElement;
@@ -55,6 +68,7 @@ export function ChoiceGroupShell({
   required,
   size,
   orientation = "vertical",
+  itemName,
   className,
   group,
   children,
@@ -67,7 +81,7 @@ export function ChoiceGroupShell({
       .filter(Boolean)
       .join(" ") || undefined;
   return (
-    <ChoiceSizeContext.Provider value={size}>
+    <ChoiceGroupContext.Provider value={{ size, name: itemName }}>
       <FieldRoot invalid={showError} className={cn("gap-0", className)}>
         <FieldsetPrimitive.Root
           render={group({ describedBy, invalid: showError, required: Boolean(required) })}
@@ -102,7 +116,7 @@ export function ChoiceGroupShell({
           </div>
         </FieldsetPrimitive.Root>
       </FieldRoot>
-    </ChoiceSizeContext.Provider>
+    </ChoiceGroupContext.Provider>
   );
 }
 
