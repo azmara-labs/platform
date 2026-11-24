@@ -41,6 +41,12 @@ pnpm changeset add
 - `@azmr/ai`, `@azmr/cli`, and `@azmr/site` are excluded from changesets
   versioning (internal app, or versioned manually) - don't add a changeset
   for changes scoped only to those.
+- `@azmr/legal` is excluded until its text is approved (its README says it is a
+  draft). Changesets does not version or publish a package listed in `ignore` in
+  `.changeset/config.json`. To hold any package back from a release, add it to
+  that list in a PR; to release it, remove it from the list and add a changeset.
+  Without this, every `Release` run on `main` tries to publish the unpublished
+  package and ends red.
 - Bump type: `patch` for fixes/internal changes, `minor` for new
   backward-compatible features, `major` for breaking changes. Everything
   is currently pre-1.0, so use judgement - a "breaking" change to a
@@ -67,9 +73,10 @@ refresh it.
 1. Read the diff: each package's `CHANGELOG.md` entry and the new version in its
    `package.json`. Check the bump matches the changes (pre-1.0: breaking changes
    ship as `minor`).
-2. Check that every package in the PR is ready to ship. There is no mechanism yet
-   for marking a package "not ready" (PAZM-153), so if one is not, stop and
-   remove its changeset on `main` first.
+2. Check that every package in the PR is ready to ship. A package that is not
+   ready belongs in the `ignore` list in `.changeset/config.json` (see
+   Changesets above), so it should not appear here at all. If one does, stop and
+   fix that on `main` first.
 3. Check that `Test & Lint` has run and passed on the PR. It is the only check
    the `main` ruleset requires, and the merge is blocked until it has run.
    `Changeset check` is skipped on this PR on purpose (`ci.yml` excludes the
