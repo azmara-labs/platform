@@ -49,6 +49,46 @@ pnpm changeset add
   until a separate "Version Packages" PR is merged, which is what
   actually triggers `npm publish`.
 
+## Releasing
+
+A release is merging the bot's "chore: version packages" PR (branch
+`changeset-release/main`). The `Release` workflow opens or updates that PR on
+every push to `main`, and publishes when it is merged.
+
+**Do not click "Update branch" on that PR.** The `Release` workflow owns the
+branch and force-pushes it. A manual update while a `Release` run is in flight
+makes that run's push fail (it showed as a red `Release` run on `main` on
+21 Nov 2026; nothing was published or lost). If the PR looks behind `main`, wait
+for the `Release` run triggered by the latest merge to finish and the bot will
+refresh it.
+
+### Before merging the Version Packages PR
+
+1. Read the diff: each package's `CHANGELOG.md` entry and the new version in its
+   `package.json`. Check the bump matches the changes (pre-1.0: breaking changes
+   ship as `minor`).
+2. Check that every package in the PR is ready to ship. There is no mechanism yet
+   for marking a package "not ready" (PAZM-153), so if one is not, stop and
+   remove its changeset on `main` first.
+3. Check that `Test & Lint` and `Changeset check` have run and passed on the PR.
+   Commits the bot pushes do not always start those checks (PAZM-151). If they
+   are missing, close and reopen the PR, then wait for them. The ruleset blocks
+   the merge until they have run.
+
+### After merging
+
+1. Open the `Release` run on `main` and wait for it to go green. It builds, runs
+   `changeset publish` with npm provenance, pushes the tags and creates the
+   GitHub releases.
+2. Confirm all three outputs for each package that was versioned:
+   - npm: `npm view @azmr/<name> version` shows the new version.
+   - Git tag: named like `@azmr/ui@0.16.0`.
+   - GitHub release: the Releases page has an entry with the same name.
+3. If npm shows the new version but the tag or release is missing, the publish
+   worked and only the follow-up step failed. Create the tag and release by hand
+   from the Version Packages commit (this is how 0.14.0 was backfilled). Do not
+   publish the same version twice.
+
 ## Package structure
 
 | Package | Published? |
