@@ -70,10 +70,13 @@ refresh it.
 2. Check that every package in the PR is ready to ship. There is no mechanism yet
    for marking a package "not ready" (PAZM-153), so if one is not, stop and
    remove its changeset on `main` first.
-3. Check that `Test & Lint` and `Changeset check` have run and passed on the PR.
-   Commits the bot pushes do not always start those checks (PAZM-151). If they
-   are missing, close and reopen the PR, then wait for them. The ruleset blocks
-   the merge until they have run.
+3. Check that `Test & Lint` has run and passed on the PR. It is the only check
+   the `main` ruleset requires, and the merge is blocked until it has run.
+   `Changeset check` is skipped on this PR on purpose (`ci.yml` excludes the
+   `changeset-release/main` branch), so do not wait for it. Commits the bot
+   pushed used to leave out the other checks as well (PAZM-151, fix merged
+   24 Nov 2026 but not yet proven on a real release). If `Test & Lint` is
+   missing, close and reopen the PR, then wait for it.
 
 ### After merging
 
