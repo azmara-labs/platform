@@ -57,7 +57,7 @@ Generic profile only; no project details live in this repository.
 
 ## 3. Principles
 
-1. **Own the API, borrow the engine.** Base UI, TanStack Table/Virtual, Recharts and react-day-picker do the hard behaviour; we own the public surface.
+1. **Own the API, borrow the engine.** Base UI, Recharts and react-day-picker do the hard behaviour; we own the public surface. The data grid is the exception: its engine is ours (D6), headless and framework-free.
 2. **Real DOM, real refs.** `ref` points at the actual element. No synthetic-event shims, no `inputComponent`-style indirection.
 3. **Accessible and secure by construction.** No `dangerouslySetInnerHTML`; hiding UI is never presented as authorization.
 4. **Composition for primitives, configuration for the dynamic layer only.**
@@ -89,7 +89,7 @@ Export map: `.` (barrel), `./styles.css`, per-component subpaths (`./button`, `.
 
 - **Dependencies:** `@base-ui/react` (1.9; renamed from `@base-ui-components/react`), `class-variance-authority`, `clsx`, `tailwind-merge`, `lucide-react`.
 - **Peer dependencies:** `react` and `react-dom` (`^18 || ^19`), **`@azmr/core`** (a peer, not a pinned dependency, which fixes PAZM-38: two copies of core break `Signal` typing and scheduler state), `tailwindcss ^4`.
-- **Optional peers** (installed only by apps that import the block): `@tanstack/react-table` 9, `@tanstack/react-virtual` 3, `recharts` 3, `react-day-picker` 10, `@date-fns/tz`, `motion`.
+- **Optional peers** (installed only by apps that import the block): `recharts` 3, `react-day-picker` 10, `@date-fns/tz`, `motion`.
 
 ### 4.3 Styling contract
 
@@ -178,7 +178,10 @@ Base UI is the primitive layer: shadcn's default since July 2026, and the engine
 
 ## 9. Data grid (Phase 4, L4)
 
-- **Engine:** TanStack Table v9 and TanStack Virtual (optional peers), wrapped in our tokens, motion and a11y.
+- **Engine:** our own headless engine (D6), no third-party grid or virtualisation dependency. The engine has no DOM or React in it: a serialisable query spec (typed filter clauses, multi-sort, quick search, paging) compiled against rows, plus state for selection, column order and visibility, and a row window for virtualisation. The React `DataGrid` is a thin binding over it, wrapped in our tokens, motion and a11y. The engine is framework-free so other bindings and server code can reuse it.
+- **Where it lives (proposal, open to correction):** the spec compiler (filter, sort, search, page, with a real `totalCount`) goes in `@azmr/query` as a new entry point, since it is the same array pipeline and fixes `@azmr/query` having no total count and no serialisable specs. Selection, column state and windowing go in a new headless package, `@azmr/grid-core`. `DataSource.getMany` (10.1) is the boundary between them and any server.
+- **Boundary kept narrow on purpose:** the engine takes plain rows and serialisable specs and returns plain rows and counts, so a Rust/WASM kernel could replace the hot path later without changing the public API. The spike (PAZM-158) gave no case for it: client-side work past about 100k rows is a server-side-paging case.
+- **Evidence (PAZM-158 spike, 23 Nov 2026, Node 24):** at 10k rows a sort or filtered page took 2 to 10 ms in the spike engine against 5 to 23 ms in TanStack Table v9; at 100k rows 14 to 135 ms against 112 to 468 ms. Gzip size 1.4 KB against 12.2 KB (table-core) plus 10.0 KB (virtual-core). The spike lacked selection, column state, a React binding and variable row heights, so part of that gap closes as those land.
 - **Server-side first:** `{ page, pageSize, sort[], filter, search }` map to the `DataSource`. A client-side mode serves small datasets.
 - **v1 features:** typed columns (text, number, money, date, boolean, enum chip, actions, custom); single and multi sort; column filters plus quick search; server pagination and virtual or infinite scrolling; column visibility and resizing; density; row selection (checkbox, shift-range) with a bulk-action bar; row actions; inline editing with commit and rollback and optimistic UI; loading, empty and error states; sticky header; CSV export and print view; URL-state sync (page, sort, filter); keyboard navigation; a responsive card mode on narrow screens.
 - **After v1:** column pinning, grouping, aggregation, tree data, master-detail, Excel export, saved views.
@@ -293,7 +296,7 @@ Team PAZM, project `@azmr/ui`: one **milestone per phase**; one issue per compon
 | D3 | Approach C: npm package primary, shadcn-compatible registry secondary | Single-fix upgrades plus an ownership escape hatch |
 | D4 | Base UI as the primitive layer, isolated in L2 | shadcn default since July 2026; MUI's own direction; swappable |
 | D5 | shadcn token names, Tailwind v4, CVA, `tailwind-merge` | Compatibility with the shadcn ecosystem |
-| D6 | TanStack Table v9 + Virtual for the grid; server-side first | Mature headless engine; matches observed usage |
+| D6 | Own headless TypeScript grid engine, server-side first (revised 24 Nov 2026, PAZM-158; replaces TanStack Table v9 + Virtual) | Packages stay headless, stable and free of a competitor's roadmap; spike showed it is small and faster than TanStack at 10k and 100k rows; narrow data-shaped boundary leaves room for a Rust/WASM kernel later |
 | D7 | Recharts 3 for charts, behind our wrappers | Default React charting; shadcn pattern; swappable |
 | D8 | Lucide default icons (ISC), optional Tabler (MIT), no wholesale `react-icons` | Permissive licences, tree-shaking, one clear API |
 | D9 | React Hook Form adapter first, Zod bridge, components form-library agnostic | Widely used; real refs make `register()` work |
@@ -355,7 +358,7 @@ Method: installed the package in a scratch project and read its `exports` map an
 | FileUpload, SignaturePad, RichTextEditor | Own implementation (rich text on a separate editor engine, chosen in its spike) |
 | Card, Badge/Chip, Alert, Skeleton, Spinner, EmptyState, Typography, Stack/Grid/Container | Plain styled elements, no behaviour needed |
 | Table (semantic), Breadcrumb, Pagination, Stepper | Plain semantic markup; Pagination logic reused by the grid |
-| Data grid | TanStack Table v9 + Virtual (Section 9) |
+| Data grid | Own headless engine (Section 9, D6) |
 | Charts | Recharts 3 (Section 11) |
 
 ### Consequences for the plan
